@@ -22,7 +22,7 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoPr
     const [_src, setSrc] = useState<string|undefined>(undefined)
     const rtspPlayer = useRef<RtspPlayer>()
     const videoRef = useRef<HTMLVideoElement>(null)
-    console.debug("src : ", src)
+    
     useEffect(() => {
         setSrc(src)
     },[src])

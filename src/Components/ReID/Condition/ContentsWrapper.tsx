@@ -77,7 +77,7 @@ const ContentsWrapper = () => {
     const disableCompleteBtn = (): boolean => {
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || !name || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
+                if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
                 return false;
                 // if (isRealTime) {
                 //     return !(targets.filter(_ => _.selected).length > 0 && cctv.filter(_ => _.selected).length > 0) || rtStatus === PROGRESS_STATUS['RUNNING']
@@ -131,7 +131,7 @@ const ContentsWrapper = () => {
                         type: 'REID',
                         params: [
                             {
-                                title: name,
+                                title: name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색",
                                 timeGroups: time.filter(_ => _.selected).map(_ => ({
                                     startTime: _.time[0],
                                     endTime: _.time[1]
@@ -139,7 +139,6 @@ const ContentsWrapper = () => {
                                 cctvIds: cctv.filter(_ => _.selected).map(_ => _.cctvList),
                                 rank,
                                 etc,
-
                                 objects: targets.filter(_ => _.selected).map(_ => ({
                                     id: _.objectId!,
                                     src: _.src,

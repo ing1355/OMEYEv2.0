@@ -31,7 +31,7 @@ type ConditionDataKeyType = {
 }
 
 export const createDefaultConditionData = (type: ReIDObjectTypeKeys): ConditionDataSingleType => ({
-    name: ReIDObjectTypes.find(_ => _.key === type)?.title + " 검색",
+    name: '',
     targets: [],
     cctv: [],
     time: [],

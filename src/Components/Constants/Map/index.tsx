@@ -122,7 +122,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [selectedCCTVs])
 
     useEffect(() => {
-        console.debug("pathCameras : ", pathCameras)
         if (forAddtraffic && pathCameras && pathCameras.length > 0) {
             map.current?.clearPathLines()
             map.current?.createPathLines(pathCameras, TextActivateColor)

@@ -2,7 +2,7 @@
   "name": "omeye_renewal",
   "version": "2.0(8)",
   "private": true,
-  "proxy": "https://omsecurity.kr:58082",
+  "proxy": "https://omsecurity.kr:58081",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
