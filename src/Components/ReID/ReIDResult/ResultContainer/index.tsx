@@ -1,33 +1,69 @@
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
-import { useEffect, useState } from "react"
-import { useRecoilState, useRecoilValue } from "recoil"
-import { ReIDResultData, SingleReIDSelectedData } from "../../../../Model/ReIdResultModel"
+import { useEffect, useRef, useState } from "react"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, SingleReIDSelectedData } from "../../../../Model/ReIdResultModel"
 import ImageView from "../../Condition/Constants/ImageView"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import CCTVNameById from "../../../Constants/CCTVNameById"
 import LazyVideo from "../LazyVideo"
-import { ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes"
+import { ReIDObjectTypeKeys, ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes"
+import { contextMenuVisible } from "../../../../Model/ContextMenuModel"
+import ForLog from "../../../Constants/ForLog"
+import { globalCurrentReIdId } from "../../../Layout/ReIDProgress"
+import { PROGRESS_STATUS, ProgressStatus } from "../../../../Model/ProgressModel"
+import { ObjectTypes } from "../../ConstantsValues"
 
 type ResultcontainerProps = {
     reidId: number
     visible: boolean
 }
 
+type ResultImageViewProps = {
+    data: ReIDResultDataResultListDataType
+    type: ReIDObjectTypeKeys
+}
+
+const ResultImageView = ({ data, type }: ResultImageViewProps) => {
+    const setContextMenuVisible = useSetRecoilState(contextMenuVisible)
+
+    return <ItemMediaContainer onContextMenu={(e) => {
+        e.preventDefault()
+        if(type === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) return;
+        const { innerWidth, innerHeight } = window
+        setContextMenuVisible({
+            left: e.clientX + 110 > innerWidth ? e.clientX - 110 : e.clientX + 10,
+            top: e.clientY,
+            data,
+            type
+        })
+    }}>
+        <ImageView src={data.imgUrl} />
+    </ItemMediaContainer>
+}
+
 const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
     const data = useRecoilValue(ReIDResultData(reidId))
-    const [selectedCondition, setSelectedCondition] = useState(0)
-    const [selectedTarget, setSelectedTarget] = useState<number>(data?.data[0].resultList[0].objectId || 0)
+    const [selectedCondition, setSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
+    const [selectedTarget, setSelectedTarget] = useState<number>(0)
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reidId))
+    const selectedView = useRecoilValue(ReIDResultSelectedView)
+    const progressStatus = useRecoilValue(ProgressStatus)
 
     useEffect(() => {
-        setSelectedTarget(data?.data[selectedCondition].resultList[0].objectId || 0)
-    },[selectedCondition])
+        console.debug("Resultcontainer data Change : ", data)
+    },[data])
     
+    useEffect(() => {
+        if (selectedView[0] === reidId) {
+            setSelectedTarget((data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
+        }
+    }, [selectedView, selectedCondition])
+
     return data ? <Container visible={visible}>
         <ConditionsContainer>
-            {data.data.map((_, ind) => <ConditionItem key={ind} activate={selectedCondition === ind} onClick={() => {
+            {data.data.map((_, ind) => <ConditionItem hover key={ind} activate={selectedCondition === ind} onClick={() => {
                 setSelectedCondition(ind)
             }}>
                 {_.title}
@@ -53,27 +89,34 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                     {_.etc}
                 </ResultDescriptionContainer>
                 <ResultListItemsContainer>
-                    {_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.map((__, _ind) => <TimeGroupContainer key={_ind}>
+                    {!_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.some(__ => Array.from(__.results).some(([key, val]) => val.length > 0)) && <NoDataContainer>
+                        {
+                            (globalCurrentReIdId === reidId && progressStatus.status === PROGRESS_STATUS['RUNNING']) ? <>
+                                현재 분석중입니다.
+                            </> : <>
+                                데이터가 존재하지 않습니다.
+                            </>
+                        }
+                    </NoDataContainer>}
+                    {_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.filter(__ => Array.from(__.results).some(([key, val]) => val.length > 0)).map((__, _ind) => <TimeGroupContainer key={_ind}>
                         <TimeGroupTitle>
                             {convertFullTimeStringToHumanTimeFormat(__.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(__.endTime)}
                         </TimeGroupTitle>
                         <TimeGroupContents>
                             {
-                                Object.keys(__.results).map((___, __ind) => <TimeGroupCCTVRow key={__ind}>
+                                Array.from(__.results).filter(([key, val]) => val.length > 0).map(([key, val]) => <TimeGroupCCTVRow key={key}>
                                     <TimeGroupCCTVRowTitle>
-                                        <CCTVNameById cctvId={Number(___)} />
+                                        <CCTVNameById cctvId={key} />
                                     </TimeGroupCCTVRowTitle>
                                     <TimeGroupCCTVRowContentsContainer>
-                                        {__.results[Number(___)].map((result, resultInd) => selectedData && <TimeGroupCCTVItemBox key={resultInd} selected={selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)}>
+                                        {val.map((result, resultInd) => <TimeGroupCCTVItemBox key={resultInd} selected={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
                                             <ItemMediasContainer>
+                                                <ResultImageView data={{ ...result, cctvId: key }} type={_.resultList.find(r => r.objectId === selectedTarget)?.objectType!} />
                                                 <ItemMediaContainer>
-                                                    <ImageView src={result.imageUrl} />
-                                                </ItemMediaContainer>
-                                                <ItemMediaContainer>
-                                                    <LazyVideo poster={result.frameImageUrl} src={result.searchCameraUrl} />
+                                                    <LazyVideo poster={result.frameImgUrl} src={result.searchCameraUrl} />
                                                 </ItemMediaContainer>
                                             </ItemMediasContainer>
-                                            <SelectBtn activate={selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
+                                            <SelectBtn hover activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] &&selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
                                                 if (selectedData) {
                                                     if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
                                                         setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
@@ -83,12 +126,12 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                     } else {
                                                         setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
                                                             ...sData,
-                                                            [selectedTarget]: sData[selectedTarget].concat({...result, cctvId: Number(___)})
+                                                            [selectedTarget]: sData[selectedTarget].concat({ ...result, cctvId: key })
                                                         } : sData))
                                                     }
                                                 }
                                             }}>
-                                                선택(유사율: {result.distance}%)
+                                                선택 (발견 시각: {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)} , {_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && `유사율: ${result.accuracy}%`})
                                             </SelectBtn>
                                         </TimeGroupCCTVItemBox>)}
                                     </TimeGroupCCTVRowContentsContainer>
@@ -189,14 +232,17 @@ const ResultListItemsContainer = styled.div`
 
 const TimeGroupContainer = styled.div`
     height: auto;
-    max-height: 600px;
+    max-height: 100%;
+    overflow: auto;
     &:not(:first-child) {
         margin-top: 8px;
     }
 `
 
 const TimeGroupTitle = styled.div`
-    height: 26px;
+    height: 48px;
+    font-size: 1.4rem;
+    font-weight: 700;
     ${globalStyles.flex()}
 `
 
@@ -214,6 +260,7 @@ const TimeGroupCCTVRowTitle = styled.div`
     height: 32px;
     background-color: ${ContentsBorderColor};
     border-radius: 12px;
+    font-size: 1.2rem;
     ${globalStyles.flex()}
 `
 
@@ -242,15 +289,24 @@ const ItemMediasContainer = styled.div`
 
 const ItemMediaContainer = styled.div`
     &:first-child {
-        flex: 0 0 35%;
+        flex: 0 0 50%;
     }
     &:nth-child(2) {
-        flex: 0 0 65%;
+        flex: 0 0 50%;
     }
+    border: 1px solid ${ContentsBorderColor};
     height: 100%;
 `
 
 const SelectBtn = styled(Button)`
     width: 100%;
     height: 28px;
+`
+
+const NoDataContainer = styled.div`
+    ${globalStyles.flex()}
+    height: 100%;
+    text-align: center;
+    font-size: 1.5rem;
+    line-height: 2rem;
 `

@@ -67,7 +67,7 @@ export default class RtspPlayer {
       }
     }).then(res => {
       if (res.data.includes("payload") || !this.webrtc) {
-        return console.log("request Fail!!");
+        return console.error("request Fail!!");
       }
       if (this.webrtc && this.webrtc.signalingState !== "closed") {
         this.webrtc.setRemoteDescription(
@@ -78,7 +78,7 @@ export default class RtspPlayer {
         );
       }
     }).catch(err => {
-      console.log('description err : ', err)
+      console.error('description err : ', err)
     })
   }
 
@@ -88,9 +88,7 @@ export default class RtspPlayer {
 
   videoErrorEventCallback(e: any) {
     if (e.target.error) {
-      // console.log(
-      //   "Error " + e.target.error.code + "; details: " + e.target.error.message
-      // );
+      
     }
   }
 
@@ -153,15 +151,17 @@ export default class RtspPlayer {
   }
 
   changeStream(uuid: string, el: HTMLVideoElement) {
-    this.uuid = uuid;
-    this.videoElement = el;
     switch (this.type) {
       case "webrtc":
         this.destroy();
+        this.uuid = uuid;
+        this.videoElement = el;
         this.startPlay();
         break;
       case "hls":
-        this.startPlay();
+        this.uuid = uuid;
+        this.videoElement = el;
+        this.startPlay(el);
         break;
       default:
         break;
@@ -169,15 +169,16 @@ export default class RtspPlayer {
     return this;
   }
 
-  async startPlay() {
-    if (!this.videoElement) {
-      return console.log("Video Element Is Not Exist");
+  async startPlay(el?: HTMLVideoElement) {
+    const element = this.videoElement || el
+    if (!element) {
+      return console.error("Video Element Is Not Exist");
     } else {
-      this.videoElement.addEventListener(
+      element.addEventListener(
         "loadeddata",
         this.loadeddataEventCallback
       );
-      this.videoElement.addEventListener("error", this.videoErrorEventCallback);
+      element.addEventListener("error", this.videoErrorEventCallback);
     }
     switch (this.type) {
       case "webrtc":
@@ -201,20 +202,20 @@ export default class RtspPlayer {
           "/channel/" +
           this.channel +
           "/hls/live/index.m3u8";
-        if (this.videoElement.canPlayType("application/vnd.apple.mpegurl")) {
-          this.videoElement.src = url;
-          this.videoElement.load();
+        if (element.canPlayType("application/vnd.apple.mpegurl")) {
+          element.src = url;
+          element.load();
         } else if (window.Hls && window.Hls.isSupported()) {
           this.hls = new window.Hls({ manifestLoadingTimeOut: 60000 });
           this.hls.loadSource(url);
-          this.hls.attachMedia(this.videoElement);
+          this.hls.attachMedia(element);
           this.hls.on("error", function (e: any) {
-            console.log(e);
+            console.error(e);
           });
-          this.videoElement.onprogress = this.HlsProgressEventCallback.bind(this)
-          this.videoElement.oncanplaythrough = this.HlsCanplaythroughEventcallback.bind(this)
+          element.onprogress = this.HlsProgressEventCallback.bind(this)
+          element.oncanplaythrough = this.HlsCanplaythroughEventcallback.bind(this)
         } else {
-          console.log("Your browser don`t support hls");
+          console.error("Your browser don`t support hls");
         }
         break;
       default:
@@ -233,7 +234,7 @@ export default class RtspPlayer {
 
   async handleNegotiationNeeded() {
     if (this.webrtc!.signalingState === "closed") {
-      console.log("can't make offer!!");
+      console.error("can't make offer!!");
       this.webrtc!.close();
       return;
     }

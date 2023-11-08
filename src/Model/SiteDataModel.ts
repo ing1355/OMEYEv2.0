@@ -4,16 +4,18 @@ import { CameraDataType, SiteDataType } from "../Constants/GlobalTypes";
 import { Axios } from "../Functions/NetworkFunctions";
 import { MakeVMSCameraSitesForTreeView } from "../Functions/GlobalFunctions";
 
-const _SitesData = atom<SiteDataType[]>({
-    key: "SiteData",
-    default: []
-})
-
-export const SitesData = selector<SiteDataType[]>({
+const _SitesData = selector<SiteDataType[]>({
     key: "SiteData/selector",
     get: async ({get}) => {
-        return await Axios("GET", GetAllSitesDataApi) as SiteDataType[] || []
+        const res = await Axios("GET", GetAllSitesDataApi) as SiteDataType[] || []
+        console.debug('Sites Data Get Success : ', res)
+        return res
     }
+})
+
+export const SitesData = atom<SiteDataType[]>({
+    key: "SiteData",
+    default: _SitesData
 })
 
 export const SitesDataForTreeView = selector({

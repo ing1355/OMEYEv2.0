@@ -16,11 +16,7 @@ const Menus = () => {
     const { routePush } = useConditionRoutes()
 
     useEffect(() => {
-        if (currentMenu) {
-            console.log("메인 메뉴 선택 : ", currentMenu)
-        } else {
-            console.log("메인 메뉴로 전환!")
-        }
+        console.debug("메인 메뉴 전환 : ", currentMenu)
     }, [currentMenu])
 
     useEffect(() => {

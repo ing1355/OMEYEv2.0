@@ -5,54 +5,49 @@ import TargetSelect from '../TargetSelect'
 import CCTVVideo from '../TargetSelect/CCTVVideo'
 import ImageUpload from '../TargetSelect/ImageUpload'
 import PersonDescription from '../TargetSelect/PersonDescription'
-import PersonDescriptionBoundarySelect from '../TargetSelect/PersonDescription/PersonDescriptionBoundarySelect'
-import PersonDescriptionResult from '../TargetSelect/PersonDescription/PersonDescriptionResult'
 
 export const ObjectTypeSelectRoute: ConditionRouteType = {
     key: 'OBJECTTYPESELECTROUTE',
+    title: "타입 설정",
     Component: <ObjectTypeSelect/>,
     pageNum: 0
 }
 export const ReIDConditionFormRoute: ConditionRouteType = {
     key: 'REIDCONDITIONFORMROUTE',
+    title: "조건 설정",
     Component: <ReIDConditionForm/>,
     pageNum: 1
 }
 export const ReIDConditionTargetSelectMethodRoute: ConditionRouteType = {
     key: 'REIDCONDITIONTARGETSELECTMETHODROUTE',
+    title: "대상 추가",
     Component: <TargetSelect/>,
     pageNum: 2
 }
 export const ReIDConditionTargetSelectCCTVRoute: ConditionRouteType = {
     key: 'REIDCONDITIONTARGETSELECTCCTVROUTE',
+    title: "CCTV로 선택",
     Component: <CCTVVideo/>,
     pageNum: 3
 }
 export const ReIDConditionTargetSelectImageRoute: ConditionRouteType = {
     key: 'REIDCONDITIONTARGETSELECTIMAGEROUTE',
+    title: "이미지로 선택",
     Component: <ImageUpload/>,
     pageNum: 3
 }
 export const ReIDConditionTargetSelectPersonDescriptionRoute: ConditionRouteType = {
     key: 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONROUTE',
+    title: "인상착의로 선택",
     Component: <PersonDescription/>,
-    pageNum: 3
-}
-export const ReIDConditionTargetSelectPersonDescriptionBoundaryRoute: ConditionRouteType = {
-    key: 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONBOUNDARYROUTE',
-    Component: <PersonDescriptionBoundarySelect/>,
-    pageNum: 3
-}
-export const ReIDConditionTargetSelectPersonDescriptionCompleteRoute: ConditionRouteType = {
-    key: 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONCOMPLETEROUTE',
-    Component: <PersonDescriptionResult/>,
     pageNum: 3
 }
 
 export type ConditionRouteType = {
-    key: 'OBJECTTYPESELECTROUTE' | 'REIDCONDITIONFORMROUTE' | 'REIDCONDITIONTARGETSELECTMETHODROUTE' | 'REIDCONDITIONTARGETSELECTCCTVROUTE' | 'REIDCONDITIONTARGETSELECTIMAGEROUTE' | 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONROUTE' | 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONBOUNDARYROUTE' | 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONCOMPLETEROUTE'
+    key: 'OBJECTTYPESELECTROUTE' | 'REIDCONDITIONFORMROUTE' | 'REIDCONDITIONTARGETSELECTMETHODROUTE' | 'REIDCONDITIONTARGETSELECTCCTVROUTE' | 'REIDCONDITIONTARGETSELECTIMAGEROUTE' | 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONROUTE'
     Component: ChildrenType
     pageNum: number
+    title: string
 }
 
 //8개
@@ -69,4 +64,4 @@ const createRouteInfo = (...routeInfo: ConditionRouteType[]) => {
 
 export const ConditionRouteInfo: {
     [key: string] : ConditionRouteType
-} = createRouteInfo(ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectPersonDescriptionRoute, ReIDConditionTargetSelectPersonDescriptionBoundaryRoute, ReIDConditionTargetSelectPersonDescriptionCompleteRoute)
+} = createRouteInfo(ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectPersonDescriptionRoute)

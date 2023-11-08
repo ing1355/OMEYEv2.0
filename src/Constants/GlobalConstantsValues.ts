@@ -1,3 +1,7 @@
+import { EventSourcePolyfill } from "event-source-polyfill"
+
+const EventSource = EventSourcePolyfill
+
 // Data Keys
 export const AuthorizationKey = 'Authorization'
 
@@ -13,6 +17,17 @@ export const ReIdMenuKey: ReIdMenuKeyType = 'REIDMENU'
 export const MonitoringMenuKey: MonitoringMenuKeyType = 'MONITORINGMENU'
 export const VideoExportMenuKey: VideoExportMenuKeyType = 'VIDEOEXPORTMENU'
 export const AreaAnalyzeMenuKey: AreaAnalyzeMenuKeyType = 'AREAANALAYZE'
+
+export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
+
+export const CustomEventSource = (url: string) => new EventSource(url, {
+    headers: {
+        Authorization: GetAuthorizationToken()!
+    },
+    heartbeatTimeout: 3600000
+})
+
+export const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 // Global Data Form
 

@@ -2,7 +2,7 @@ import styled from "styled-components"
 import { InputBackgroundColor, InputTextColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { conditionETCData, conditionIsRealTimeData, conditionRankData } from "../../../../Model/ConditionDataModel"
-import { useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Input from "../../../Constants/Input"
 import Button from "../../../Constants/Button"
 import { ConditionDataFormColumnTitleHeight } from "../../ConstantsValues"
@@ -11,42 +11,78 @@ import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHo
 import conditionDataMinusIcon from '../../../../assets/img/conditionDataMinusIcon.png'
 import conditionDataMinusHoverIcon from '../../../../assets/img/conditionDataMinusHoverIcon.png'
 
+const RankBtn = ({callback, hoverIcon, icon}: {
+    callback: () => void
+    hoverIcon: string
+    icon: string
+}) => {
+    const [isHover, setIsHover] = useState(false)
+
+    const timer1 = useRef<NodeJS.Timeout>()
+    const timer2 = useRef<NodeJS.Timer>()
+
+    const onLongClickProgress = (duration: number, callback: Function) => {
+        const _callback = () => {
+            timer2.current = setInterval(() => {
+                callback()
+            }, 50)
+        }
+        timer1.current = setTimeout(_callback, duration);
+        document.addEventListener('mouseup', mouseUpCallback, {
+            once: true
+        });
+    }
+
+    const mouseUpCallback = useCallback(() => {
+        clearTimeout(timer1.current)
+        clearInterval(timer2.current)
+    }, [])
+
+    return <RankInputButton
+        onMouseDown={(e) => {
+            callback()
+            onLongClickProgress(400, callback)
+        }}
+        onMouseEnter={() => {
+            setIsHover(true)
+        }}
+        onMouseLeave={() => {
+            setIsHover(false)
+        }}
+        icon={isHover ? hoverIcon : icon}
+    />
+}
+
 const RankComponent = () => {
     const [rank, setRank] = useRecoilState(conditionRankData)
-    const [isUpHover, setIsUpHover] = useState(false)
-    const [isDownHover, setIsDownHover] = useState(false)
+
+    const rankUpCallback = useCallback(() => {
+        setRank(_ => _ === 99 ? _ : _ + 1)
+    }, [])
+    const rankDownCallback = useCallback(() => {
+        setRank(_ => _ === 0 ? _ : _ - 1)
+    }, [])
+
     return <RankContainer>
         <TitleContainer>
             <Title>
-                후보 수
+                분석 결과 후보 수
             </Title>
         </TitleContainer>
         <RankInputContainer>
             <RankInputInnerContainer>
-                <RankInput maxLength={3} value={rank.toString()} onChange={value => {
+                <RankInput maxLength={3} onlyNumber maxNumber={100} value={rank.toString()} onChange={value => {
                     if (!value) {
                         return setRank(0)
                     }
                     setRank(parseInt(value))
                 }} onBlur={e => {
                     if (rank === 0) setRank(10)
-                }} />
+                }} autoComplete="off"/>
             </RankInputInnerContainer>
             <RankInputButtonsContainer>
-                <RankInputButton onClick={() => {
-                    setRank(_ => _ === 99 ? _ : _ + 1)
-                }} icon={isUpHover ? conditionDataAddHoverIcon : conditionDataAddIcon} onMouseEnter={() => {
-                    setIsUpHover(true)
-                }} onMouseLeave={() => {
-                    setIsUpHover(false)
-                }}/>
-                <RankInputButton onClick={() => {
-                    setRank(_ => _ === 1 ? _ : _ - 1)
-                }} onMouseEnter={() => {
-                    setIsDownHover(true)
-                }} onMouseLeave={() => {
-                    setIsDownHover(false)
-                }} icon={isDownHover ? conditionDataMinusHoverIcon : conditionDataMinusIcon}/>
+                <RankBtn icon={conditionDataAddIcon} hoverIcon={conditionDataAddHoverIcon} callback={rankUpCallback}/>
+                <RankBtn icon={conditionDataMinusIcon} hoverIcon={conditionDataMinusHoverIcon} callback={rankDownCallback}/>
             </RankInputButtonsContainer>
         </RankInputContainer>
     </RankContainer>
@@ -68,7 +104,7 @@ const ReIDDescriptionComponent = () => {
         }}>
             <DescriptionInput type="textarea" inputRef={inputRef} value={description} onChange={str => {
                 setDescription(str)
-            }} disabled={isRealTime} placeholder="설명을 입력해주세요. (100자 이내)"/>
+            }} disabled={isRealTime} placeholder="설명을 입력해주세요. (100자 이내)" />
         </DescriptionInputContainer>
     </DescriptionContainer>
 }
@@ -134,7 +170,7 @@ const RankInput = styled(Input)`
 
 const RankInputButtonsContainer = styled.div`
     flex: 0 0 25%;
-    ${globalStyles.flex({flexDirection:'row'})}
+    ${globalStyles.flex({ flexDirection: 'row' })}
 `
 
 const RankInputButton = styled(Button)`
@@ -142,6 +178,9 @@ const RankInputButton = styled(Button)`
     border: none;
     padding: 4px 6px;
     flex: 0 0 40px;
+    & > img {
+        pointer-events: none;
+    }
 `
 
 const DescriptionContainer = styled.div`
@@ -156,6 +195,7 @@ const DescriptionInputContainer = styled.div`
     padding: 12px 36px;
     cursor: pointer;
     background-color: ${SectionBackgroundColor};
+
 `
 
 const DescriptionInput = styled(Input)`

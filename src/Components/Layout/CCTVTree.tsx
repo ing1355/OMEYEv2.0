@@ -1,17 +1,23 @@
 import { useRecoilValue } from "recoil"
 import styled from "styled-components"
 import { SitesDataForTreeView } from "../../Model/SiteDataModel"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CameraDataType, SiteDataType } from "../../Constants/GlobalTypes"
 import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ContentsBorderColor, globalStyles } from "../../styles/global-styled"
 import CCTVIcon from '../../assets/img/treeCCTVIcon.png'
 import { ArrayDeduplication } from "../../Functions/GlobalFunctions"
 import CollapseArrow from "../Constants/CollapseArrow"
+import Button from "../Constants/Button"
+
+const nodeHeight = 36
+const depthPadding = 28
 
 type CCTVTreeProps = {
     selectedCCTVs: CameraDataType['cameraId'][]
     selectedChange: (targets: CameraDataType['cameraId'][]) => void
     singleTarget?: boolean
+    openedInit?: boolean
+    searchCCTVId?: CameraDataType['cameraId'][]
 }
 
 const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] => {
@@ -24,9 +30,19 @@ const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] =>
     }
 }
 
-const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget }: CCTVTreeProps) => {
+const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId }: CCTVTreeProps) => {
     const [opened, setOpened] = useState<SiteDataType['fullName'][]>([])
     const sitesData = useRecoilValue(SitesDataForTreeView)
+
+    useEffect(() => {
+        if (searchCCTVId && searchCCTVId[0]) {
+            selectedChange(ArrayDeduplication([...selectedCCTVs, searchCCTVId[0]]))
+        }
+    }, [searchCCTVId])
+
+    useEffect(() => {
+        if (openedInit) setOpened([])
+    }, [openedInit])
 
     const getSiteNodeHeight = (data: SiteDataType): number => {
         return nodeHeight + ((data.cameras && (data.cameras.length > 0)) ? (data.cameras.length * nodeHeight) : 0) + (data.sites && data.sites.length > 0 ? data.sites.reduce((pre, cur) => pre + getSiteNodeHeight(cur), 0) : 0)
@@ -38,13 +54,18 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget }: CCTVTreeProps
                 {
                     Array.from({ length: depth }).map((_, ind) => <DepthLine key={ind} bottom={hasBrother || (ind !== depth - 1)} right={(ind + 1) === depth} />)
                 }
-                <NodeItemContainer isSelected={selectedCCTVs.includes(data.cameraId)} onClick={() => {
+                <NodeItemContainer isSelected={selectedCCTVs.includes(data.cameraId)} onMouseDown={e => {
+                    e.stopPropagation()
+                }} onClick={(e) => {
+                    e.stopPropagation()
                     if (singleTarget) {
                         selectedChange([data.cameraId])
                     } else {
                         if (selectedCCTVs.includes(data.cameraId)) selectedChange(selectedCCTVs.filter(_ => _ !== data.cameraId))
                         else selectedChange(selectedCCTVs.concat(data.cameraId))
                     }
+                }} style={{
+                    maxWidth: `calc(100% - ${depth * depthPadding}px)`
                 }}>
                     <NodeIconContainer>
                         <img src={CCTVIcon} />
@@ -62,11 +83,15 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget }: CCTVTreeProps
                 {
                     Array.from({ length: depth }).map((_, ind) => <DepthLine key={ind} bottom={parentHasCameras} right={(ind + 1) === depth} />)
                 }
-                <NodeItemContainer isSelected={allCameraIds.some(_ => selectedCCTVs.includes(_))} onClick={() => {
-                    if (allCameraIds.every(_ => selectedCCTVs.includes(_))) selectedChange(selectedCCTVs.filter(_ => !allCameraIds.includes(_)))
-                    else selectedChange(ArrayDeduplication(selectedCCTVs.concat(allCameraIds)))
+                <NodeItemContainer isSelected={allCameraIds.some(_ => selectedCCTVs.includes(_))} onMouseDown={e => {
+                    e.stopPropagation()
+                }} onClick={(e) => {
+                    e.stopPropagation()
+                    if (opened.includes(data.fullName)) setOpened(opened.filter(_ => !_?.includes(data.fullName!)))
+                    else setOpened(opened.concat(data.fullName))
                 }} style={{
-                    paddingLeft: nodeHeight + 'px'
+                    paddingLeft: nodeHeight + 'px',
+                    paddingRight: !singleTarget ? '32px' : '0px'
                 }}>
                     <ArrowWrapper opened={opened.includes(data.fullName)} onClick={(e) => {
                         e.stopPropagation()
@@ -77,8 +102,17 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget }: CCTVTreeProps
                         {data.siteName}
                     </NodeTitleText>
                     <div>
-                        ({allCameraIds.filter(_ => selectedCCTVs.includes(_)).length})
+                        ({allCameraIds.filter(_ => selectedCCTVs.includes(_)).length}/{allCameraIds.length})
                     </div>
+                    <AllSelectBtn activate={allCameraIds.every(_ => selectedCCTVs.includes(_))} hover onMouseDown={e => {
+                        e.stopPropagation()
+                    }} onClick={e => {
+                        e.stopPropagation()
+                        if (allCameraIds.every(_ => selectedCCTVs.includes(_))) selectedChange(selectedCCTVs.filter(_ => !allCameraIds.includes(_)))
+                        else selectedChange(ArrayDeduplication(selectedCCTVs.concat(allCameraIds)))
+                    }}>
+                        전체 {allCameraIds.every(_ => selectedCCTVs.includes(_)) ? '해제' : '선택'}
+                    </AllSelectBtn>
                 </NodeItemContainer>
             </NodeContentsContainer>
             {data.sites && data.sites.length > 0 && data.sites.map(_ => createSiteNode(_, depth + 1, data.cameras && data.cameras.length > 0))}
@@ -92,9 +126,6 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget }: CCTVTreeProps
 }
 
 export default CCTVTree
-
-const nodeHeight = 36
-const depthPadding = 28
 
 const DepthLine = styled.div<{ bottom: boolean, right: boolean }>`
     flex: 0 0 ${depthPadding}px;
@@ -153,7 +184,7 @@ const NodeIconContainer = styled.div`
 const NodeItemContainer = styled.div<{ isSelected: boolean }>`
     border: 1px solid black;
     border-radius: 10px;
-    min-width: 100%;
+    width: 100%;
     padding: 0px 6px;
     cursor: pointer;
     color: white;
@@ -176,4 +207,11 @@ const ArrowWrapper = styled(CollapseArrow)`
     padding: 8px;
     width: ${nodeHeight}px;
     height: ${nodeHeight}px;
+`
+
+const AllSelectBtn = styled(Button)`
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translate(0, -50%);
 `

@@ -1,5 +1,5 @@
 import { useRecoilState } from "recoil"
-import { ConditionRouteType } from "../Constants/RouteInfo"
+import { ConditionRouteInfo, ConditionRouteType } from "../Constants/RouteInfo"
 import { conditionRoute } from "../../../../Model/ConditionRouteModel"
 
 const useConditionRoutes = () => {
@@ -18,7 +18,14 @@ const useConditionRoutes = () => {
         if (ind === -1) throw ""
         else setRoute(route.slice(0, ind + 1))
     }
-    return { routePush, routePop, routeJump }
+
+    const getRouteName = (key: ConditionRouteType['key']) => {
+        return ConditionRouteInfo[key].title
+    }
+
+    const getAllRoutes = () => route
+
+    return { routePush, routePop, routeJump, getRouteName, getAllRoutes, setRoute }
 }
 
 export default useConditionRoutes

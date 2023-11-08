@@ -35,23 +35,23 @@ const TimeBoundaryColumn = () => {
     const allSelectAction = () => {
         setTimeData(timeData.every(_ => _.selected) ? timeData.map(_ => ({ ..._, selected: false })) : timeData.map(_ => ({ ..._, selected: true })))
     }
-
+    
     return <>
         <Container>
             <ConditionParamsInputColumnComponent
-                title={`시간 그룹(${timeData.length})`}
+                title={`시간(${timeData.length})`}
                 isDataExist={timeData.length > 0}
                 initAction={initAction}
                 dataAddAction={addAction}
                 realtimeBtn={true}
-                noDataText="그룹 추가"
+                noDataText="시간 추가"
                 allSelectAction={allSelectAction}
                 allSelected={timeData.every(_ => _.selected)}>
                 {
                     timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false}>
                         <TimeDataItemTitle>
                             <div>
-                                시간 그룹 {ind + 1}
+                                시간 {ind + 1}
                             </div>
                             <HeaderBtnsContainer>
                                 <IconBtn disabled={isRealTime} type="edit" onClick={() => {
@@ -101,6 +101,7 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
 const ContentsContainer = styled.div`
     flex: 1;
     padding: 28px 0;
+    text-align: center;
     ${globalStyles.flex()}
 `
 

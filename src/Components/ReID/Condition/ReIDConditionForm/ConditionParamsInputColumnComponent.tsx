@@ -6,7 +6,7 @@ import { conditionIsRealTimeData } from '../../../../Model/ConditionDataModel';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { ConditionDataFormColumnTitleHeight } from '../../ConstantsValues';
 import resetIcon from '../../../../assets/img/resetIcon.png'
-import resetDisabledIcon from '../../../../assets/img/resetDisabledIcon.png'
+import resetHoverIcon from '../../../../assets/img/resetHoverIcon.png'
 import conditionDataAddIcon from '../../../../assets/img/conditionDataAddIcon.png'
 import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHoverIcon.png'
 import realtimeIcon from '../../../../assets/img/realtimeIcon.png'
@@ -22,6 +22,7 @@ type ConditionParamsInputColumnComponentProps = PropsWithChildren<{
     allSelected: boolean
     realtimeBtn?: boolean
     dataAddDelete?: boolean
+    disableAllSelect?: boolean
 }>
 
 const NoDataComponent = ({ txt, hover, isTime }: {
@@ -45,10 +46,13 @@ const NoDataComponent = ({ txt, hover, isTime }: {
     </NoDataContainer>
 }
 
-const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected }: ConditionParamsInputColumnComponentProps) => {
+const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected, disableAllSelect }: ConditionParamsInputColumnComponentProps) => {
     const [isRealTime, setIsRealTime] = useRecoilState(conditionIsRealTimeData)
+    const [clearHover, setClearHover] = useState(false)
     const [isHover, setIsHover] = useState(false)
 
+    const resetIconByHover = clearHover ? resetHoverIcon : resetIcon
+    
     return <>
         <TitleContainer>
             <Title>
@@ -62,7 +66,13 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                     concept="icon"
                     disabled={!isDataExist && !(realtimeBtn && isRealTime)}
                     onClick={initAction}
-                    icon={(!isDataExist && !(realtimeBtn && isRealTime)) ? resetDisabledIcon : resetIcon} />
+                    onMouseEnter={() => {
+                        setClearHover(true)
+                    }}
+                    onMouseLeave={() => {
+                        setClearHover(false)
+                    }}
+                    icon={resetIconByHover} />
             </ButtonsContainer>
         </TitleContainer>
         <DataContainer
@@ -94,9 +104,9 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                 }} disabled={(realtimeBtn || false) && isRealTime}>
                     <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
                 </DataExistAndAddComponent>}
-                <AllSelectBtn onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
+                {!disableAllSelect && <AllSelectBtn onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
                     전체 선택 {allSelected && '해제'}
-                </AllSelectBtn>
+                </AllSelectBtn>}
                 {children}
             </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />}
         </DataContainer>
@@ -132,11 +142,9 @@ const DataExistAndAddComponent = styled.div<{ disabled: boolean }>`
     text-align: center;
     cursor: pointer;
     ${globalStyles.flex()}
-    ${({ disabled }) => !disabled ? `&:hover {
-        background-color: rgba(128,128,128,.5);
-    }` : `
+    ${({ disabled }) => disabled && `&:hover {
         cursor: default;
-    `}
+    }`}
 `
 
 const TitleContainer = styled.div`
@@ -160,6 +168,7 @@ const NoDataText = styled.div`
 const NoDataAddIcon = styled.img`
     height: 30%;
     max-height: 120px;
+    pointer-events: auto;
 `
 
 const NoDataContainer = styled.div`

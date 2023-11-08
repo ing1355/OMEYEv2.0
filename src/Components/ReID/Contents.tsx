@@ -4,14 +4,17 @@ import { ReIDMenuItems } from "./MenuItems"
 import { useRecoilValue } from "recoil"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
 import { SidebarWidth } from "../../Constants/CSSValues"
+import { Suspense } from "react"
 
 const Contents = () => {
     const currentMenu = useRecoilValue(conditionMenu)
-    
+
     return <ContentsContainer>
         {
             ReIDMenuItems.map(_ => <ReIDContentsWrapper key={_.key} selected={currentMenu === _.key}>
-                <_.Component/>
+                <Suspense fallback={<div>Loading...</div>}>
+                    <_.Component />
+                </Suspense>
             </ReIDContentsWrapper>)
         }
     </ContentsContainer>
@@ -26,7 +29,7 @@ const ContentsContainer = styled.div`
     width: calc(100% - ${SidebarWidth - 60}px);
 `
 
-const ReIDContentsWrapper = styled.div<{selected: boolean}>`
+const ReIDContentsWrapper = styled.div<{ selected: boolean }>`
     height: 100%;
-    ${({selected}) => globalStyles.displayNoneByState(!selected)}
+    ${({ selected }) => globalStyles.displayNoneByState(!selected)}
 `

@@ -3,28 +3,24 @@ import Login from './Components/Login';
 import Main from './Components/Main';
 import styled from 'styled-components';
 import { globalStyles } from './styles/global-styled';
-import { useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { isLogin } from './Model/LoginModel';
 import Layout from './Components/Layout';
 import ErrorHandleComponent from './ErrorHandleComponent';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
 
-// console.log(Array.from({length: 6000}).map((_,ind) => {
-//   return `('testCamera${ind}', '99', ${37.856993 + ((ind * (-1)**ind) / 10000) + (Math.random() * ((-1)**ind))}, ${126.866792 + ((ind * (-1)**ind) / 10000) + (Math.random() * ((-1)**ind))}, 'rtsp://admin:admin@naiz.re.kr:554/13/stream1', 'admin:admin@naiz.re.kr:80', '80', 'VMS', '2023-07-10 19:00:50', null, null, 'naiz.re.kr:8002', 'admin', 'admin')`
-// }).join(','))
-
-// console.log(Array.from({length: 6000}).map((_,ind) => {
-//   return `(278, ${43127 + ind})`
-// }).join(','))
-
-const preventTabKeyCallback = (e: KeyboardEvent) => {
-  if(e.key === 'Tab') e.preventDefault()
+type ServerErrorDataType = {
+  code: number
+  errorCode: string
+  extraData: any
+  message: string
+  success: boolean
 }
 
 const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
-  switch(code) {
+  switch (code) {
     case 502:
       return '서버 접속 불가'
     case 500:
@@ -38,32 +34,32 @@ const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
 }
 
 const App = () => {
-  const loginState = useRecoilValue(isLogin)
-  const message = useMessage()
-  useEffect(() => {
-    if(loginState) {
-      window.addEventListener('keydown', preventTabKeyCallback)
-    } else {
-      window.removeEventListener('keydown', preventTabKeyCallback)
-    }
-  },[loginState])
+  const [loginState, setLoginState] = useRecoilState(isLogin)
+  const [handlerComplete, setHandlerComplete] = useState(false)
+  const _message = useMessage()
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     axios.interceptors.response.use(res => {
       return res;
     }, err => {
-      if(err.response) {
-        const {status, data} = err.response
-        message.error({
-          title: serverErrorTitleByStatusCode(err.response.status),
-          msg: status !== 502 ? (data.errorCode || err.message) : '서버 상태를 확인해주세요.'
+      console.error(err)
+      if (err.response) {
+        const { status, data } = err.response
+        const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
+        _message.error({
+          title: serverErrorTitleByStatusCode(status),
+          msg: status !== 502 ? (errorCode || message) : '서버 상태를 확인해주세요.'
         })
+        if(code === 401 || status === 502) {
+          setLoginState(null)
+        }
       }
       return Promise.reject(err)
     })
-  },[])
-  
-  return (<ErrorHandleComponent>
+    setHandlerComplete(true)
+  }, [])
+
+  return handlerComplete ? <ErrorHandleComponent>
     <MainContainer>
       {
         loginState ? <Layout>
@@ -71,8 +67,7 @@ const App = () => {
         </Layout> : <Login />
       }
     </MainContainer>
-  </ErrorHandleComponent>
-  );
+  </ErrorHandleComponent> : <></>;
 }
 
 export default App;

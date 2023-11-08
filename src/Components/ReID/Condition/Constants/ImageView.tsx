@@ -18,7 +18,9 @@ const ImageWithRetry = forwardRef<HTMLImageElement, ImageViewProps>((props, ref)
         setImageSrc(props.src)
     }, [props.src])
 
-    return <ImageContent width={imageSrc === noImage ? "50%" : "100%"} height={"100%"} ref={ref} {...props} src={imageSrc} onError={() => {
+    return <ImageContent width={imageSrc === noImage ? "50%" : "100%"} height={"100%"} ref={ref} {...props} style={{
+        ...props.style
+    }} src={imageSrc} onError={() => {
         if (imageSrc !== noImage) {
             setRetryCount(retryCount + 1)
             setImageSrc(noImage)
@@ -40,13 +42,20 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
         document.body.removeChild(fullScreenRef.current!);
     }, [])
 
-    return <ImageContainer isSrc={src !== undefined} onMouseOver={(e) => {
+    return <ImageContainer 
+    isSrc={src !== undefined} 
+    onMouseOver={(e) => {
         e.stopPropagation()
-    }} className={className} style={{
+    }}
+    onMouseEnter={e => {
+        e.stopPropagation()
+    }}
+    className={className} style={{
         width: src === undefined ? '50%' : '100%',
         height: src === undefined ? '50%' : '100%',
         ...style
-    }} onClick={(e) => {
+    }} 
+    onClick={(e) => {
         e.stopPropagation()
         if (src) {
             const _ref = ref as any
@@ -62,9 +71,12 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
             fullscreenImage.style.backgroundColor = 'rgba(0,0,0,.3)';
             fullscreenImage.style.cursor = 'zoom-out';
             fullscreenImage.style.userSelect = 'none'
+            fullscreenImage.style.pointerEvents = 'auto';
             document.body.appendChild(fullscreenImage);
             fullscreenImage.addEventListener('click', exitFullscreen)
         }
+    }} onContextMenu={(e) => {
+        e.preventDefault()
     }}>
         <ImageWithRetry ref={ref || imgRef} src={src || noImage} onLoad={onLoad} />
         {children}
@@ -76,6 +88,7 @@ export default ImageView
 const ImageContainer = styled.div<{ isSrc: boolean }>`
     ${({ isSrc }) => isSrc && 'cursor: zoom-in;'}
     position: relative;
+    z-index: 1001;
     ${globalStyles.flex()}
 `
 

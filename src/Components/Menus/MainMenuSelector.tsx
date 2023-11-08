@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { globalStyles } from "../../styles/global-styled"
+import { TextActivateColor, globalStyles } from "../../styles/global-styled"
 import Button from "../Constants/Button"
 import { useSetRecoilState } from "recoil"
 import { menuState } from "../../Model/MenuModel"
@@ -31,6 +31,9 @@ const Item = styled(Button)`
     height: 50%;
     border: 1px solid black;
     ${globalStyles.flex({flexDirection:'column', gap: '16%'})}
+    &:hover {
+        border: 1px solid ${TextActivateColor};
+    }
 `
 
 const Icon = styled.img`

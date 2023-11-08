@@ -3,8 +3,8 @@ import { globalStyles } from "../../../../../styles/global-styled"
 import { useEffect, useState } from "react"
 import ImageDetailContainer from "./ImageDetailContainer"
 import ImageListContainer from "./ImageListContainer"
-import { useSetRecoilState } from "recoil"
-import { conditionTargetDatasImageTemp } from "../../../../../Model/ConditionDataModel"
+import { useRecoilValue, useSetRecoilState } from "recoil"
+import { conditionTargetDatasImageTemp, selectedConditionObjectType } from "../../../../../Model/ConditionDataModel"
 
 export type ImageUploadImagesType = {
     name: string
@@ -18,11 +18,16 @@ export type ImageUploadImagesType = {
 const ImageUpload = () => {
     const [images, setImages] = useState<ImageUploadImagesType[]>([])
     const [selected, setSelected] = useState<number | null>(null)
+    const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const setImageDatasTemp = useSetRecoilState(conditionTargetDatasImageTemp)
     
     useEffect(() => {
         setImageDatasTemp([])
     },[selected])
+
+    useEffect(() => {
+        setSelected(null)
+    },[currentObjectType])
 
     return <Container noData={images.length === 0}>
         <ImageListContainer images={images} setImages={setImages} selected={selected} setSelected={setSelected} />

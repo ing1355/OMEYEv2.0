@@ -1,8 +1,12 @@
 import styled, { CSSProperties } from "styled-components"
 import { PropsWithChildren, useCallback, useEffect } from "react"
-import { GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import ModalCloseIcon from '../../../../assets/img/modalCloseIcon.png'
+import { useRecoilValue } from "recoil"
+import { conditionMenu } from "../../../../Model/ConditionMenuModel"
+import { conditionRoute } from "../../../../Model/ConditionRouteModel"
+import { menuState } from "../../../../Model/MenuModel"
 
 type DataSelectModalProps = PropsWithChildren<{
     visible: boolean
@@ -11,12 +15,21 @@ type DataSelectModalProps = PropsWithChildren<{
     title: string
     className?: string
     width?: CSSProperties['width']
+    half?: boolean
 }>
 
-const DataSelectModal = ({ visible, children, title, className, width, close, complete }: DataSelectModalProps) => {
-    const escCallback = useCallback(() => {
-        if(close) close()
+const DataSelectModal = ({ visible, children, title, className, width, close, complete, half }: DataSelectModalProps) => {
+
+    const c_menu = useRecoilValue(conditionMenu)
+    const c_route = useRecoilValue(conditionRoute)
+    const menu = useRecoilValue(menuState)
+
+    const escCallback = useCallback((e: KeyboardEvent) => {
+        if(e.key === 'Escape') {
+            if(close) close()
+        }
     },[])
+
     useEffect(() => {
         if(visible) {
             document.addEventListener('keydown', escCallback)
@@ -25,7 +38,11 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
         }
     },[visible])
 
-    return <Background visible={visible}>
+    useEffect(() => {
+        close()
+    },[c_menu, c_route, menu])
+    
+    return <Background visible={visible} half={half || false}>
         <Rest onClick={() => {
             close()
         }} />
@@ -37,11 +54,11 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
                     <Title>
                         {title}
                     </Title>
-                    <Complete onClick={complete}>
-                        저장
+                    <Complete onClick={complete} tabIndex={-1} activate>
+                        선택
                     </Complete>
                 </TitleContainer>
-                <Back onClick={close}>
+                <Back onClick={close} tabIndex={-1}>
                     <img src={ModalCloseIcon} style={{
                         height: '28px'
                     }} />
@@ -56,18 +73,19 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
 
 export default DataSelectModal
 
-const Background = styled.div<{ visible: boolean }>`
+const Background = styled.div<{ visible: boolean, half: boolean }>`
     position: absolute;
     width: 100%;
     height: 100%;
     top: 0;
     background-color: transparent;
-    z-index: 9999;
-    transition: right .25s ease-out;
-    ${({ visible }) => ({
-        right: visible ? 0 : '-100%'
-    })}
+    z-index: 9000;
+    transition: all .25s ease-out;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
+    ${({ visible, half }) => ({
+        right: visible ? (half ? 24 : 0) : '-100%',
+        visibility: visible ? 'visible' : 'hidden'
+    })}
 `
 
 const Rest = styled.div`

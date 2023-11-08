@@ -1,10 +1,9 @@
 import CryptoJS from "crypto-js";
 import { SavedJSONType, SiteDataType } from "../Constants/GlobalTypes";
-import { ReIDLogDataType } from "../Model/ReIDLogModel";
-import { GetReIDResultById } from "./NetworkFunctions";
+import { ReIDRequestGroupDataType } from "../Model/ReIDLogModel";
 import { ConditionDataSingleType } from "../Model/ConditionDataModel";
-import { ReIDObjectTypeKeys } from "../Components/ReID/ConstantsValues";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
+import html2canvas from "html2canvas";
 
 export function ArrayDeduplication<T>(array: Array<T>, func?: (data1: T, data2: T) => boolean) {
     return array.filter((v, i) => (func ? array.findIndex(_ => func(v, _)) : array.indexOf(v)) === i)
@@ -135,96 +134,53 @@ export function VMSTest(sitesData: SiteDataType[]): SiteDataType[] {
     return firstDepthSites
 }
 
-function VMSTest2() {
-
-}
-
 export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string => {
     return src.substring(src.indexOf(",") + 1)
 }
 
-// export const CreateDataManagerDownloadData = ({ row }: {
-//     row: ReIDLogDataType
-// }) => {
-//     Axios()
-//     CustomAxiosGet(GetReidDataApi(row.reidId), (reIdResult: GetReidDataApiResponseType) => {
-//         const { resultList, rank, description } = reIdResult;
-//         result['targetImage'] = resultList.map((res) => {
-//             const { object } = res;
-//             return {
-//                 type: object.type,
-//                 img: object.imgUrl
-//             }
-//         })
-//         result['objectIds'] = resultList.map((res) => res.object.objectId);
-//         result['reIdInput'] = {
-//             description,
-//             rank
-//         }
-//         if (!FailType.includes(reIdResult.status)) {
-//             result['reIdIndex'] = row.reidId;
-//         } else {
-//             const { cameras } = reIdResult;
-//             const _timeTemp = cameras.reduce((acc, cur) => {
-//                 const result = {
-//                     startTime: cur.startTime,
-//                     endTime: cur.endTime
-//                 };
-//                 return acc.find((a, ind) => ind === cur.groupId) ? acc : [...acc, result]
-//             }, [] as Array<{
-//                 startTime: string
-//                 endTime: string
-//             }>)
-//             const timeGroupTemp = Array.from({ length: _timeTemp.length }).map((_, ind) => {
-//                 return [_timeTemp[ind].startTime, _timeTemp[ind].endTime]
-//             })
-//             const _selectedFeature = timeGroupTemp.map((tg, ind) => ArrayDeduplication(cameras.filter((camera) => camera.groupId === ind).map((camera) => camera.cameraId)))
-//             result['selectedFeature'] = _selectedFeature
-//             result["timeGroup"] = timeGroupTemp
-//         }  
-//         FileCreateAndDownload(e, result);
-//     })
-// }
-
-export async function ReIDLogDataDownload(type: ReIDObjectTypeKeys, id: ReIDLogDataType['reidId']) {
-    const result = await GetReIDResultById(id)
-    let _: SavedJSONType = {
-        selectedType: type
+export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
+    let _: ConditionDataSingleType = {
+        name: data.title,
+        etc: data.etc,
+        rank: data.rank,
+        cctv: data.cameraGroups.map(_ => ({
+            selected: false,
+            cctvList: _
+        })),
+        time: data.timeGroups.map(_ => ({
+            selected: false,
+            time: [_.startTime, _.endTime]
+        })),
+        targets: data.targetObjects.map(_ => ({
+            id: 0,
+            objectId: _.id,
+            type: _.type,
+            src: _.imgUrl,
+            method: 'JSONUPLOAD',
+            ocr: _.ocr
+        })),
+        isRealTime: false
     }
-    // let temp: ConditionDataSingleType = {
-    //     name: result.description,
-    //     etc: result.description,
-    //     cctv: [],
-    //     targets: [],
-    //     time: [],
-    //     rank: result.rank,
-    //     isRealTime: false
-    // }
-    // switch(type) {
-    //     case 'Face': _['Face'] = temp; break;
-    //     case 'Person': _['Person'] = temp; break;
-    //     case 'car_plate': _['car_plate'] = temp; break;
-    //     default: break;
-    // }
-    DownloadMultiConditionJsonData(_)
+    DownloadSingleConditionJsonData(_)
 }
 
-export function UploadSingleConditionJsonData(callback?: (jsonData: JSON) => void) {
+export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataSingleType) => void, errCallback?: (error: unknown) => void) {
     const upload = document.createElement('input')
     upload.type = "file"
     upload.accept = ".json"
     upload.hidden = true
     upload.onchange = (e) => {
         const file = (e.currentTarget as HTMLInputElement)?.files?.[0];
-        if(file) {
+        if (file) {
             const reader = new FileReader()
             reader.onload = (event: ProgressEvent<FileReader>) => {
                 try {
                     const fileContent = event.target?.result as string
                     const jsonData = JSON.parse(fileContent)
-                    if(callback) callback(jsonData)
-                } catch(err) {
-                    console.log('upload error ! : ', err)
+                    if (callback) callback(jsonData)
+                } catch (err) {
+                    console.error('upload error ! : ', err)
+                    if(errCallback) errCallback(err)
                 } finally {
                     document.body.removeChild(upload)
                 }
@@ -254,6 +210,7 @@ export function DownloadMultiConditionJsonData(data: SavedJSONType) {
     const blob = new Blob([output]);
     const fileDownlaoadUrl = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
+    downloadLink.target = "_self";
     downloadLink.href = fileDownlaoadUrl;
     downloadLink.download = convertFullTimeString(new Date()) + '.json';
     document.body.appendChild(downloadLink);
@@ -262,9 +219,9 @@ export function DownloadMultiConditionJsonData(data: SavedJSONType) {
     URL.revokeObjectURL(fileDownlaoadUrl);
 }
 
-export function AddZeroFunc(num: number|string) {
+export function AddZeroFunc(num: number | string) {
     let temp = num as number
-    if(typeof num === 'string') {
+    if (typeof num === 'string') {
         temp = parseInt(num)
     }
     if (temp < 10) {
@@ -283,30 +240,32 @@ export function convertFullDatestring(now: Date) {
     return '' + now.getFullYear() + AddZeroFunc(now.getMonth() + 1) + AddZeroFunc(now.getDate())
 }
 
-export const convertFullTimeStringToHumanTimeFormat = (time: string) => {
-    const year = time.slice(0,4)
-    const month = time.slice(4,6)
-    const day = time.slice(6,8)
-    const hour = time.slice(8,10)
-    const minute = time.slice(10,12)
+export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorStr?: string) => {
+    if(!time) return ""
+    const year = time.slice(0, 4)
+    const month = time.slice(4, 6)
+    const day = time.slice(6, 8)
+    const hour = time.slice(8, 10)
+    const minute = time.slice(10, 12)
     const second = time.slice(12,)
-    return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+    const separator = separatorStr ? ` ${separatorStr} ` : ' '
+    return `${year}-${month}-${day}${separator}${hour}:${minute}:${second}`
 }
 
 export function getTimeDifference(startTime: string, endTime: string): string {
     const start = new Date(convertFullTimeStringToHumanTimeFormat(startTime));
     const end = new Date(convertFullTimeStringToHumanTimeFormat(endTime));
     const timeDiff = Math.abs(end.getTime() - start.getTime());
-  
+
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
     const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
 
     let _ = ''
-    if(hours) _ += `${hours}시간 `
-    if(minutes) _ += `${minutes}분 `
-    if(seconds) _ += `${seconds}초`
-  
+    if (hours) _ += `${hours}시간 `
+    if (minutes) _ += `${minutes}분 `
+    if (seconds) _ += `${seconds}초`
+
     return _;
 }
 
@@ -339,6 +298,32 @@ export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys)
             return '이미지 업로드'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['DESCRIPTION']]:
             return '인상착의'
+        case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]:
+            return '분석 결과'
+        case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['JSONUPLOAD']]:
+            return 'JSON 업로드'
         default: return '알 수 없음';
     }
+}
+
+export const FileDownloadByUrl = (url: string, fileName?: string) => {
+    const aTag = document.createElement("a");
+    aTag.target = "_self"
+    aTag.href = url
+    aTag.download = fileName || "";
+    document.body.appendChild(aTag);
+    aTag.click();
+    aTag.remove();
+}
+
+export const DivToImg = async (div: HTMLDivElement) => {
+    const canvas = await html2canvas(div, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: 'transparent',
+        width: 460,
+        height: 572
+    })
+    const result = canvas.toDataURL()
+    return result
 }

@@ -118,7 +118,7 @@ export type PersonDescriptionResultType = {
     id: number;
     img: string;
     time: string;
-    occurancy: number;
+    accuracy: number;
     cameraId: CameraDataType['cameraId'];
     rank: number;
     detectedAttributionList: Array<string>;

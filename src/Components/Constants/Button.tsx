@@ -11,6 +11,7 @@ const Button = ({ icon, children, iconStyle, activate, concept, ...props }: Butt
     iconStyle?: React.CSSProperties
     activate?: boolean
     concept?: ConcepType
+    hover?: boolean
 }) => {
     const btnRef = useRef(null)
     return <StyledButton
@@ -33,7 +34,7 @@ const Button = ({ icon, children, iconStyle, activate, concept, ...props }: Butt
 
 export default Button
 
-const StyledButton = styled.button<{ activate: boolean, concept: ConcepType }>`
+const StyledButton = styled.button<{ activate: boolean, concept: ConcepType, hover?: boolean }>`
     ${({ concept, activate }) => concept === 'default' && `
         background-color: ${activate ? ButtonActiveBackgroundColor : ButtonBackgroundColor};
         border: 1px solid ${ButtonBorderColor};
@@ -47,7 +48,16 @@ const StyledButton = styled.button<{ activate: boolean, concept: ConcepType }>`
     ${({ concept, activate }) => concept === 'icon' && `
         background-color: transparent;
     `}
+    ${({ hover }) => hover && `
+        &:not(:disabled):hover {
+            background-color: ${ButtonActiveBackgroundColor};
+        }
+    `}
     cursor: pointer;
+    &:disabled {
+        opacity: 0.5;
+    }
+    outline: none;
 `
 
 const Icon = styled.img`

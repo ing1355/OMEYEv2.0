@@ -5,12 +5,14 @@ export const ReIDETCTypeKey: ReIDConditionParamsType = 'REIDETC'
 
 export type ReIDConditionParamsType = 'REIDTARGET' | 'REIDTIMEBOUNDARY' | 'REIDAREABOUNDARY' | 'REIDETC'
 
-export const ConditionDataTargetSelectMethodTypeKeys: ConditionDataTargetSelectMethodTypeKeys[] = ["CCTV", "ImageUpload", "Description"]
+export const ConditionDataTargetSelectMethodTypeKeys: ConditionDataTargetSelectMethodTypeKeys[] = ["CCTV", "ImageUpload", "Description", "REIDRESULT", "JSONUPLOAD"]
 
-export type ConditionDataTargetSelectMethodTypeKeys = 'CCTV' | 'ImageUpload' | 'Description'
+export type ConditionDataTargetSelectMethodTypeKeys = 'CCTV' | 'ImageUpload' | 'Description' | "REIDRESULT" | "JSONUPLOAD"
 
 export enum ConditionDataTargetSelectMethodTypes {
     CCTV,
     IMAGEUPLOAD,
-    DESCRIPTION
+    DESCRIPTION,
+    REIDRESULT,
+    JSONUPLOAD
 }

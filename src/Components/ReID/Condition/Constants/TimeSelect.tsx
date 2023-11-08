@@ -1,70 +1,86 @@
 import { useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import { globalStyles } from "../../../../styles/global-styled"
+import { ButtonActiveBackgroundColor, ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { AddZeroFunc } from "../../../../Functions/GlobalFunctions"
 
 type TimeSelectProps = {
     defaultValue?: number
-    onChange?: (val: number) => void
+    onChange?: (val: string) => void
+    visible: boolean
+    isHour: boolean
 }
 
 const nodeHeight = 40
 
-const TimeSelect = ({ defaultValue, onChange }: TimeSelectProps) => {
-    const [selected, setSelected] = useState(0)
+const TimeSelect = ({ defaultValue, onChange, visible, isHour }: TimeSelectProps) => {
+    const [selected, setSelected] = useState(defaultValue || 0)
     const selectedRef = useRef(selected)
     const startTimeScrollContainerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         if(startTimeScrollContainerRef.current) {
-            startTimeScrollContainerRef.current?.scrollTo({
+            startTimeScrollContainerRef.current.scrollTo({
                 top: selected * nodeHeight,
                 behavior: 'smooth'
             })
         }
         if(selected !== selectedRef.current) {
-            if(onChange) onChange(selected)
+            if(onChange) onChange(AddZeroFunc(selected).toString())
         }
+        selectedRef.current = selected
     },[selected])
 
-    return <Container onScroll={() => {
+    useEffect(() => {
+        if(defaultValue || defaultValue === 0) {
+            selectedRef.current = defaultValue
+            setSelected(defaultValue)
+        }
+    },[defaultValue])
 
-    }} ref={startTimeScrollContainerRef}>
-        {Array.from({ length: 24 }).map((_, ind) => <Node key={ind} onClick={() => {
+    return <Container visible={visible} ref={startTimeScrollContainerRef}>
+        {Array.from({ length: isHour ? 24 : 60 }).map((_, ind) => <Node key={ind} onClick={(e) => {
             setSelected(ind)
-        }}>
-            {ind}
+        }} selected={selected === ind}>
+            {AddZeroFunc(ind)}
         </Node>)}
-        <PaddingNode/>
     </Container>
 }
 
 export default TimeSelect
 
-const Container = styled.div`
-    height: 300px;
-    width: 100px;
-    overflow-y: scroll;
+const Container = styled.div<{visible: boolean}>`
+    height: ${({visible}) => visible ? (nodeHeight * 5 + 2) : 0}px;
+    transition: height .25s ease-out;
+    width: 80px;
+    overflow-y: ${({visible}) => visible ? 'scroll' : 'hidden'};
+    visibility: ${({visible}) => visible ? 'visible' : 'hidden'};
     scroll-behavior: smooth;
-    scroll-snap-type: y mandatory
+    scroll-snap-type: y mandatory;
+    position: absolute;
+    left: 0;
+    top: 110%;
+    border-radius: 12px;
+    border: 1px solid ${ContentsBorderColor};
+    ${({visible}) => !visible && {
+        border: 'none'
+    }}
 `
 
 const PaddingNode = styled.div`
     height: ${nodeHeight * 2}px;
     scroll-snap-align: start;
-    border: 1px solid white;
 `
 
-const Node = styled.div`
+const Node = styled.div<{selected: boolean}>`
     ${globalStyles.flex()}
     height: ${nodeHeight}px;
-    border: 1px solid white;
     scroll-snap-align: start;
     cursor: pointer;
-    &:nth-child(2n) {
-        border-top: none;
-        border-bottom: none;
+    background-color: ${({selected}) => selected ? ButtonActiveBackgroundColor : 'transparent'};
+    &:not(:first-child) {
+        border-top: 1px solid ${ContentsBorderColor};
     }
-    &:last-child {
-        border-bottom: none;
+    &:hover {
+        background-color: ${ButtonActiveBackgroundColor};
     }
 `

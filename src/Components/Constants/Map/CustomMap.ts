@@ -57,13 +57,13 @@ export abstract class CustomMap<MapType> {
 
     /**
      * 
-     * @function @argument (target: CameraDataType => void) 마커 선택 변화 시 이벤트 리스너 등록
+     * @function @argument (target: CameraDataType => void) 외부에서 마커 선택 변화 시 이벤트 리스너 등록
      */
     public abstract addSelectedMarkerChangeEventCallback(callback: (target: CameraDataType['cameraId'][]) => void): void;
 
     /**
      * 
-     * @param currentState 선택된 마커 변경 시 콜백
+     * @param currentState 지도의 선택 마커 변경 시 콜백
      */
     public abstract selectedMarkerChangeCallback(currentState: SelectedMarkersType): void;
 
@@ -83,19 +83,21 @@ export abstract class CustomMap<MapType> {
     public abstract viewChangeById(cctvId: CameraDataType['cameraId']): void;
 
     /**
-     * 
-     * @param @function callback 추가동선 입력 오버레이 open, close에 따른 리스너 등록
+     * 단일 카메라만 볼 때 사용할 메소드
      */
-    public abstract addTrafficOverlayViewChangeListener(callback: (view: boolean) => void): void;
+    public abstract viewForSingleCamera(cctvId: CameraDataType['cameraId']): void;
 
     /**
-     * 
+     * @param @function callback 추가동선 입력 오버레이 open, close에 따른 리스너 등록
+     */
+    public abstract addTrafficOverlayViewChangeListener(callback: (view: boolean, targetId: string | number | undefined) => void): void;
+
+    /**
      * @param @function callback 반경 선택 오버레이 open, close에 따른 리스너 등록
      */
     public abstract circleSelectOverlayViewChangeListener(callback: (view: boolean) => void): void;
 
     /**
-     * 
      * @param r 반지름 - 원 그릴 반지름
      * @param unit 단위 - 원 그릴 단위 m|km
      * @description 반지름과 단위를 통해 원을 그리는 메소드
@@ -108,13 +110,16 @@ export abstract class CustomMap<MapType> {
     public abstract getFeaturesInCircle(): CameraDataType['cameraId'][];
 
     /**
-     * 
      * @param show 외부에서 지도 내 오버레이 vsible 해제 위한 메소드
      */
     public abstract closeOverlayView(): void;
+    
+    /**
+     * 현재 선택한 CCTV들 전부 보이게 뷰 전환 메소드
+     */
+    public abstract changeViewToSelectedCCTVs(): void;
 
     /**
-     * 
      * @param map 맵 객체 할당
      */
     constructor(map: MapType) {

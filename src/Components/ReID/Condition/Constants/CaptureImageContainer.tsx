@@ -9,37 +9,55 @@ import { AutoCaptureApi } from "../../../../Constants/ApiRoutes"
 import { ConvertWebImageSrcToServerBase64ImageSrc } from "../../../../Functions/GlobalFunctions"
 import ImageViewWithCanvas from "./ImageViewWithCanvas"
 import searchIcon from "../../../../assets/img/searchIcon.png"
+import { useRecoilValue } from "recoil"
+import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import useMessage from "../../../../Hooks/useMessage"
 
 type CaptureContainerProps = {
     src?: string
     captureCallback?: (val: CaptureResultListItemType[]) => void
 }
 
-const CaptureImageContainer = ({src, captureCallback}: CaptureContainerProps) => {
+const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) => {
     const [captureType, setCaptureType] = useState<CaptureType>('auto')
+    const [userCaptureOn, setUserCaptureOn] = useState(false)
     const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
-    
+    const [loading, setLoading] = useState(false)
+    const objType = useRecoilValue(selectedConditionObjectType)
+    const message = useMessage()
+
     return <DetailMiddleContainer>
-        <ImageViewWithCanvas captureType={captureType} src={src} style={{
-            flex: 1,
-            height: '100%',
-            backgroundColor: SectionBackgroundColor
-        }} captureResult={captureResults} captureCallback={captureCallback}/>
+        <ImageViewWithCanvas
+            userCaptureOn={userCaptureOn}
+            captureType={captureType}
+            src={src}
+            captureResult={captureResults}
+            captureCallback={captureCallback}
+            containerStyle={{
+                backgroundColor: SectionBackgroundColor,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                aspectRatio: '16/9',
+                height: '100%'
+            }} />
         <DetailMiddleCaptureContainer>
             <DetailMiddleCaptureActionContainer>
                 <CaptureOptionDropdown onChange={(val) => {
                     setCaptureType(val)
                 }} />
-                <DetailMiddleCaptureActionExecuteButton onClick={async () => {
-                    if(!src) return console.log('이미지 없음!!')
-                    if(captureType === 'auto') {
-                        const result = await Axios("POST", AutoCaptureApi, {image: ConvertWebImageSrcToServerBase64ImageSrc(src!)})
-                        if(result) setCaptureResults(result)
+                <DetailMiddleCaptureActionExecuteButton hover disabled={loading} onClick={async () => {
+                    if (!src) return message.preset('WRONG_PARAMETER', '캡쳐 이미지가 존재하지 않습니다.')
+                    if (captureType === 'auto') {
+                        setLoading(true)
+                        const result = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
+                        if (result) setCaptureResults(result)
+                        setLoading(false)
+                    } else {
+                        setUserCaptureOn(true)
                     }
                 }}>
-                    <>
-                        <img src={searchIcon} style={{height: '20px'}}/>{captureType === 'auto' ? '대상 조회' : '직접 선택'}
-                    </>
+                    <img src={searchIcon} style={{ height: '20px' }} />{captureType === 'auto' ? '대상 조회' : '직접 선택'}
                 </DetailMiddleCaptureActionExecuteButton>
             </DetailMiddleCaptureActionContainer>
             <DetailMiddleCaptureDescriptionContainer>
@@ -91,28 +109,27 @@ const CaptureImageContainer = ({src, captureCallback}: CaptureContainerProps) =>
 export default CaptureImageContainer
 
 const DetailMiddleContainer = styled.div`
-    height: 350px;
     margin-bottom: 16px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' })}
 `
 
 const DetailMiddleCaptureContainer = styled.div`
-    flex: 0 0 55%;
+    flex: 0 0 50%;
     height: 100%;
 `
 
 const DetailMiddleCaptureActionContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-around' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 
 const DetailMiddleCaptureDescriptionContainer = styled.div`
 `
 
 const DetailMiddleCaptureActionExecuteButton = styled(Button)`
-    flex: 0 0 45%;
+    flex: 0 0 50%;
     height: 40px;
     font-size: 1.1rem;
-    ${globalStyles.flex({flexDirection:'row', gap:'8px'})}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
 `
 
 const DetailMiddleCaptureDescriptionRow = styled.div`

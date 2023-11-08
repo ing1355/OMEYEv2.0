@@ -1,10 +1,10 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
-import { AuthorizationKey } from "../Constants/GlobalConstantsValues";
-import { CameraDataType, CaptureResultListItemType, ReIDResultDataType } from "../Constants/GlobalTypes";
+import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
+import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType } from "../Constants/GlobalTypes";
 import { GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
-import { PersonDescriptionResultType, descriptionDataType } from "../Components/ReID/Condition/TargetSelect/PersonDescription/DescriptionType";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
+import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE"
 
@@ -16,7 +16,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
             "Content-Type": "application/json",
-            'Authorization': localStorage.getItem(AuthorizationKey)
+            'Authorization': GetAuthorizationToken()
         }
     }
     if (method === 'POST' || method === 'PUT') {
@@ -30,7 +30,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
             return res.data.rows
         }
     }).catch(err => {
-        console.log(err)
+        console.error(err)
     })
 }
 
@@ -44,7 +44,7 @@ export async function GetVideoInfoByCCTVId(cctvId: CameraDataType['cameraId']): 
     return await Axios('GET', GetCCTVVideoInfoUrl(cctvId))
 }
 
-export async function GetReIDResultById(reidId: ReIDLogDataType['reidId']): Promise<ReIDResultDataType> {
+export async function GetReIDResultById(reidId: ReIDLogDataType['reidId']): Promise<ReIDResultType> {
     return await Axios('GET', GetReidDataApi(reidId))
 }
 
@@ -56,21 +56,24 @@ export async function GetObjectIdByImage(targets: {
     type: CaptureResultListItemType['type']
     image: CaptureResultListItemType['src']
     mask?: CaptureResultListItemType['mask']
-    vrp?: CaptureResultListItemType['vrp']
+    ocr?: CaptureResultListItemType['ocr']
+    attribution?: CaptureResultListItemType['description']
 }[]): Promise<number[]> {
     return await Axios("POST", SubmitTargetInfoApi, targets.map(_ => {
         let temp: {
             type: CaptureResultListItemType['type']
             image: string
             mask?: CaptureResultListItemType['mask']
-            vrp?: CaptureResultListItemType['vrp']
+            ocr?: CaptureResultListItemType['ocr']
+            attribution?: CaptureResultListItemType['description']
         } = {
             type: _.type,
             image: _.image.split(',')[1],
             mask: _.mask,
-            vrp: _.vrp
+            ocr: _.ocr,
+            attribution: _.attribution
         }
-        if (_.type === 'Face') {
+        if (_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]) {
             temp['mask'] = _.mask
         }
         return temp
@@ -81,17 +84,18 @@ export async function SubmitCarVrp(vrpInfo: {
     id: number
     image: string
     type: "register" | "modify"
-    vrp: string
+    ocr: string
 }[]) {
     return await Axios("POST", SubmitCarVrpApi, vrpInfo)
 }
 
 export const reidCancelFunc = (): void => {
-    navigator.sendBeacon(ReidCancelApi, localStorage.getItem('Authorization'));
+    console.debug("ReIdCancelFunc Request!!")
+    navigator.sendBeacon(ReidCancelApi, GetAuthorizationToken());
 }
 
 export const streamingAllStopRequest = () => {
-    navigator.sendBeacon(StopAllVMSVideoApi, localStorage.getItem('Authorization'));
+    navigator.sendBeacon(StopAllVMSVideoApi, GetAuthorizationToken());
 };
 
 export const streamingStopRequest = async (uuids: string[]) => {

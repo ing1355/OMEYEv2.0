@@ -10,8 +10,24 @@ import { Axios } from "../../../Functions/NetworkFunctions"
 import { LogoutApi } from "../../../Constants/ApiRoutes"
 import { useCallback, useEffect, useRef, useState } from "react"
 
+const decodedJwtToken = (token: string) => {
+    return jwtDecode(token) as {
+        user: {
+            email: string
+            id: string
+            isAlreadyLoggedIn: boolean
+            isLock: boolean
+            name: string
+            phoneNumber: string
+            role: 'ADMIN'
+            username: string
+        }
+    }
+}
+
 const UserMenu = () => {
     const [login, setIsLogin] = useRecoilState(isLogin)
+    const userInfo = decodedJwtToken(login!)
     const [menuOpen, setMenuOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
     
@@ -32,7 +48,7 @@ const UserMenu = () => {
         setMenuOpen(!menuOpen)
     }}>
         <UserMenuIcon src={UserIcon} />
-        관리자님
+        {userInfo.user.name} 님
         <UserArrowIcon src={ArrowIcon} />
         <UserDetailContainer opened={menuOpen}>
             <UserDetailItem onClick={(e) => {
@@ -54,7 +70,7 @@ const UserMenu = () => {
 export default UserMenu
 
 const Container = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '2px' })}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
     font-size: .8rem;
     cursor: pointer;
     position: relative;

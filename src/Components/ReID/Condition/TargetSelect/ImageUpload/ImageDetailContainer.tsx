@@ -5,11 +5,12 @@ import CaptureImageContainer from "../../Constants/CaptureImageContainer"
 import Button from "../../../../Constants/Button"
 import { useRecoilState } from "recoil"
 import { conditionTargetDatasImageTemp } from "../../../../../Model/ConditionDataModel"
-import { CaptureResultListItemType } from "../../../../../Constants/GlobalTypes"
-import maskOffIcon from "../../../../../assets/img/maskOffIcon.png"
-import maskOnIcon from "../../../../../assets/img/maskOnIcon.png"
+import { CaptureResultListItemType, ReIDObjectTypeKeys } from "../../../../../Constants/GlobalTypes"
+import maskIcon from "../../../../../assets/img/maskIcon.png"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Constants/Params"
 import ImageView from "../../Constants/ImageView"
+import { ObjectTypes } from "../../../ConstantsValues"
+import ResetIcon from '../../../../../assets/img/resetIcon.png'
 
 type ImageDetailContainerProps = {
     images: ImageUploadImagesType[]
@@ -66,16 +67,28 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
         <CaptureImageContainer src={images[selected].src} captureCallback={captureCallback} />
         <DetailTitle>
             대상 조회 결과
+            <ResetBtn disabled={targetList.length === 0} onClick={() => {
+                setTargetList([])
+            }}>
+                <img src={ResetIcon} width="100%" height="100%" />
+            </ResetBtn>
         </DetailTitle>
         <CaptureResultListItemsContainer>
             {
                 targetList.map(_ => <CaptureResultListItemBox key={_.id} selected={_.selected!}>
                     <CaptureResultListItemImageContainer>
-                        <CaptureResultListItemImage src={_.src} isFace={_.type === 'Face'} />
+                        <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} />
                     </CaptureResultListItemImageContainer>
                     <CaptureResultListItemFaceSelectContainer>
-                        {_.type === 'Face' && <MaskSelectIcon src={maskOffIcon} height="90%"/>}
-                        <CaptureResultListItemSelectButton activate={_.selected!} selected={_.selected!} isMask={_.type === 'Face'} onClick={() => {
+                        {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hover activate={_.mask || false} onClick={() => {
+                                setTargetList(targetList.map(__ => __.id === _.id ? ({
+                                    ...__,
+                                    mask: !__.mask
+                                }) : __))
+                            }}>
+                                <img src={maskIcon} />
+                            </MaskSelect>}
+                        <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
                             setTargetList(targetList.map(__ => __.id === _.id ? {
                                 ...__,
                                 selected: !__.selected
@@ -139,7 +152,7 @@ const CaptureResultListItemImageContainer = styled.div`
     ${globalStyles.flex()}
 `
 
-const CaptureResultListItemImage = styled(ImageView)<{ isFace: boolean }>`
+const CaptureResultListItemImage = styled(ImageView) <{ isFace: boolean }>`
     width: 100%;
     height: 100%;
 `
@@ -149,13 +162,23 @@ const MaskSelectIcon = styled.img`
 `
 
 const CaptureResultListItemFaceSelectContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'space-between' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     width: 100%;
     height: 40px;
 `
 
-const CaptureResultListItemSelectButton = styled(Button)<{selected: boolean, isMask: boolean}>`
-    ${({isMask}) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
+const CaptureResultListItemSelectButton = styled(Button) <{ selected: boolean, isMask: boolean }>`
+    ${({ isMask }) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
     height: 100%;
     border-radius: 12px;
+`
+
+const ResetBtn = styled(Button)`
+    height: 30px;
+    width: 30px;
+    padding: 4px;
+    margin-left: 12px;
+`
+
+const MaskSelect = styled(Button)`
 `

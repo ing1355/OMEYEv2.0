@@ -1,19 +1,28 @@
 import peopleObjectIcon from '../../assets/img/peopleObjectIcon.png'
 import faceObjectIcon from '../../assets/img/faceObjectIcon.png'
 import plateObjectIcon from '../../assets/img/plateObjectIcon.png'
+import DescriptionMethodIcon from '../../assets/img/DescriptionMethodIcon.png'
+import plateEmptyIcon from '../../assets/img/emptyPlateObjectIcon.png'
+import faceEmptyIcon from '../../assets/img/FaceEmptyIcon.png'
+import personEmptyIcon from '../../assets/img/PersonEmptyIcon.png'
+import { ReIDObjectTypeKeys } from '../../Constants/GlobalTypes'
 
-export enum ReIDMenuKeys {
-    CONDITION,
-    CONDITIONLIST,
-    REIDRESULT,
-    REIDLOGS,
-    REALTIMEREID
+export enum ObjectTypes {
+    PERSON,
+    FACE,
+    ATTRIBUTION,
+    PLATE
 }
 
-export type ReIDMenuKeysType = keyof typeof ReIDMenuKeys
-export type ReIDObjectTypeKeys = 'Person' | 'Face' | 'car_plate'
+export enum ReIDMenuKeys {
+  CONDITION,
+  CONDITIONLIST,
+  REIDRESULT,
+  REIDLOGS,
+  REALTIMEREID
+}
 
-export const ReIDObjectTypeKeys: ReIDObjectTypeKeys[] = ["Person", "Face", "car_plate"]
+export const ReIDObjectTypeEmptyIcons = [personEmptyIcon, faceEmptyIcon, plateEmptyIcon]
 
 export const ReIDObjectTypes: {
     key: ReIDObjectTypeKeys
@@ -21,17 +30,22 @@ export const ReIDObjectTypes: {
     icon: string
 }[] = [
     {
-        key: 'Person',
+        key: ReIDObjectTypeKeys[ObjectTypes['PERSON']],
         title: '사람(전신)',
         icon: peopleObjectIcon
     },
     {
-        key: 'Face',
+        key: ReIDObjectTypeKeys[ObjectTypes['FACE']],
         title: '사람(얼굴)',
         icon: faceObjectIcon
     },
     {
-        key: 'car_plate',
+        key: ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']],
+        title: '인상착의',
+        icon: DescriptionMethodIcon
+    },
+    {
+        key: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
         title: '번호판',
         icon: plateObjectIcon
     }

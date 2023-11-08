@@ -1,5 +1,4 @@
 import { CSSProperties, createGlobalStyle, keyframes, css } from 'styled-components'
-import { globalMessageContainerId } from '../Hooks/useMessage';
 import { HeaderHeight } from '../Constants/CSSValues';
 
 export const GlobalBackgroundColor = '#0f0e11';
@@ -8,9 +7,12 @@ export const ButtonDisabledBackgroundColor = 'rgba(0,170,113,.5)';
 export const ButtonBackgroundColor = '#302f35';
 export const ButtonBorderColor = '#45454c';
 export const ButtonActiveBackgroundColor = '#00aa71';
+export const ButtonInActiveBackgroundColor = '#467061';
 export const TextActivateColor = '#14c9aa';
 export const InputBackgroundColor = '#151619';
 export const InputTextColor = 'rgba(255,255,255,.5)';
+export const StopBackgroundColor = '#EF7070'
+export const StopBorderColor = '#C62222'
 export const ContentsBorderColor = ButtonBorderColor
 export const ContentsActivateColor = ButtonActiveBackgroundColor
 export const loadingVideoDownloadColor = ContentsActivateColor
@@ -129,6 +131,9 @@ const GlobalStyle = createGlobalStyle`
    }
    img, video {
       object-fit: contain;
+   }
+   img {
+    pointer-events: none;
    }
    * {
       box-sizing: border-box;

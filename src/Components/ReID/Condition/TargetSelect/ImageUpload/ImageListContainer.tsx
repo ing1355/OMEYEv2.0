@@ -4,6 +4,7 @@ import styled from "styled-components"
 import { ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import { multipleFileUploadFunction } from "../../../../../Functions/GlobalFunctions"
 import { setStateType } from "../../../../../Constants/GlobalTypes"
+import useMessage from "../../../../../Hooks/useMessage"
 
 type ImageListContainerProps = {
     images: ImageUploadImagesType[]
@@ -15,6 +16,7 @@ type ImageListContainerProps = {
 const ImageListContainer = ({ images, setImages, selected, setSelected }: ImageListContainerProps) => {
     const [dragging, setDragging] = useState(false)
     const uploadRef = useRef<HTMLInputElement>(null)
+    const message = useMessage()
 
     const fileUploadClick = () => {
         uploadRef.current?.click()
@@ -66,7 +68,7 @@ const ImageListContainer = ({ images, setImages, selected, setSelected }: ImageL
                 const files = e.currentTarget.files!
                 const filteredFiles = Array.from({length:files.length}).map((_, ind) => files[ind]).filter(_ => _.type.startsWith('image/'))
                 if (filteredFiles.length === 0) {
-                    return console.log("이미지 파일이 존재하지 않습니다.")
+                    return message.error({title: "입력값 에러", msg: "이미지 파일이 존재하지 않습니다."})
                 }
                 e.currentTarget.value = ''
                 const srcs = await multipleFileUploadFunction(filteredFiles)
@@ -153,7 +155,7 @@ const AddDiv = styled.div`
 
 const ImagesContainer = styled.div`
     height: 100%;
-    flex: 0 0 59%;
+    flex: 0 0 50%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 

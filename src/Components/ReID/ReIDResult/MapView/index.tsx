@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
-import { SitesData } from "../../../../Model/SiteDataModel";
 import MapComponent from "../../../Constants/Map"
 import styled from "styled-components";
 import { ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
 import noImage from '../../../../assets/img/logo.png'
-import CCTVIcon from '../../../../assets/img/CCTVIcon.png'
+import CCTVIcon from '../../../../assets/img/CCTVSelectedIcon.png'
+import CCTVStartIcon from '../../../../assets/img/CCTVStartIcon.png'
+import CCTVEndIcon from '../../../../assets/img/CCTVEndIcon.png'
 import resultLineImg from '../../../../assets/img/resultLineImg.png'
 import { ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes";
 import ViewTargetSelect from "./ViewTargetSelect";
 import { ReIDResultData, SingleReIDSelectedData } from "../../../../Model/ReIdResultModel";
 import CCTVNameById from "../../../Constants/CCTVNameById";
+import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
+import ImageView from "../../Condition/Constants/ImageView";
+import Video from "../../../Constants/Video";
+import ForLog from "../../../Constants/ForLog";
 
 type MapViewProps = {
     opened: boolean
@@ -20,7 +25,7 @@ type MapViewProps = {
 const MapView = ({ opened, reidId }: MapViewProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
-    const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType | null>(null)
+    const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType[] | null>(null)
     const resultData = useRecoilValue(ReIDResultData(reidId))
     const selectedData = useRecoilValue(SingleReIDSelectedData(reidId))
 
@@ -29,33 +34,31 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
         index,
         objectIds: _.resultList.map(__ => __.objectId)
     })), [resultData])
+
+    const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
+    const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
     
-    const filteredSelectedData = useMemo(() => selectedData ? selectedData.filter((_, ind) => selectedCondition.includes(ind)).flatMap((_, ind) => Object.keys(_).filter(__ => selectedTarget[ind].includes(Number(__))).flatMap(__ => _[Number(__)])).sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
-    const filteredPathCameras = useMemo(() => selectedData ? selectedData.filter((_,ind) => selectedCondition.includes(ind)).map((_, ind) => Object.keys(_).filter(__ => selectedTarget[ind].includes(Number(__))).map(__ => _[Number(__)].map(___ => ___.cctvId!))) : [], [selectedData, selectedCondition, selectedTarget])
-    
-    const createResultBox = useCallback((_: ReIDResultDataResultListDataType) => <ResultBox key={_.resultId + '1'} onClick={() => {
-        setDetailResult(_)
+    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox key={_.resultId + '1'} onClick={() => {
+        setDetailResult([_])
     }}>
         <CCTVImgContainer>
-            <CCTVImg src={CCTVIcon} />
+            <CCTVImg src={isStart ? CCTVStartIcon : (isEnd ? CCTVEndIcon : CCTVIcon)} />
         </CCTVImgContainer>
         <ResultBoxMiddleContainer>
             <CCTVName>
                 <CCTVNameById cctvId={_.cctvId!} />
             </CCTVName>
             <DetectedTime>
-                {_.foundDateTime}
+                {convertFullTimeStringToHumanTimeFormat(_.foundDateTime)}
             </DetectedTime>
         </ResultBoxMiddleContainer>
-        {_.distance ? <ResultBoxBottomContainer>
-            유사율 : {_.distance}%
+        {_.accuracy ? <ResultBoxBottomContainer>
+            유사율 : {_.accuracy}%
         </ResultBoxBottomContainer> : <></>}
     </ResultBox>, [])
 
     useEffect(() => {
-        if (opened) {
-
-        }
+        setDetailResult(null)
     }, [opened])
 
     return <>
@@ -63,29 +66,36 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
             <MapContainer>
                 <MapComponent
                     pathCameras={filteredPathCameras}
-                    // idForViewChange={detailResult?.cameraId}
-                    forAddtraffic>
+                    idForViewChange={detailResult ? [detailResult[0].cctvId!] : undefined}
+                    forAddtraffic
+                    reidId={reidId}
+                    onlyMap>
                 </MapComponent>
                 <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {
+                    // console.debug('추가 동선 conditions 변경 : ', conditions)
                     setSelectedCondition(conditions)
                 }} targetChange={targets => {
+                    // console.debug('추가 동선 targets 변경 : ', targets)
                     setSelectedTarget(targets)
                 }} />
             </MapContainer>
             <ShowContainer>
                 <TargetContainer>
                     <TargetMediaContainer>
-                        <TargetImage src={detailResult ? detailResult.imageUrl : noImage} />
+                        <ImageView src={detailResult ? detailResult[0].imgUrl : undefined} style={{
+                            width: detailResult ? '100%' : '50%',
+                            height: detailResult ? '100%' : '50%'
+                        }}/>
                     </TargetMediaContainer>
                     <TargetMediaContainer>
-                        <TargetVideo key={detailResult?.resultId} src={detailResult! && detailResult.searchCameraUrl!} poster={noImage} autoPlay />
+                        <Video src={detailResult ? detailResult[0].searchCameraUrl : undefined}/>
                     </TargetMediaContainer>
                 </TargetContainer>
                 <ResultsContainer>
                     {
                         filteredSelectedData && filteredSelectedData.flatMap((_, ind, arr) => {
-                            if (arr.length - 1 > ind) return [createResultBox(_), <ResultLine key={_.resultId + '2'} src={resultLineImg} />]
-                            else return createResultBox(_)
+                            if (arr.length - 1 > ind) return [createResultBox(_, ind === 0, ind === arr.length - 1), <ResultLine key={_.resultId + '2'} src={resultLineImg} />]
+                            else return createResultBox(_, ind === 0 && arr.length !== 1, ind === arr.length - 1 || arr.length === 1)
                         })
                     }
                 </ResultsContainer>
@@ -130,8 +140,6 @@ const TargetMediaContainer = styled.div`
 `
 
 const TargetImage = styled.img`
-    width: 100%;
-    height: 100%;
 `
 
 const TargetVideo = styled.video`

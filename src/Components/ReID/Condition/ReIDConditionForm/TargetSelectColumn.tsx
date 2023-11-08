@@ -1,25 +1,27 @@
 import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
-import { ObjectTypes, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
-import { ReIDConditionTargetSelectMethodRoute } from "../Constants/RouteInfo"
+import { ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
 import Button from "../../../Constants/Button"
-import { ReIDObjectTypeKeys } from "../../ConstantsValues"
 import { useState } from "react"
 import PlateTarget from "./PlateTarget"
 import IconBtn from "../../../Constants/IconBtn"
-import { getMethodNameByKey } from "../../../../Functions/GlobalFunctions"
+import { convertFullTimeStringToHumanTimeFormat, getMethodNameByKey } from "../../../../Functions/GlobalFunctions"
 import CCTVNameById from "../../../Constants/CCTVNameById"
+import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
+import { ObjectTypes } from "../../ConstantsValues"
+import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
     const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
     const { routePush } = useConditionRoutes()
-    const [datas, setDatas] = useRecoilState(conditionTargetDatas)
+    const [datas, setDatas] = useRecoilState(conditionTargetDatas(null))
     const selectedType = useRecoilValue(selectedConditionObjectType)
 
     const initAction = () => {
@@ -28,67 +30,44 @@ const TargetSelectColumn = () => {
     }
 
     const addAction = () => {
-        if (selectedType === 'car_plate') setPlateStatus('add')
+        if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
+        else if(selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
         else routePush(ReIDConditionTargetSelectMethodRoute.key)
     }
 
     const allSelectAction = () => {
         setDatas(datas.every(_ => _.selected) ? datas.map(_ => ({ ..._, selected: false })) : datas.map(_ => ({ ..._, selected: true })))
     }
-
+    
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`대상(${datas.length})`}
             initAction={initAction}
             dataAddAction={addAction}
             noDataText="대상 추가"
-            isDataExist={datas.length > 0 || (selectedType === 'car_plate' && plateStatus === 'add')}
-            dataAddDelete={selectedType === 'car_plate' && plateStatus === 'add'}
+            isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
+            dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
+            disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
-            allSelected={datas.every(_ => _.selected)}>
+            allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
             <ItemsScrollContainer>
-                {plateStatus === 'add' && selectedType === 'car_plate' && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
-                {datas.map(_ => selectedType === 'car_plate' ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false}>
+                {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus}/>}
+                {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus}/> : <ItemContainer key={_.id} selected={_.selected || false}>
                     <ItemSubContainer>
                         <ItemImage src={_.src} />
                         <ItemDescription>
                             <ItemDescriptionHeader>
                                 <IconBtn type="delete" onClick={() => {
-                                    setDatas(datas.filter(__ => _.id !== __.id))
+                                    setDatas(datas.filter(__ => _.objectId !== __.objectId))
                                 }} />
                             </ItemDescriptionHeader>
                             <ItemDescriptionContents>
-                                <ItemDescriptionContentText>
-                                    선택 방법 : {getMethodNameByKey(_.method!)}
-                                </ItemDescriptionContentText>
-                                {
-                                    _.cctvName && <ItemDescriptionContentText>
-                                        CCTV 이름 : {_.cctvName}
-                                    </ItemDescriptionContentText>
-                                }
-                                {
-                                    _.cctvId && <ItemDescriptionContentText>
-                                        CCTV 이름 : <CCTVNameById cctvId={_.cctvId} />
-                                    </ItemDescriptionContentText>
-                                }
-                                {
-                                    _.time && <ItemDescriptionContentText>
-                                        발견 시각 : {_.time}
-                                    </ItemDescriptionContentText>
-                                }
-                                {
-                                    _.occurancy && <ItemDescriptionContentText>
-                                        유사율 : {(_.occurancy * 100).toFixed(0)}%
-                                    </ItemDescriptionContentText>
-                                }
-                                {selectedType === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <ItemDescriptionContentText>
-                                    마스크 착용 여부 : 미착용
-                                </ItemDescriptionContentText>}
+                                <TargetDescriptionByType data={_}/>
                             </ItemDescriptionContents>
                         </ItemDescription>
                     </ItemSubContainer>
                     <ItemSelectBtn activate={_.selected} onClick={() => {
-                        setDatas(datas.map(__ => _.id !== __.id ? __ : {
+                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
                             ..._,
                             selected: !_.selected
                         }))

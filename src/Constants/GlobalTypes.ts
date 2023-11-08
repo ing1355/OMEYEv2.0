@@ -1,13 +1,20 @@
 import { Dispatch, SetStateAction } from 'react'
-import { ConditionDataSingleType, ConditionDataType } from '../Model/ConditionDataModel';
-import { ReIDObjectTypeKeys } from '../Components/ReID/ConstantsValues';
+import { ConditionDataSingleType } from '../Model/ConditionDataModel';
+import { ReIDMenuKeys } from '../Components/ReID/ConstantsValues';
 import { ConditionDataTargetSelectMethodTypeKeys } from '../Components/ReID/Condition/Constants/Params';
+import { descriptionParamType } from '../Components/ReID/Condition/TargetSelect/PersonDescription/DescriptionType';
 
 export type setStateType<T> = Dispatch<SetStateAction<T>>
 
 export type CaptureType = 'user' | 'auto'
 
 export type SiteVmsType = "OMEYE" | "VMS";
+
+export type ReIDObjectTypeKeys = 'PERSON' | 'FACE' | 'CARPLATE' | 'ATTRIBUTION'
+
+export const ReIDObjectTypeKeys: ReIDObjectTypeKeys[] = ["PERSON", "FACE", "ATTRIBUTION", "CARPLATE"]
+
+export type ObjectType = "all" | ReIDObjectTypeKeys | "car" | 'crowd' | 'falldown' | 'illegal_parking' | 'faces' | 'noneFind';
 
 export type CameraDataType = {
   cameraId: number;
@@ -36,7 +43,7 @@ export type PointType = [number, number, number, number];
 
 export type RefType<T> = React.MutableRefObject<T>;
 
-export type ObjectType = "all" | "person" | "face" | "car" | 'crowd' | 'car_plate' | 'falldown' | 'illegal_parking' | 'faces' | 'noneFind';
+export type ReIDMenuKeysType = keyof typeof ReIDMenuKeys
 
 export type CaptureResultType = {
   type: ReIDObjectTypeKeys
@@ -45,62 +52,40 @@ export type CaptureResultType = {
 
 export type ReIDResultDataResultListDataType = {
   resultId: number;
-  distance: number;
-  imageUrl: string;
+  accuracy: number;
+  imgUrl: string;
   rank: number;
-  frameImageUrl: string;
+  frameImgUrl: string;
   searchCameraUrl: string;
   foundDateTime: string;
   timestamp: string;
   cctvId?: CameraDataType['cameraId']
+  objectId?: number
 };
 
 export type ReIDResultType = {
-  resultId: number
-  uuid: string
-  title: string
-  data: ReIDResultDataType[]
+  reIdId: number
+  data: ReIDResultConditionDataType[]
 }
 
-export type ReIDResultDataType = {
+export type ReIDResultConditionDataType = {
   title: string
   etc: string
+  rank: number
   resultList: {
     objectUrl: string
     objectId: number
-    timeAndCctvGroup: {
+    objectType: ReIDObjectTypeKeys
+    timeAndCctvGroup: (TimeDataType & {
       startTime: string
       endTime: string
-      results: {
-        [key: number]: ReIDResultDataResultListDataType[]
-      }
-    }[]
+      results: Map<number, ReIDResultDataResultListDataType[]>
+      // {
+      //   [key: number]: ReIDResultDataResultListDataType[]
+      // }
+    })[]
   }[]
 }
-// export type ReIDResultDataType = {
-//   cameras: Array<{
-//     cameraId: number;
-//     downloadResult: string;
-//     startTime: string;
-//     endTime: string;
-//     groupId: number;
-//   }>;
-//   reidId: number;
-//   rank: number;
-//   description: string;
-//   status: string;
-//   userId: string;
-//   userName: string;
-//   resultList: Array<{
-//     object: {
-//       imgUrl: string;
-//       objectId: number;
-//       type: ObjectType;
-//     };
-//     result: Array<ReIDResultDataResultListDataType>;
-//   }>;
-//   created_at: string;
-// };
 
 export type SavedJSONType = { selectedType: ReIDObjectTypeKeys } & {
   [key in ReIDObjectTypeKeys]?: ConditionDataSingleType
@@ -110,7 +95,7 @@ export type CaptureResultListItemType = {
   id: number
   src: string
   type: ReIDObjectTypeKeys
-  occurancy?: number
+  accuracy?: number
   time?: string
   cctvId?: CameraDataType['cameraId']
   mask?: boolean
@@ -119,7 +104,8 @@ export type CaptureResultListItemType = {
   selected?: boolean
   cctvName?: CameraDataType['name']
   attributionList?: string[]
-  vrp?: string
+  ocr?: string
+  description?: descriptionParamType
 }
 
 export type ReIdSSEResponseType = {
@@ -129,3 +115,13 @@ export type ReIdSSEResponseType = {
   reidId: number;
   error: string;
 };
+
+export type BasicLogDataType<T> = {
+  results: T
+  totalCount: number
+}
+
+export type TimeDataType = {
+  startTime: string
+  endTime: string
+}

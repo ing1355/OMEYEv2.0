@@ -3,5 +3,5 @@ import { ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
 
 export const conditionMenu = atom<ReIDMenuKeys>({
     key: "conditionMenuState",
-    default: ReIDMenuKeys['CONDITION']
+    default: process.env.NODE_ENV === 'development' ? ReIDMenuKeys['CONDITION'] : ReIDMenuKeys['CONDITION']
 })

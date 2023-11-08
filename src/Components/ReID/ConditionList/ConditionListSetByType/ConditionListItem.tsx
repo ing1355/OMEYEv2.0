@@ -1,14 +1,13 @@
 import styled from "styled-components"
-import { ConditionListType, ObjectTypes } from "../../../../Model/ConditionDataModel"
-import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { ConditionListType } from "../../../../Model/ConditionDataModel"
+import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import ImageView from "../../Condition/Constants/ImageView"
 import { useState } from "react"
 import ArrowIcon from '../../../../assets/img/downArrowIcon.png'
-import { convertFullTimeStringToHumanTimeFormat, getMethodNameByKey } from "../../../../Functions/GlobalFunctions"
-import CCTVNameById from "../../../Constants/CCTVNameById"
-import { ReIDObjectTypeKeys } from "../../ConstantsValues"
+import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import Button from "../../../Constants/Button"
 import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
+import TargetDescriptionByType from "../../Condition/Constants/TargetDescriptionByType"
 
 type ConditionListItemProps = {
     data: ConditionListType
@@ -18,101 +17,81 @@ type ConditionListItemProps = {
 
 const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemProps) => {
     const [imageIndex, setImageIndex] = useState(0)
-    const { id, targets, selected, cctv, time, rank, etc } = data
+    const { id, targets, selected, cctv, time, rank, etc, name } = data
 
     return <Container selected={selected || false}>
-        <TargetContainer>
-            <TargetDescriptionContainer>
-                <TargetImageContainer>
-                    <TargetImage src={targets[imageIndex].src} />
-                </TargetImageContainer>
-                <TargetDescriptionInnerContainer>
-                    <ItemDescriptionContentText>
-                        선택 방법 : {getMethodNameByKey(targets[imageIndex].method!)}
-                    </ItemDescriptionContentText>
-                    {
-                        targets[imageIndex].cctvName && <ItemDescriptionContentText>
-                            CCTV 이름 : {targets[imageIndex].cctvName}
-                        </ItemDescriptionContentText>
-                    }
-                    {
-                        targets[imageIndex].cctvId && <ItemDescriptionContentText>
-                            CCTV 이름 : <CCTVNameById cctvId={targets[imageIndex].cctvId!} />
-                        </ItemDescriptionContentText>
-                    }
-                    {
-                        targets[imageIndex].time && <ItemDescriptionContentText>
-                            발견 시각 : {targets[imageIndex].time}
-                        </ItemDescriptionContentText>
-                    }
-                    {
-                        targets[imageIndex].occurancy && <ItemDescriptionContentText>
-                            유사율 : {(targets[imageIndex].occurancy! * 100).toFixed(0)}%
-                        </ItemDescriptionContentText>
-                    }
-                    {targets[imageIndex].type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <ItemDescriptionContentText>
-                        마스크 착용 여부 : 미착용
-                    </ItemDescriptionContentText>}
-                </TargetDescriptionInnerContainer>
-            </TargetDescriptionContainer>
-            <TargetImageIndexChangeContainer>
-                <Arrow src={ArrowIcon} disabled={imageIndex === 0} onClick={() => {
-                    if (imageIndex > 0) setImageIndex(imageIndex - 1)
-                }} />
-                <TargetImageIndexChangeTextContainer>
-                    {imageIndex + 1} / {targets.length}
-                </TargetImageIndexChangeTextContainer>
-                <Arrow src={ArrowIcon} disabled={imageIndex === targets.length - 1} onClick={() => {
-                    if (imageIndex < targets.length - 1) setImageIndex(imageIndex + 1)
-                }} />
-            </TargetImageIndexChangeContainer>
-        </TargetContainer>
-        <CCTVsContainer>
-            <ETCTitle>
-                검색 그룹
-            </ETCTitle>
-            <CCTVContents>
-                {cctv.map((_, ind) => <CCTVRow key={ind}>
-                    <CCTVIcon src={cctvIcon} />
-                    x
-                    <CCTVNum>
-                        {_.cctvList.length}
-                    </CCTVNum>
-                </CCTVRow>)}
-            </CCTVContents>
-        </CCTVsContainer>
-        <TimesContainer>
-            <ETCTitle>
-                시간 그룹
-            </ETCTitle>
-            <CCTVContents>
-                {time.map((_, ind) => <TimeRow key={ind}>
-                    {convertFullTimeStringToHumanTimeFormat(_.time[0])}<br />~<br />{convertFullTimeStringToHumanTimeFormat(_.time[1])}
-                </TimeRow>)}
-            </CCTVContents>
-        </TimesContainer>
-        <LastContainer>
-            <RankContainer>
-                후보: {rank}
-            </RankContainer>
-            <ETCContainer>
-                <ETCText>
-                    {etc}
-                </ETCText>
-            </ETCContainer>
-            <BtnsContainer>
-                <LastBtn activate={selected} onClick={() => {
-                    setData({ ...data, selected: !selected })
-                }}>
-                    {data.selected ? '해제' : '선택'}
-                </LastBtn>
-                <LastBtn onClick={() => {
-                    deleteAction(id)
-                }}>
-                    삭제
-                </LastBtn>
-            </BtnsContainer>
-        </LastContainer>
+        <Header>
+            {name}
+        </Header>
+        <ContentsContainer>
+            <TargetContainer>
+                <TargetDescriptionContainer>
+                    <TargetImageContainer>
+                        <TargetImage src={targets[imageIndex] && targets[imageIndex].src} />
+                    </TargetImageContainer>
+                    <TargetDescriptionInnerContainer>
+                        <TargetDescriptionByType data={targets[imageIndex]}/>
+                    </TargetDescriptionInnerContainer>
+                </TargetDescriptionContainer>
+                <TargetImageIndexChangeContainer>
+                    <Arrow src={ArrowIcon} disabled={imageIndex === 0} onClick={() => {
+                        if (imageIndex > 0) setImageIndex(imageIndex - 1)
+                    }} />
+                    <TargetImageIndexChangeTextContainer>
+                        {imageIndex + 1} / {targets.length}
+                    </TargetImageIndexChangeTextContainer>
+                    <Arrow src={ArrowIcon} disabled={imageIndex === targets.length - 1} onClick={() => {
+                        if (imageIndex < targets.length - 1) setImageIndex(imageIndex + 1)
+                    }} />
+                </TargetImageIndexChangeContainer>
+            </TargetContainer>
+            <CCTVsContainer>
+                <ETCTitle>
+                    CCTV
+                </ETCTitle>
+                <CCTVContents>
+                    {cctv.map((_, ind) => <CCTVRow key={ind}>
+                        <CCTVIcon src={cctvIcon} />
+                        x
+                        <CCTVNum>
+                            {_.cctvList.length}
+                        </CCTVNum>
+                    </CCTVRow>)}
+                </CCTVContents>
+            </CCTVsContainer>
+            <TimesContainer>
+                <ETCTitle>
+                    시간
+                </ETCTitle>
+                <CCTVContents>
+                    {time.map((_, ind) => <TimeRow key={ind}>
+                        {convertFullTimeStringToHumanTimeFormat(_.time[0])}<br />~<br />{convertFullTimeStringToHumanTimeFormat(_.time[1])}
+                    </TimeRow>)}
+                </CCTVContents>
+            </TimesContainer>
+            <LastContainer>
+                <RankContainer>
+                    후보: {rank}
+                </RankContainer>
+                <ETCContainer>
+                    <ETCText>
+                        {etc || '설명 없음'}
+                    </ETCText>
+                </ETCContainer>
+                <BtnsContainer>
+                    <LastBtn hover activate={selected} onClick={() => {
+                        setData({ ...data, selected: !selected })
+                    }}>
+                        {data.selected ? '해제' : '선택'}
+                    </LastBtn>
+                    <LastBtn hover onClick={() => {
+                        deleteAction(id)
+                    }}>
+                        삭제
+                    </LastBtn>
+                </BtnsContainer>
+            </LastContainer>
+        </ContentsContainer>
     </Container>
 }
 
@@ -122,9 +101,25 @@ const Container = styled.div<{ selected: boolean }>`
     border: 1.5px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     border-radius: 12px;
     padding: 6px;
-    height: 260px;
+    height: 300px;
     flex: 0 0 49.5%;
     margin-bottom: 1%;
+    ${globalStyles.flex({ justifyContent: 'space-between', gap: '6px' })}
+`
+
+const Header = styled.div`
+    height: 40px;
+    padding: 4px 0;
+    font-size: 1.2rem;
+    ${globalStyles.flex()}
+    background-color: ${ButtonBackgroundColor};
+    border-radius: 10px;
+    width: 100%;
+    user-select: text;
+`
+const ContentsContainer = styled.div`
+    height: calc(100% - 40px);
+    width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '6px' })}
 `
 
@@ -148,6 +143,7 @@ const Arrow = styled.img<{ disabled: boolean }>`
     &:last-child {
         rotate: 270deg;
     }
+    pointer-events: auto;
     opacity: ${({ disabled }) => disabled ? 0 : 1};
     cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
 `
@@ -157,7 +153,7 @@ const TargetDescriptionContainer = styled.div`
 `
 
 const TargetImageContainer = styled.div`
-    height: 75%;
+    height: 70%;
     padding: 2px;
 `
 
@@ -166,7 +162,7 @@ const TargetImage = styled(ImageView)`
 `
 
 const TargetDescriptionInnerContainer = styled.div`
-    height: 25%;
+    height: 30%;
     text-align: center;
     padding: 4px 8px;
     overflow: auto;
@@ -246,14 +242,18 @@ const ETCContainer = styled.div`
     ${globalStyles.contentsBorder}
     padding: 4px;
     margin-bottom: 6px;
+    user-select: text;
 `
 
 const ETCText = styled.div`
     max-height: 100%;
+    width: 100%;
     overflow: auto;
     height: auto;
     text-align: center;
     word-break: break-all;
+    white-space: pre-wrap;
+    user-select: text;
 `
 
 const BtnsContainer = styled.div`

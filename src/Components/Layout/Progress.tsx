@@ -1,6 +1,6 @@
 import { CSSProperties } from "react"
 import styled from "styled-components"
-import { ButtonBackgroundColor, ContentsActivateColor, SectionBackgroundColor, globalStyles } from "../../styles/global-styled"
+import { globalStyles } from "../../styles/global-styled"
 
 type ProgressProps = {
     percent: number|string
@@ -26,7 +26,7 @@ export default Progress
 
 const ProgressContainer = styled.div<{width: CSSProperties['width'], height: CSSProperties['height']}>`
     border-radius: 12px;
-    background-color: rgba(255,255,255,.5);
+    background-color: rgba(255,255,255,.3);
     position: relative;
     overflow: hidden;
     ${globalStyles.flex()}

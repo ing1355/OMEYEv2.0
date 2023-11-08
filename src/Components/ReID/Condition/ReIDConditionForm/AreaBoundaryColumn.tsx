@@ -11,7 +11,7 @@ const AreaBoundaryColumn = () => {
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
     const setAreaIndex = useSetRecoilState(AreaSelectIndex)
     const setAreaVisible = useSetRecoilState(AreaSelectVisible)
-
+    
     const initAction = () => {
         setAreaData([])
     }
@@ -30,18 +30,18 @@ const AreaBoundaryColumn = () => {
     }
     return <Container>
         <ConditionParamsInputColumnComponent
-            title={`검색 그룹(${areaData.length})`}
+            title={`CCTV(${areaData.length})`}
             isDataExist={areaData.length > 0}
             initAction={initAction}
             dataAddAction={addAction}
-            noDataText="그룹 추가"
+            noDataText="CCTV 추가"
             allSelectAction={allSelectAction}
             allSelected={areaData.every(_ => _.selected)}>
             {
                 areaData.map((_, ind) => <AreaDataItem key={ind} selected={_.selected || false}>
                     <AreaDataItemTitle>
                         <div>
-                            CCTV 그룹 {ind + 1}
+                            CCTV {ind + 1}
                         </div>
                         <HeaderBtnsContainer>
                             <IconBtn type="edit" onClick={() => {

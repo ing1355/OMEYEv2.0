@@ -1,25 +1,25 @@
-import { DefaultValue, atom, selectorFamily } from "recoil";
+import { DefaultValue, RecoilValueReadOnly, atom, selectorFamily } from "recoil";
 import { CameraDataType } from "../Constants/GlobalTypes";
 import { Axios, streamingAllStopRequest } from "../Functions/NetworkFunctions";
 import { StopAllVMSVideoApi } from "../Constants/ApiRoutes";
+import { PROGRESS_STATUS, ProgressStatusType } from "./ProgressModel";
 
-type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status"
-type MonitoringStatusType = "IDLE" | "RUNNING"
+type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status" | "layoutNum"
 
 const _MonitoringCCTVsData = atom<{
-    visible: boolean
+    visible: MonitoringCCTVsDataKeyType|undefined
     cctvs: CameraDataType['cameraId'][]
-    status: MonitoringStatusType
+    status: ProgressStatusType
+    layoutNum: number
 }>({
     key: "MonitoringCCTVs",
     default: {
-        visible: false,
+        visible: undefined,
         cctvs: [],
-        status: "IDLE"
+        status: "IDLE",
+        layoutNum: 1
     }
 })
-
-let statusChanging = false
 
 export const MonitoringDatas = selectorFamily({
     key: "MonitoringCCTVs/selector",
@@ -27,7 +27,8 @@ export const MonitoringDatas = selectorFamily({
         const _ = get(_MonitoringCCTVsData)
         if (key === 'visible') return _.visible
         else if(key === "status") return _.status
-        else return _.cctvs
+        else if(key === 'CCTVs') return _.cctvs
+        else if(key === 'layoutNum') return _.layoutNum
     },
     set: (key: MonitoringCCTVsDataKeyType) => ({ get, set }, newValue) => {
         if (!(newValue instanceof DefaultValue)) {
@@ -35,25 +36,34 @@ export const MonitoringDatas = selectorFamily({
             if (key === "visible") {
                 return set(_MonitoringCCTVsData, {
                     ...oldData,
-                    visible: newValue as boolean
+                    visible: newValue as MonitoringCCTVsDataKeyType
                 })
             }
             else if(key === "status") {
-                if(oldData.status === 'RUNNING' && newValue === 'IDLE') {
+                if(oldData.status === PROGRESS_STATUS['RUNNING'] && newValue === PROGRESS_STATUS['IDLE'] && oldData.cctvs.length !== 0) {
                     Axios('POST', StopAllVMSVideoApi)
+                    set(_MonitoringCCTVsData, {
+                        ...oldData,
+                        cctvs: []
+                    })
                 }
-                if(oldData.status === 'IDLE' && newValue === 'RUNNING') {
+                if(oldData.status === PROGRESS_STATUS['IDLE'] && newValue === PROGRESS_STATUS['RUNNING']) {
                     window.addEventListener('unload', streamingAllStopRequest)
                 }
                 return set(_MonitoringCCTVsData, {
                     ...oldData,
-                    status: newValue as MonitoringStatusType
+                    status: newValue as ProgressStatusType
                 })
             }
-            else {
+            else if(key === 'CCTVs') {
                 return set(_MonitoringCCTVsData, {
                     ...oldData,
                     cctvs: newValue as CameraDataType['cameraId'][]
+                })
+            } else if(key === 'layoutNum') {
+                return set(_MonitoringCCTVsData, {
+                    ...oldData,
+                    layoutNum: newValue as number
                 })
             }
         }

@@ -8,11 +8,12 @@ import Input from "../../../../../Constants/Input"
 import Calendar from "../../../Constants/Calendar"
 import { useRecoilState } from "recoil"
 import { descriptionCCTVsData, descriptionRankData, descriptionTimeData } from "../../../../../../Model/DescriptionDataModel"
+import { TimeInput } from "../../../Constants/TimeModal"
 
 const PersonDescriptionBoundarySelect = () => {
     const [isTreeView, setIsTreeView] = useState(false)
-    const [startDate, setStartDate] = useState<Date | null>(null)
-    const [endDate, setEndDate] = useState<Date | null>(null)
+    const [startDate, setStartDate] = useState<Date>(new Date())
+    const [endDate, setEndDate] = useState<Date>(new Date())
     const [startHour, setStartHour] = useState('')
     const [startMinute, setStartMinute] = useState('')
     const [startSecond, setStartSecond] = useState('')
@@ -64,14 +65,14 @@ const PersonDescriptionBoundarySelect = () => {
     return <>
         <RankContainer>
             <label>
-            후보 수 : <RankInput value={rank} onChange={val => {
-                setRank(Number(val))
-            }} maxLength={3}/>
+                후보 수 : <RankInput value={rank} onlyNumber maxNumber={100} onChange={val => {
+                    setRank(Number(val))
+                }} maxLength={3} />
             </label>
         </RankContainer>
         <Container>
             <SubContainer style={{
-                flex: '0 0 60%'
+                flex: 1
             }}>
                 <ToggleBtn onClick={() => {
                     setIsTreeView(!isTreeView)
@@ -106,22 +107,22 @@ const PersonDescriptionBoundarySelect = () => {
                             }} otherDate={endDate} />
                             <TextInputWrapper>
                                 <TextInputContainer>
-                                    <TimeInput value={startDate ? startDate.getFullYear().toString() : ''} />년
-                                    <TimeInput value={startDate ? (startDate.getMonth() + 1).toString() : ''} />월
-                                    <TimeInput value={startDate ? startDate.getDate().toString() : ''} />일
+                                    <SingleTimeInput disabled value={startDate ? startDate.getFullYear().toString() : '--'} />년
+                                    <SingleTimeInput disabled value={startDate ? (startDate.getMonth() + 1).toString() : '--'} />월
+                                    <SingleTimeInput disabled value={startDate ? startDate.getDate().toString() : '--'} />일
                                 </TextInputContainer>
                                 <TextInputContainer>
                                     <TimeInput value={startHour} onChange={(val) => {
                                         setStartHour(val)
-                                        if(val.length === 2) startMinuteRef.current?.focus()
-                                    }} maxLength={2} />시
-                                    <TimeInput value={startMinute} onChange={(val) => {
+                                        // if(val.length === 2) startMinuteRef.current?.focus()
+                                    }} maxLength={2} label="시" isHour />
+                                    <TimeInput inputRef={startMinuteRef} value={startMinute} onChange={(val) => {
                                         setStartMinute(val)
-                                        if(val.length === 2) startSecondRef.current?.focus()
-                                    }} maxLength={2} inputRef={startMinuteRef}/>분
-                                    <TimeInput value={startSecond} onChange={(val) => {
+                                        // if(val.length === 2) startSecondRef.current?.focus()
+                                    }} maxLength={2} label="분" isHour={false} />
+                                    <TimeInput inputRef={startSecondRef} value={startSecond} onChange={(val) => {
                                         setStartSecond(val)
-                                    }} maxLength={2} inputRef={startSecondRef}/>초
+                                    }} maxLength={2} label="초" isHour={false} />
                                 </TextInputContainer>
                             </TextInputWrapper>
                         </InputWrapper>
@@ -136,22 +137,22 @@ const PersonDescriptionBoundarySelect = () => {
                             }} otherDate={startDate} />
                             <TextInputWrapper>
                                 <TextInputContainer>
-                                    <TimeInput value={endDate ? endDate.getFullYear().toString() : ''} />년
-                                    <TimeInput value={endDate ? (endDate.getMonth() + 1).toString() : ''} />월
-                                    <TimeInput value={endDate ? endDate.getDate().toString() : ''} />일
+                                    <SingleTimeInput disabled value={endDate ? endDate.getFullYear().toString() : '--'} />년
+                                    <SingleTimeInput disabled value={endDate ? (endDate.getMonth() + 1).toString() : '--'} />월
+                                    <SingleTimeInput disabled value={endDate ? endDate.getDate().toString() : '--'} />일
                                 </TextInputContainer>
                                 <TextInputContainer>
                                     <TimeInput value={endHour} onChange={(val) => {
                                         setEndHour(val)
-                                        if(val.length === 2) endMinuteRef.current?.focus()
-                                    }} maxLength={2} />시
-                                    <TimeInput value={endMinute} onChange={(val) => {
+                                        // if(val.length === 2) endMinuteRef.current?.focus()
+                                    }} maxLength={2} label="시" isHour />
+                                    <TimeInput inputRef={endMinuteRef} value={endMinute} onChange={(val) => {
                                         setEndMinute(val)
-                                        if(val.length === 2) endSecondRef.current?.focus()
-                                    }} maxLength={2} inputRef={endMinuteRef}/>분
-                                    <TimeInput value={endSecond} onChange={(val) => {
+                                        // if(val.length === 2) endSecondRef.current?.focus()
+                                    }} maxLength={2} label="분" isHour={false} />
+                                    <TimeInput inputRef={endSecondRef} value={endSecond} onChange={(val) => {
                                         setEndSecond(val)
-                                    }} maxLength={2} inputRef={endSecondRef}/>초
+                                    }} maxLength={2} label="초" isHour={false} />
                                 </TextInputContainer>
                             </TextInputWrapper>
                         </InputWrapper>
@@ -168,8 +169,11 @@ const rankHeight = 36
 
 const RankContainer = styled.div`
     height: ${rankHeight}px;
-    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-end'})}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
     padding: 6px 0;
+    & > label {
+        font-size: 1.2rem;
+    }
 `
 
 const RankInput = styled(Input)`
@@ -243,7 +247,7 @@ const TextInputContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
 `
 
-const TimeInput = styled(Input)`
+const SingleTimeInput = styled(Input)`
     width: 80px;
     height: 40px;
     border-radius: 10px;

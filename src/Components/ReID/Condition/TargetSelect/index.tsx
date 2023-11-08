@@ -1,11 +1,10 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../../styles/global-styled"
+import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
 import { ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
 import CCTVMethodIcon from '../../../../assets/img/CCTVMethodIcon.png'
 import ImageUploadMethodIcon from '../../../../assets/img/ImageUploadMethodIcon.png'
-import DescriptionMethodIcon from '../../../../assets/img/DescriptionMethodIcon.png'
 import { useRecoilValue } from "recoil"
 import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 
@@ -29,14 +28,6 @@ const ReIDConditionTargetSelect = () => {
                 이미지 업로드
             </Wrapper>
         </Item>
-        {objectType === 'Person' && <Item onClick={() => {
-            routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
-        }}>
-            <Wrapper>
-                <Icon src={DescriptionMethodIcon}/>
-                인상착의
-            </Wrapper>
-        </Item>}
     </Container>
 }
 
@@ -50,6 +41,9 @@ const Container = styled.div`
 const Item = styled(Button)`
     height: 60%;
     flex: 0 0 30%;
+    &:hover {
+        background-color: ${SectionBackgroundColor};
+    }
 `
 
 const Wrapper = styled.div`

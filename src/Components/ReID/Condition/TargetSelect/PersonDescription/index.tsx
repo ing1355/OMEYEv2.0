@@ -4,13 +4,11 @@ import Button from "../../../../Constants/Button"
 import { useState } from "react"
 import { DescriptionCategories, DescriptionCategoryKeyType } from "./DescriptionType"
 import DescriptionSelectContents from "./DescriptionSelectContents"
-import { useRecoilValue } from "recoil"
-import { descriptionData } from "../../../../../Model/DescriptionDataModel"
 import PersonDescriptionResultImage from "./Layout/PersonDescriptionResultImage"
 
 const PersonDescription = () => {
     const [category, setCategory] = useState<DescriptionCategoryKeyType>('general')
-    const data = useRecoilValue(descriptionData)
+    
     return <Container>
         <CategoryContainer>
             {

@@ -1,8 +1,6 @@
 import { DefaultValue, atom, selector } from "recoil"
-import { CameraDataType } from "../Constants/GlobalTypes"
-import { REIDSTATUS, ReIDRequestParamsType, _reidStatus } from "./ReIdResultModel"
-import { DescriptionRequestParamsType, _descriptionStatus } from "./DescriptionDataModel"
-import { REALTIMESTATUS, realTimeStatus } from "./RealTimeDataModel"
+import { CameraDataType, ReIDResultDataResultListDataType } from "../Constants/GlobalTypes"
+import { AdditionalReIDRequestParamsType, ReIDRequestParamsType } from "./ReIdResultModel"
 
 type ProgressDataParamsType = {
   conditionIndex: number
@@ -10,18 +8,34 @@ type ProgressDataParamsType = {
   cctvId: CameraDataType['cameraId']
 }
 
-export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataParamsType
+export type SSEResponseStatusType = 'SSE_CONNECTION' | 'SSE_DESTROY' | 'REID_START' | 'REID_COMPLETE' | 'REID_CANCEL' | 'UPDATE_THRESHOLD' | 'ADMIN_REID_KILL' | 'EXPORT_CANCEL'
+
+export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataParamsType & {
+  reIdId?: number
+  results?: ReIDResultDataResultListDataType[]
+  objectId?: number
+  status?: SSEResponseStatusType
+  errorCode?: string
+}
 
 export type ProgressDataPercentType = {
   aiPercent: number
   videoPercent: number
 }
 
-export type ProgressDataParamsTimeDataType = {
-  [key: number]: ProgressDataPercentType
+export type ProgressDataParamsTimesDataType = {
+  time: string
+  data: {
+    [key: number]: ProgressDataPercentType
+  }
 }
 
-const _progressData = atom<ProgressDataParamsTimeDataType[][]>({
+export type ProgressDataType = {
+  title: string,
+  times: ProgressDataParamsTimesDataType[]
+}
+
+const _progressData = atom<ProgressDataType[]>({
   key: "reidResult/progress/data",
   default: []
 })
@@ -36,28 +50,56 @@ export const ProgressData = selector({
   }
 })
 
-export type ProgressRequestType = 'REID' | 'ATTRIBUTION' | 'REALTIME' | ''
+export type ProgressStatusType = 'IDLE' | 'RUNNING' | 'COMPLETE' | 'CANCELD' | 'ERROR'
+export type ProgressRequestType = 'REID' | 'REALTIME' | 'ADDITIONALREID' | ''
 
-const _progressRequestParamsData = atom<{ type: ProgressRequestType, params: ReIDRequestParamsType[] | DescriptionRequestParamsType }>({
+export const defaultProgressRequestParams: { type: ProgressRequestType, params: ReIDRequestParamsType[] } = {
+  type: '',
+  params: []
+}
+
+const _progressRequestParamsData = atom<{ type: ProgressRequestType, params: ReIDRequestParamsType[] | AdditionalReIDRequestParamsType }>({
   key: "reidParams/data",
+  default: defaultProgressRequestParams
+})
+
+export const PROGRESS_STATUS: {
+  [key in ProgressStatusType]: ProgressStatusType
+} = {
+  IDLE: 'IDLE',
+  RUNNING: 'RUNNING',
+  COMPLETE: 'COMPLETE',
+  CANCELD: 'CANCELD',
+  ERROR: 'ERROR'
+}
+
+const _status = atom<{
+  type: ProgressRequestType
+  status: ProgressStatusType
+}>({
+  key: "progress/status",
   default: {
     type: '',
-    params: []
+    status: PROGRESS_STATUS['IDLE']
   }
 })
 
 export const ProgressRequestParams = selector({
   key: "reidProgress/selector",
   get: ({ get }) => get(_progressRequestParamsData),
-  set: ({ set }, newValue) => {
+  set: ({ get, set }, newValue) => {
     if (!(newValue instanceof DefaultValue)) {
       set(_progressRequestParamsData, newValue)
-      switch (newValue.type) {
-        case 'ATTRIBUTION': return set(_descriptionStatus, 'RUNNING');
-        case 'REID': return set(_reidStatus, REIDSTATUS['RUNNING']);
-        case 'REALTIME': return set(realTimeStatus, REALTIMESTATUS['RUNNING']);
-        default: return;
-      }
     }
+  }
+})
+
+export const ProgressStatus = selector({
+  key: "progress/status/selector",
+  get: ({ get }) => {
+    return get(_status)
+  },
+  set: ({ set }, newValue) => {
+    return set(_status, newValue)
   }
 })

@@ -33,10 +33,6 @@ const LazyImageViewWithCanvas: React.FC<ILazyImage> = ({ src, className }): JSX.
             }
         })
     }
-
-    // useEffect(() => {
-    //     console.log(isLoading)
-    // },[isLoading])
     
     return (
         // 화면에 보여지기 전이라면 NoImage, 화면에 보여지고 있다면 src에 해당하는 이미지
@@ -64,7 +60,6 @@ const LazyImageViewWithCanvas: React.FC<ILazyImage> = ({ src, className }): JSX.
                     // ctx!.lineJoin = "round";
                     // ctx!.stroke();
                     // ctx!.globalCompositeOperation = "destination-over";
-                    // console.log(canvasRef.current)
                     // img.src = canvasRef.current!.toDataURL()
                 }} />
             }

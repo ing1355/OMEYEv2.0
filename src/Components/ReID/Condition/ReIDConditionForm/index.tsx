@@ -2,8 +2,8 @@ import styled from "styled-components"
 import { globalStyles } from "../../../../styles/global-styled"
 import Input from "../../../Constants/Input"
 import Button from "../../../Constants/Button"
-import { useRecoilState } from "recoil"
-import { conditionData, conditionTitleData, createDefaultConditionData } from "../../../../Model/ConditionDataModel"
+import { useRecoilState, useRecoilValue } from "recoil"
+import { ConditionDataSingleType, conditionData, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import TargetSelectColumn from "./TargetSelectColumn"
 import ETCColumn from "./ETCColumn"
 import TimeBoundaryColumn from "./TimeBoundaryColumn"
@@ -12,33 +12,50 @@ import { DownloadSingleConditionJsonData, UploadSingleConditionJsonData } from "
 import conditionDataSaveIcon from '../../../../assets/img/conditionDataSaveIcon.png'
 import conditionDataUploadIcon from '../../../../assets/img/conditionDataUploadIcon.png'
 import resetIcon from '../../../../assets/img/resetDisabledIcon.png'
+import useMessage from "../../../../Hooks/useMessage"
+import { ReIDObjectTypes } from "../../ConstantsValues"
 
 const ReIDConditionForm = () => {
     const [title, setTitle] = useRecoilState(conditionTitleData)
     const [datas, setDatas] = useRecoilState(conditionData)
+    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const message = useMessage()
     
     return <>
         <TopInputAndButtonsContainer>
                 <TitleInput placeholder={datas.isRealTime ? "실시간 검색 요청" : "타이틀을 입력해주세요."} value={title} onChange={value => {
                     setTitle(value)
-                }} disabled={datas.isRealTime}/>
+                }} disabled={datas.isRealTime} maxLength={20}/>
             <TopButtonsContainer>
-                <TopButton icon={resetIcon} onClick={() => {
-                    setDatas(createDefaultConditionData())
+                <TopButton hover icon={resetIcon} onClick={() => {
+                    setDatas(createDefaultConditionData(currentObjectType!))
+                    message.success({
+                        title: '데이터 초기화',
+                        msg: `${ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title} 타입 검색 조건 초기화 되었습니다.`
+                    })
                 }}>
                     전체 초기화
                 </TopButton>
-                <TopButton icon={conditionDataUploadIcon} onClick={() => {
-                    UploadSingleConditionJsonData((json) => {
-                        setDatas(json as any)
+                <TopButton hover icon={conditionDataUploadIcon} onClick={() => {
+                    UploadSingleConditionJsonData((json: ConditionDataSingleType) => {
+                        if(json.targets[0].type !== currentObjectType) return message.error({
+                            title: "입력값 에러",
+                            msg: "불러온 데이터의 타입과 현재 선택한 타입이 일치하지 않습니다."
+                        })
+                        setDatas(json)
+                    }, () => {
+                        message.error({
+                            title: "입력값 에러",
+                            msg: "잘못된 JSON 파일 입니다."
+                        })
                     })
                 }}>
-                    불러오기
+                    가져오기
                 </TopButton>
-                <TopButton icon={conditionDataSaveIcon} onClick={() => {
+                <TopButton hover icon={conditionDataSaveIcon} onClick={() => {
                     DownloadSingleConditionJsonData(datas)
                 }}>
-                    저장하기
+                    내보내기
                 </TopButton>
             </TopButtonsContainer>
         </TopInputAndButtonsContainer>

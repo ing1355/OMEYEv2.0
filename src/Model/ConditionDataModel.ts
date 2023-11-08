@@ -1,16 +1,10 @@
 import { DefaultValue, atom, atomFamily, selector, selectorFamily } from "recoil";
-import { ReIDObjectTypeKeys, ReIDObjectTypes } from "../Components/ReID/ConstantsValues";
+import { ObjectTypes, ReIDObjectTypes } from "../Components/ReID/ConstantsValues";
 import { ReIDConditionFormRoute } from "../Components/ReID/Condition/Constants/RouteInfo";
 import { conditionRoute } from "./ConditionRouteModel";
-import { CaptureResultListItemType } from "../Constants/GlobalTypes";
+import { CaptureResultListItemType, ReIDObjectTypeKeys } from "../Constants/GlobalTypes";
 import { _timeIndex } from "./ConditionParamsModalModel";
 import { FaceConditionTestData, PersonConditionTestData, PlateConditionTestData } from "./TestDatas";
-
-export enum ObjectTypes {
-    PERSON,
-    FACE,
-    PLATE
-}
 
 export type ConditionDataCCTVType = {
     cctvList: number[],
@@ -36,8 +30,8 @@ type ConditionDataKeyType = {
     [key in ReIDObjectTypeKeys]: ConditionDataSingleType
 }
 
-export const createDefaultConditionData = (): ConditionDataSingleType => ({
-    name: '',
+export const createDefaultConditionData = (type: ReIDObjectTypeKeys): ConditionDataSingleType => ({
+    name: ReIDObjectTypes.find(_ => _.key === type)?.title + " 검색",
     targets: [],
     cctv: [],
     time: [],
@@ -51,13 +45,14 @@ export type ConditionDataType = { selectedType: ReIDObjectTypeKeys | null } & Co
 const _data = atom<ConditionDataType>({
     key: "conditionData",
     default: {
-        selectedType: 'Person',
-        Face: createDefaultConditionData(),
+        selectedType: 'PERSON',
+        FACE: createDefaultConditionData('FACE'),
         // Face: FaceConditionTestData,
-        Person: createDefaultConditionData(),
-        // Person: PersonConditionTestData,
-        car_plate: createDefaultConditionData()
+        PERSON: createDefaultConditionData('PERSON'),
+        // PERSON: PersonConditionTestData,
+        CARPLATE: createDefaultConditionData('CARPLATE'),
         // car_plate: PlateConditionTestData
+        ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')
     }
 })
 
@@ -71,9 +66,10 @@ const _listData = atom<{
 }>({
     key: "conditionDataList",
     default: {
-        Face: [],
-        Person: [],
-        car_plate: []
+        FACE: [],
+        PERSON: [],
+        CARPLATE: [],
+        ATTRIBUTION: []
     }
 })
 
@@ -131,7 +127,7 @@ export const selectedConditionObjectType = selector({
     key: "selectedConditionObjectType/selector",
     get: ({ get }) => get(_selectedObjectType),
     set: ({ get, set }, newValue) => {
-        console.log(`고속분석 - 조건 입력 - ${newValue} 타입 선택 !`)
+        console.debug(`고속분석 - 조건 입력 - ${newValue} 타입 선택 !`)
         if (!(newValue instanceof DefaultValue)) {
             const _route = get(conditionRoute)
             if (newValue) {
@@ -156,6 +152,8 @@ export const conditionData = selector<ConditionDataSingleType>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key]
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key]
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key]
             default: return data[ReIDObjectTypes[ObjectTypes.FACE].key];
         }
     },
@@ -173,6 +171,9 @@ export const conditionData = selector<ConditionDataSingleType>({
                 case ReIDObjectTypes[ObjectTypes.PLATE].key:
                     result[ReIDObjectTypes[ObjectTypes.PLATE].key] = newValue
                     break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = newValue
+                    break;
                 default: break;
             }
             return set(_data, result)
@@ -180,10 +181,10 @@ export const conditionData = selector<ConditionDataSingleType>({
     }
 })
 
-export const conditionTargetDatas = selector<CaptureResultListItemType[]>({
+export const conditionTargetDatas = selectorFamily({
     key: "conditionTargetDatas/selector",
-    get: ({ get }) => {
-        const type = get(_selectedObjectType)
+    get: (_type: ReIDObjectTypeKeys|null) => ({ get }) => {
+        const type = _type || get(_selectedObjectType)
         const data = get(_data)
         switch (type) {
             case ReIDObjectTypes[ObjectTypes.FACE].key:
@@ -192,12 +193,14 @@ export const conditionTargetDatas = selector<CaptureResultListItemType[]>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].targets
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].targets
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].targets
             default: return [];
         }
     },
-    set: ({ get, set }, newValue) => {
+    set: (_type: ReIDObjectTypeKeys|null) => ({ get, set }, newValue) => {
         if (!(newValue instanceof DefaultValue)) {
-            const type = get(_selectedObjectType)
+            const type = _type || get(_selectedObjectType)
             let result = { ...get(_data) }
             switch (type) {
                 case ReIDObjectTypes[ObjectTypes.FACE].key:
@@ -215,6 +218,12 @@ export const conditionTargetDatas = selector<CaptureResultListItemType[]>({
                 case ReIDObjectTypes[ObjectTypes.PLATE].key:
                     result[ReIDObjectTypes[ObjectTypes.PLATE].key] = {
                         ...result[ReIDObjectTypes[ObjectTypes.PLATE].key],
+                        targets: newValue
+                    }
+                    break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
                         targets: newValue
                     }
                     break;
@@ -237,6 +246,8 @@ export const conditionTimeDatas = selector<ConditionDataSingleType['time']>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].time
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].time
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].time
             default: return [];
         }
     },
@@ -260,6 +271,12 @@ export const conditionTimeDatas = selector<ConditionDataSingleType['time']>({
                 case ReIDObjectTypes[ObjectTypes.PLATE].key:
                     result[ReIDObjectTypes[ObjectTypes.PLATE].key] = {
                         ...result[ReIDObjectTypes[ObjectTypes.PLATE].key],
+                        time: newValue
+                    }
+                    break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
                         time: newValue
                     }
                     break;
@@ -296,6 +313,8 @@ export const conditionAreaDatas = selector<ConditionDataSingleType['cctv']>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].cctv
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].cctv
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].cctv
             default: return [];
         }
     },
@@ -322,6 +341,12 @@ export const conditionAreaDatas = selector<ConditionDataSingleType['cctv']>({
                         cctv: newValue
                     }
                     break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
+                        cctv: newValue
+                    }
+                    break;
                 default: break;
             }
             return set(_data, result)
@@ -341,6 +366,8 @@ export const conditionIsRealTimeData = selector<ConditionDataSingleType['isRealT
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].isRealTime
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].isRealTime
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].isRealTime
             default: return false;
         }
     },
@@ -367,6 +394,12 @@ export const conditionIsRealTimeData = selector<ConditionDataSingleType['isRealT
                         isRealTime: newValue
                     }
                     break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
+                        isRealTime: newValue
+                    }
+                    break;
                 default: break;
             }
             return set(_data, result)
@@ -386,6 +419,8 @@ export const conditionRankData = selector<number>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].rank
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].rank
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].rank
             default: return 10;
         }
     },
@@ -412,6 +447,12 @@ export const conditionRankData = selector<number>({
                         rank: newValue
                     }
                     break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
+                        rank: newValue
+                    }
+                    break;
                 default: break;
             }
             return set(_data, result)
@@ -431,6 +472,8 @@ export const conditionTitleData = selector<string>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].name
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].name
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].name
             default: return '';
         }
     },
@@ -454,6 +497,12 @@ export const conditionTitleData = selector<string>({
                 case ReIDObjectTypes[ObjectTypes.PLATE].key:
                     result[ReIDObjectTypes[ObjectTypes.PLATE].key] = {
                         ...result[ReIDObjectTypes[ObjectTypes.PLATE].key],
+                        name: newValue
+                    }
+                    break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
                         name: newValue
                     }
                     break;
@@ -476,6 +525,8 @@ export const conditionETCData = selector<string>({
                 return data[ReIDObjectTypes[ObjectTypes.PERSON].key].etc
             case ReIDObjectTypes[ObjectTypes.PLATE].key:
                 return data[ReIDObjectTypes[ObjectTypes.PLATE].key].etc
+            case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                return data[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key].etc
             default: return '';
         }
     },
@@ -499,6 +550,12 @@ export const conditionETCData = selector<string>({
                 case ReIDObjectTypes[ObjectTypes.PLATE].key:
                     result[ReIDObjectTypes[ObjectTypes.PLATE].key] = {
                         ...result[ReIDObjectTypes[ObjectTypes.PLATE].key],
+                        etc: newValue
+                    }
+                    break;
+                case ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key:
+                    result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key] = {
+                        ...result[ReIDObjectTypes[ObjectTypes.ATTRIBUTION].key],
                         etc: newValue
                     }
                     break;

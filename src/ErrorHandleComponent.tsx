@@ -20,7 +20,7 @@ export default class ErrorHandleComponent extends React.Component<
         this.setState({
             hasError: true
         })
-        console.log(error, errorInfo)
+        console.error(error, errorInfo)
     }
     
     render() {

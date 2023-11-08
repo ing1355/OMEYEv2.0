@@ -7,27 +7,29 @@ import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../s
 export type DropdownItemType<T> = {
     key: T
     value: T
-    label: string
+    label: T|string
 }
 
 export type DropdownProps<T> = {
     itemList: DropdownItemType<T>[]
     onChange?: (val: DropdownItemType<T>) => void
     className?: string
-    value?: DropdownItemType<T>['value']
+    defaultValue?: DropdownItemType<T>['value']
+    disableFunc?: (val: DropdownItemType<T>) => boolean
+    disableCallback?: () => void
 }
 
-const Dropdown = <T extends unknown>({ itemList, onChange, className, value }: DropdownProps<T>) => {
+const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
     const openedRef = useRef(opened)
     const dropdownRef = useRef<HTMLDivElement>(null)
-    const [_value, _setValue] = useState<DropdownItemType<T>>(itemList[0])
+    const [value, setValue] = useState<DropdownItemType<T>>(itemList[0])
     
-    useEffect(() => {
-        if(value) {
-            _setValue(itemList.find(_ => _.value === value)!)
-        }
-    },[value])
+    // useEffect(() => {
+    //     if(defaultValue) {
+    //         setValue(itemList.find(_ => _.value === defaultValue)!)
+    //     }
+    // },[opened])
 
     const handleMouseDown = useCallback((event: MouseEvent) => {
         if (
@@ -52,15 +54,15 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, value }: D
     }, [opened])
 
     useEffect(() => {
-        if (onChange) onChange(_value)
-    }, [_value])
+        if (onChange) onChange(value)
+    }, [value])
 
     return <DropdownContainer ref={dropdownRef}>
         <DropdownButton className={className} onClick={(e) => {
             setOpened(!opened)
         }} type="button">
             <>
-                {_value.label}
+                {value.label}
                 <img src={downArrowIcon} style={{
                     height: '80%'
                 }}/>
@@ -70,9 +72,14 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, value }: D
             {
                 itemList.map(_ => <DropdownContentItem key={_.key as string} onClick={() => {
                     setOpened(false)
-                    _setValue(_)
+                    if(disableFunc) {
+                        if(disableFunc(_)) {
+                            if(disableCallback) return disableCallback()
+                        }
+                    }
+                    setValue(_)
                 }}>
-                    {_.label}
+                    {String(_.label)}
                 </DropdownContentItem>)
             }
         </DropdownContentContainer>
@@ -96,7 +103,7 @@ const DropdownButton = styled(Button)`
 
 const DropdownContentContainer = styled.div<{ opened: boolean }>`
     ${({ opened }) => ({
-        display: opened ? 'block' : 'none'
+        display: opened ? 'block' : 'none',
     })}
     position: absolute;
     width: 100%;

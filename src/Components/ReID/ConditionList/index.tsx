@@ -1,22 +1,26 @@
 import styled from "styled-components"
-import { SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
+import { globalStyles } from "../../../styles/global-styled"
 import Button from "../../Constants/Button"
-import { useState } from "react"
-import { ReIDObjectTypeKeys, ReIDObjectTypes } from "../ConstantsValues"
+import { useEffect, useState } from "react"
 import ConditionListSetByType from "./ConditionListSetByType"
+import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { REIDSTATUS, ReIDStatus } from "../../../Model/ReIdResultModel"
-import { conditionTargetDatasListByObjectType } from "../../../Model/ConditionDataModel"
-import { SseTestApi } from "../../../Constants/ApiRoutes"
+import { conditionTargetDatasListByObjectType, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
-import { ProgressRequestParams } from "../../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
+import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 
 const ConditionList = () => {
-    const [selectedTab, setSelectedTab] = useState<ReIDObjectTypeKeys>('Person')
+    const [selectedTab, setSelectedTab] = useState<ReIDObjectTypeKeys>(ReIDObjectTypeKeys[ObjectTypes['PERSON']])
     const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(selectedTab))
-    const [reidStatus, setReIDStatus] = useRecoilState(ReIDStatus)
+    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const progressStatus = useRecoilValue(ProgressStatus)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     
+    useEffect(() => {
+        if(currentObjectType) setSelectedTab(currentObjectType)
+    },[currentObjectType])
+
     return <Container>
         <Header>
             <TypeTabs>
@@ -24,29 +28,32 @@ const ConditionList = () => {
                     필터 :
                 </div>
                 {
-                    ReIDObjectTypes.map((_, ind) => <Tab key={ind} activate={selectedTab === _.key} onClick={() => {
+                    ReIDObjectTypes.map((_, ind) => <Tab hover key={ind} activate={selectedTab === _.key} onClick={() => {
                         setSelectedTab(_.key)
                     }}>
                         {_.title}
                     </Tab>)
                 }
             </TypeTabs>
-            <CompleteBtn icon={reidReqIcon} disabled={reidStatus === 'RUNNING' || !conditionList.find(_ => _.selected)} concept="activate" onClick={() => {
+            <CompleteBtn icon={reidReqIcon} disabled={progressStatus.status === PROGRESS_STATUS['RUNNING'] || !conditionList.find(_ => _.selected)} concept="activate" onClick={() => {
                 setProgressRequestParams({
                     type: 'REID',
                     params: conditionList.filter(_ => _.selected).map(_ => ({
                         title: _.name,
                         rank: _.rank,
                         etc: _.etc,
-                        objectIds: _.targets.map(__ => __.objectId!),
-                        timeAndArea: _.time.map(__ => ({
+                        objects: _.targets.map(__ => ({
+                            id: __.objectId!,
+                            src: __.src,
+                            type: __.type
+                        })),
+                        timeGroups: _.time.map(__ => ({
                             startTime: __.time[0],
-                            endTime: __.time[1],
-                            cctvs: _.cctv.flatMap(__ => __.cctvList)
-                        }))
+                            endTime: __.time[1]
+                        })),
+                        cctvIds: _.cctv.map(_ => _.cctvList)
                     }))
                 })
-                setReIDStatus(REIDSTATUS['RUNNING'])
             }}>
                 분석 요청
             </CompleteBtn>

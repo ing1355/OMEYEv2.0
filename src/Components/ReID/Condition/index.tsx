@@ -1,11 +1,9 @@
 import styled from "styled-components"
 import ContentsWrapper from "./ContentsWrapper"
-import AreaSelect from "./AreaSelect"
 
 const Condition = () => {
     return <Container>
         <ContentsWrapper />
-        <AreaSelect/>
     </Container>
 }
 

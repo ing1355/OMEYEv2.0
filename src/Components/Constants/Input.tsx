@@ -17,24 +17,27 @@ type InputProps = {
     onKeyDown?: InputType['onKeyDown']
     onFocus?: InputType['onFocus']
     onBlur?: InputType['onBlur']
-    onEnter?: () => void
+    onEnter?: InputType['onKeyDown']
     tabIndex?: InputType['tabIndex']
     pattern?: InputType['pattern']
     style?: InputType['style']
     disabled?: InputType['disabled']
     onClick?: InputType['onClick']
     onlyNumber?: boolean
+    autoComplete?: InputType['autoComplete']
+    enableAsterisk?: boolean
+    maxNumber?: number
 }
 
 const _Input = (props?: InputProps) => {
     useEffect(() => {
-        if(props?.type === 'textarea') {
-            if(!props?.value) {
+        if (props?.type === 'textarea') {
+            if (!props?.value) {
                 const target = props.inputRef?.current
                 target.style.height = 30 + 'px'
             }
         }
-    },[props?.value, props?.type])
+    }, [props?.value, props?.type])
     const attributes = {
         ref: props?.inputRef,
         maxLength: props?.maxLength ?? (props?.type === 'textarea' ? 300 : 16),
@@ -44,7 +47,8 @@ const _Input = (props?: InputProps) => {
         className: props?.className,
         id: props?.id,
         disabled: props?.disabled,
-        placeholder: props?.placeholder
+        placeholder: props?.placeholder,
+        autoComplete: props?.autoComplete
     }
     const inputAttributes = {
         ...attributes,
@@ -59,7 +63,7 @@ const _Input = (props?: InputProps) => {
         onInput={(e) => {
             const target = e.currentTarget
             target.style.height = 1 + 'px'
-            if((4 + target.scrollHeight < target.parentElement?.clientHeight!)) {
+            if ((4 + target.scrollHeight < target.parentElement?.clientHeight!)) {
                 target.style.height = (4 + target.scrollHeight) + 'px'
             } else {
                 target.style.height = (target.parentElement?.clientHeight! - 12) + 'px'
@@ -81,19 +85,26 @@ const _Input = (props?: InputProps) => {
         onFocus={props?.onFocus}
         onBlur={props?.onBlur}
         onInput={e => {
-            if(props?.onlyNumber) {
-                e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+            if (props?.onlyNumber) {
+                if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
+                else {
+                    let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+                    if(props.maxNumber) {
+                        if(Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+                    }
+                    e.currentTarget.value = temp
+                }
             }
-            if(props?.onInput) {
+            if (props?.onInput) {
                 props.onInput(e)
             }
         }}
         onClick={props?.onClick}
         onKeyDown={(e) => {
-            if(e.key === 'Enter' && props?.onEnter) {
+            if (e.key === 'Enter' && props?.onEnter) {
                 e.preventDefault()
-                props.onEnter()
-            } else if(props?.onKeyDown) props.onKeyDown(e)
+                props.onEnter(e)
+            } else if (props?.onKeyDown) props.onKeyDown(e)
         }}
         {...inputAttributes}
     />
@@ -109,6 +120,9 @@ const Input = styled(_Input)`
     background-color: ${InputBackgroundColor};
     &:focus::-webkit-input-placeholder {
         color: transparent;
+    }
+    &:disabled {
+        opacity: 0.5;
     }
 `
 

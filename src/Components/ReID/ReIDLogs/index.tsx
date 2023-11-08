@@ -1,20 +1,25 @@
 import styled from "styled-components"
 import { ReIDLogDataType, ReIDSearchParamsType, SearchReIDLogDatas, useReIDLogDatas } from "../../../Model/ReIDLogModel"
-import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
+import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
 import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
-import { ReIDMenuKeys, ReIDObjectTypeKeys, ReIDObjectTypes } from "../ConstantsValues"
+import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Button from "../../Constants/Button"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { ReIDLogDataSaveToJSON, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
 import ImageView from "../Condition/Constants/ImageView"
-import { useRecoilRefresher_UNSTABLE, useRecoilState } from "recoil"
+import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from "recoil"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import TimeModal, { TimeModalDataType } from "../Condition/Constants/TimeModal"
 import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
-import arrowIcon from '../../../assets/img/downArrowIcon.png'
+import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
+import ForLog from "../../Constants/ForLog"
+import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
+import { Axios } from "../../../Functions/NetworkFunctions"
+import { GetReidDataApi } from "../../../Constants/ApiRoutes"
+import Pagination from "../../Layout/Pagination"
 
 const bottomColStyle = {
     alignItems: 'flex-start'
@@ -24,79 +29,28 @@ const bottomColTitleStyle = {
     paddingTop: '8px'
 }
 
-type ArrowProps = {
-    onClick: () => void
-}
-
-const LeftArrow = ({ onClick }: ArrowProps) => {
-    return <PaginationArrowContainer style={{
-        transform: 'rotate(90deg)'
-    }} onClick={onClick}>
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -50%)'
-        }} />
-    </PaginationArrowContainer>
-}
-
-const RightArrow = ({ onClick }: ArrowProps) => {
-    return <PaginationArrowContainer style={{
-        transform: 'rotate(-90deg)'
-    }} onClick={onClick}>
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -50%)'
-        }} />
-    </PaginationArrowContainer>
-}
-
-const LeftDoubleArrow = ({ onClick }: ArrowProps) => {
-    return <PaginationArrowContainer style={{
-        transform: 'rotate(90deg)'
-    }} onClick={onClick}>
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -70%)'
-        }} />
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -50%)'
-        }} />
-    </PaginationArrowContainer>
-}
-
-const RightDoubleArrow = ({ onClick }: ArrowProps) => {
-    return <PaginationArrowContainer style={{
-        transform: 'rotate(-90deg)'
-    }} onClick={onClick}>
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -50%)'
-        }} />
-        <PaginationArrow src={arrowIcon} style={{
-            transform: 'translate(-50%, -30%)'
-        }} />
-    </PaginationArrowContainer>
-}
-
 type ObjectTypeSearchValues = ReIDObjectTypeKeys | 'all'
 
 const ReIDLogs = () => {
     // const setReIDResultData = useSetRecoilState(ReIDResultData)
     const [menu, setMenu] = useRecoilState(conditionMenu)
     const [currentPage, setCurrentPage] = useState(0)
-    const [opened, setOpened] = useState<ReIDLogDataType['reidId'][]>([])
+    const [opened, setOpened] = useState<ReIDLogDataType['reidId']>(0)
     const [timeVisible, setTimeVisible] = useState(false)
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
     const [searchValue, setSearchValue] = useState<ObjectTypeSearchValues>('all')
     const params = useRef<ReIDSearchParamsType>({
         page: currentPage + 1
     })
-    
+
     const paginationInputRef = useRef<HTMLInputElement>()
     const titleInputRef = useRef<HTMLInputElement>()
 
+    const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
+    const setReIDSelectedcondition = useSetRecoilState(ReIDResultSelectedCondition)
+    const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
     const logs = useReIDLogDatas(params.current)
     const refresh = useRecoilRefresher_UNSTABLE(SearchReIDLogDatas(params.current))
-    const pageNums = useMemo(() => {
-        const _ = Array.from({ length: 5 }).map((_, ind) => currentPage + 1 + (ind - 2)).filter(_ => _ > 0 && ((logs!.totalCount / 10) > _))
-        return _.length === 0 ? [1] : _
-    }, [logs?.totalCount, currentPage])
 
     useEffect(() => {
         refresh()
@@ -106,227 +60,204 @@ const ReIDLogs = () => {
 
     useEffect(() => {
         if (menu === ReIDMenuKeys['REIDLOGS']) refresh()
+        else setOpened(0)
     }, [menu])
 
-    useEffect(() => {
-        setOpened([])
-    }, [logs])
-
     return <Container>
-        <TimeModal visible={timeVisible} setVisible={setTimeVisible} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" />
-        <Form onSubmit={() => {
-            let _: ReIDSearchParamsType = {
-                page: 1
-            }
-            if (titleInputRef.current && titleInputRef.current.value) _.desc = titleInputRef.current.value
-            if (searchValue !== 'all') _.type = searchValue
-            if (timeValue) {
-                _.from = convertFullTimeStringToHumanTimeFormat(timeValue.startTime)
-                _.to = convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)
-            }
-            params.current = _
-            refresh()
-        }}>
-            <SearchContainer>
-                <DropdownContainer>
-                    <ObjectSearchDropdown itemList={[{
-                        key: 'all',
-                        value: 'all',
-                        label: '전체'
-                    }, ...ReIDObjectTypeKeys.map(_ => ({
-                        key: _,
-                        value: _,
-                        label: ReIDObjectTypes.find(__ => __.key === _)!.title
-                    }))]} onChange={val => {
-                        setSearchValue(val.value as ObjectTypeSearchValues)
-                    }} />
-                </DropdownContainer>
-                <TitleSearch placeholder="검색명" inputRef={titleInputRef} />
-                <DateSearch onClick={() => {
-                    setTimeVisible(true)
-                }}>
-                    {timeValue ? `${convertFullTimeStringToHumanTimeFormat(timeValue.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)}` : '시간을 입력해주세요.'}
-                </DateSearch>
-                <SearchButton icon={searchIcon} type="submit">
-                    검색
-                </SearchButton>
-            </SearchContainer>
-        </Form>
+        <TimeModal visible={timeVisible} close={() => {
+            setTimeVisible(false)
+        }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" />
         <Wrapper>
+            <Form onSubmit={() => {
+                let _: ReIDSearchParamsType = {
+                    page: 1
+                }
+                if (titleInputRef.current && titleInputRef.current.value) _.desc = titleInputRef.current.value
+                if (searchValue !== 'all') _.type = searchValue
+                if (timeValue) {
+                    _.from = timeValue.startTime
+                    _.to = timeValue.endTime!
+                }
+                params.current = _
+                refresh()
+            }}>
+                <SearchContainer>
+                    <DropdownContainer>
+                        <ObjectSearchDropdown itemList={[{
+                            key: 'all',
+                            value: 'all',
+                            label: '전체'
+                        }, ...ReIDObjectTypeKeys.map(_ => ({
+                            key: _,
+                            value: _,
+                            label: ReIDObjectTypes.find(__ => __.key === _)!.title
+                        }))]} onChange={val => {
+                            setSearchValue(val.value as ObjectTypeSearchValues)
+                        }} />
+                    </DropdownContainer>
+                    <TitleSearch placeholder="검색명" inputRef={titleInputRef} />
+                    <DateSearch onClick={() => {
+                        setTimeVisible(true)
+                    }}>
+                        {timeValue ? `${convertFullTimeStringToHumanTimeFormat(timeValue.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)}` : '시간을 입력해주세요.'}
+                    </DateSearch>
+                    <SearchButton hover icon={searchIcon} type="submit">
+                        검색
+                    </SearchButton>
+                </SearchContainer>
+            </Form>
             {
-                logs ? <ContentsContainer>
-                    {
-                        logs.result.map(_ => <ContentsItemContainer opened={opened.includes(_.reidId)} key={_.reidId}>
-                            <ContentsItemTitleContainer>
-                                <ContentsItemTitle>{_.description} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)})</ContentsItemTitle>
-                                <ContentsItemTitleBtnsContainer>
-                                    <ContentsItemTitleBtn onClick={async (e) => {
-                                        e.preventDefault()
-                                    }}>
-                                        데이터 다운로드
-                                    </ContentsItemTitleBtn>
-                                    <ContentsItemTitleBtn onClick={async () => {
-                                        // setReIDResultData(await Axios("GET", GetReidDataApi(_.reidId)))
-                                        setMenu(ReIDMenuKeys['REIDRESULT'])
-                                    }}>
-                                        결과 바로보기
-                                    </ContentsItemTitleBtn>
-                                    <Arrow opened={opened.includes(_.reidId)} onClick={() => {
-                                        if (opened.includes(_.reidId)) setOpened(opened.filter(__ => __ !== _.reidId))
-                                        else setOpened(opened.concat(_.reidId))
-                                    }} />
-                                </ContentsItemTitleBtnsContainer>
-                            </ContentsItemTitleContainer>
-                            <ContentsItemInnerContainer>
-                                <ContentsItemInnerRowContainer>
-                                    <ContentsItemInnerColContainer>
-                                        <ContentsItemInnerColTitle>
-                                            대상 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents style={{
-                                            backgroundColor: GlobalBackgroundColor
+                logs && logs.results.length > 0 ? <>
+                    <ContentsContainer>
+                        {
+                            logs.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId}>
+                                <ContentsItemTitleContainer onClick={() => {
+                                    if (opened === _.reidId) setOpened(0)
+                                    else setOpened(_.reidId)
+                                }}>
+                                    {/* <ForLog data={[_.requestGroups, _.reidId]}/> */}
+                                    <ContentsItemTitle>검색 {_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
+                                    <ContentsItemTitleBtnsContainer>
+                                        {/* <ContentsItemTitleBtn hover onClick={() => {
+
                                         }}>
-                                            <ContentsItemInnerTargetImageBoxContainer>
-                                                {
-                                                    _.object.map((__, ind) => <div key={ind} style={{
+                                            조건 목록에 전부 추가
+                                        </ContentsItemTitleBtn> */}
+                                        <ContentsItemTitleBtn hover onClick={async (e) => {
+                                            e.stopPropagation()
+                                            const newData = await Axios("GET", GetReidDataApi(_.reidId))
+                                            if (reidResults.some(r => r.reIdId === _.reidId)) {
+                                                setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
+                                            } else {
+                                                setReidResults(reidResults.concat(newData))
+                                            }
+                                            setReIDSelectedcondition(0)
+                                            setReIDResultSelectedView([_.reidId])
+                                            setMenu(ReIDMenuKeys['REIDRESULT'])
+                                        }}>
+                                            결과 바로보기
+                                        </ContentsItemTitleBtn>
+                                        <Arrow opened={opened === _.reidId} />
+                                    </ContentsItemTitleBtnsContainer>
+                                </ContentsItemTitleContainer>
+
+                                {
+                                    _.requestGroups.map((__, _ind) => <ContentsItemSubContainer opened={true} key={_ind}>
+                                        <ContentsItemSubTitleContainer>
+                                            <div />
+                                            {__.title}
+                                            <SubTitleItemsContainer>
+                                                <ContentsItemTitleBtn hover onClick={async () => {
+                                                    // const resultData = await Axios("GET", GetReidDataApi(_.reidId)) as ReIDResultType
+                                                    ReIDLogDataSaveToJSON(__)
+                                                    // DownloadSingleConditionJsonData(resultData.data[_ind])
+                                                }}>
+                                                    데이터 다운로드
+                                                </ContentsItemTitleBtn>
+                                                {/* <Arrow opened={subOpened.includes(_ind)} onClick={() => {
+                                                    if (subOpened.includes(_ind)) setSubOpened(subOpened.filter(___ => ___ !== _ind))
+                                                    else setSubOpened(subOpened.concat(_ind))
+                                                }} /> */}
+                                            </SubTitleItemsContainer>
+                                        </ContentsItemSubTitleContainer>
+                                        <ContentsItemInnerContainer>
+                                            <ContentsItemInnerRowContainer>
+                                                <ContentsItemInnerColContainer>
+                                                    <ContentsItemInnerColTitle>
+                                                        대상 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents style={{
+                                                        backgroundColor: GlobalBackgroundColor
+                                                    }}>
+                                                        <ContentsItemInnerTargetImageBoxContainer>
+                                                            {
+                                                                __.targetObjects.map((__, ind) => <div key={ind} style={{
+                                                                    height: '100%'
+                                                                }}>
+                                                                    <ContentsItemInnerHeadItemImageBox src={__.imgUrl} />
+                                                                </div>)
+                                                            }
+                                                        </ContentsItemInnerTargetImageBoxContainer>
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                                <ContentsItemInnerColContainer>
+                                                    <ContentsItemInnerColTitle>
+                                                        분석 결과 후보 수 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents style={{
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        <ContentsItemInnerColContentWrapper>
+                                                            {__.rank}
+                                                        </ContentsItemInnerColContentWrapper>
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                                <ContentsItemInnerColContainer>
+                                                    <ContentsItemInnerColTitle>
+                                                        소요 시간 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents style={{
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        <ContentsItemInnerColContentWrapper>
+                                                            {__.status === 'IN_PROGRESS' && "진행중"}
+                                                            {__.status === 'SUCCESS' && getTimeDifference(__.requestStartTime, __.requestEndTime)}
+                                                            {__.status === 'CANCEL' && "취소된 요청"}
+                                                        </ContentsItemInnerColContentWrapper>
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                            </ContentsItemInnerRowContainer>
+                                            <ContentsItemInnerRowContainer>
+                                                <ContentsItemInnerColContainer style={bottomColStyle}>
+                                                    <ContentsItemInnerColTitle style={bottomColTitleStyle}>
+                                                        시간 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents>
+                                                        {
+                                                            __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
+                                                                {convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(time.endTime)}
+                                                            </ContentsItemInnerColContentWrapper>)
+                                                        }
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                                <ContentsItemInnerColContainer style={bottomColStyle}>
+                                                    <ContentsItemInnerColTitle style={bottomColTitleStyle}>
+                                                        CCTV 수 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents>
+                                                        {
+                                                            __.cameraGroups.map((cctvs, ind) => <ContentsItemInnerColContentWrapper key={ind}>
+                                                                CCTV {cctvs.length} 대
+                                                            </ContentsItemInnerColContentWrapper>)
+                                                        }
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                                <ContentsItemInnerColContainer style={bottomColStyle}>
+                                                    <ContentsItemInnerColTitle style={bottomColTitleStyle}>
+                                                        비고 :
+                                                    </ContentsItemInnerColTitle>
+                                                    <ContentsItemInnerColContents style={{
                                                         height: '100%'
                                                     }}>
-                                                        <ContentsItemInnerHeadItemImageBox src={__.imgUrl} />
-                                                    </div>)
-                                                }
-                                            </ContentsItemInnerTargetImageBoxContainer>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                    <ContentsItemInnerColContainer>
-                                        <ContentsItemInnerColTitle>
-                                            후보 수 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents style={{
-                                            justifyContent: 'center'
-                                        }}>
-                                            <ContentsItemInnerColContentWrapper>
-                                                5
-                                            </ContentsItemInnerColContentWrapper>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                    <ContentsItemInnerColContainer>
-                                        <ContentsItemInnerColTitle>
-                                            소요 시간 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents style={{
-                                            justifyContent: 'center'
-                                        }}>
-                                            <ContentsItemInnerColContentWrapper>
-                                                {getTimeDifference(_.createdTime, _.closedTime)}
-                                            </ContentsItemInnerColContentWrapper>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                </ContentsItemInnerRowContainer>
-                                <ContentsItemInnerRowContainer>
-                                    <ContentsItemInnerColContainer style={bottomColStyle}>
-                                        <ContentsItemInnerColTitle style={bottomColTitleStyle}>
-                                            시간 그룹 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                YYYY-MM-DD HH:mm:ss ~ YYYY-MM-DD HH:mm:ss
-                                            </ContentsItemInnerColContentWrapper>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                    <ContentsItemInnerColContainer style={bottomColStyle}>
-                                        <ContentsItemInnerColTitle style={bottomColTitleStyle}>
-                                            대상 그룹 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents>
-                                            <ContentsItemInnerColContentWrapper>
-                                                CCTV 56 대
-                                            </ContentsItemInnerColContentWrapper>
-                                            <ContentsItemInnerColContentWrapper>
-                                                CCTV 32 대
-                                            </ContentsItemInnerColContentWrapper>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                    <ContentsItemInnerColContainer style={bottomColStyle}>
-                                        <ContentsItemInnerColTitle style={bottomColTitleStyle}>
-                                            비고 :
-                                        </ContentsItemInnerColTitle>
-                                        <ContentsItemInnerColContents style={{
-                                            height: '100%'
-                                        }}>
-                                            <ContentsItemInnerColContentWrapper style={{
-                                                height: '100%'
-                                            }}>
-                                                test
-                                            </ContentsItemInnerColContentWrapper>
-                                        </ContentsItemInnerColContents>
-                                    </ContentsItemInnerColContainer>
-                                </ContentsItemInnerRowContainer>
-                            </ContentsItemInnerContainer>
-                        </ContentsItemContainer>)
-                    }
-                </ContentsContainer> : <NoDataContentsContainer>
-                    서버에 데이터가 존재하지 않습니다.
+                                                        <ContentsItemInnerColContentWrapper style={{
+                                                            height: '100%'
+                                                        }}>
+                                                            {__.etc}
+                                                        </ContentsItemInnerColContentWrapper>
+                                                    </ContentsItemInnerColContents>
+                                                </ContentsItemInnerColContainer>
+                                            </ContentsItemInnerRowContainer>
+                                        </ContentsItemInnerContainer>
+                                    </ContentsItemSubContainer>)
+                                }
+                            </ContentsItemContainer>)
+                        }
+                    </ContentsContainer>
+                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs}/>
+                </> : <NoDataContentsContainer>
+                    서버에 저장된 분석 결과가 존재하지 않습니다.
                 </NoDataContentsContainer>
             }
-
-            <PaginationContainer>
-                <PaginationNumbersContainer>
-                    <LeftDoubleArrow onClick={() => {
-                        setCurrentPage(0)
-                    }} />
-                    <LeftArrow onClick={() => {
-                        if (currentPage > 0) {
-                            setCurrentPage(currentPage - 1)
-                        }
-                    }} />
-                    <PaginationNumbersInnerContainer>
-                        {
-                            pageNums.map((_, ind) => <PaginationNumbersItem key={ind} selected={currentPage + 1 === _} onClick={() => {
-                                setCurrentPage(_ - 1)
-                            }}>
-                                {_}
-                            </PaginationNumbersItem>)
-                        }
-                    </PaginationNumbersInnerContainer>
-                    <RightArrow onClick={() => {
-                        if (currentPage < Math.floor(logs!.totalCount / 10) - 1) setCurrentPage(currentPage + 1)
-                    }} />
-                    <RightDoubleArrow onClick={() => {
-                        if (currentPage < Math.floor(logs!.totalCount / 10)) setCurrentPage(Math.floor(logs!.totalCount / 10) - 1)
-                    }} />
-                </PaginationNumbersContainer>
-                <PaginationInputContainer>
-                    <Form style={{
-                        height: '100%'
-                    }} onSubmit={(e) => {
-                        const result = Number((e.currentTarget.elements[0] as HTMLInputElement).value)
-                        const lastPage = logs!.totalCount / 10
-                        const _ = result <= 0 ? 0 : (result > lastPage ? (lastPage < 1 ? 0 : (Math.floor(lastPage) - 1)) : result - 1)
-                        setCurrentPage(_)
-                        if (paginationInputRef.current) paginationInputRef.current.value = (_ + 1).toString()
-                    }}>
-                        <PaginationInput maxLength={3} onlyNumber defaultValue={currentPage + 1} inputRef={paginationInputRef} />
-                        <PaginationInputCompleteBtn type="submit">
-                            이동
-                        </PaginationInputCompleteBtn>
-                    </Form>
-                </PaginationInputContainer>
-            </PaginationContainer>
         </Wrapper>
     </Container>
 }
@@ -343,6 +274,7 @@ const SearchContainer = styled.div`
     width: 100%;
     height: 48px;
     padding: 6px;
+    margin-bottom: 12px;
 `
 
 const Wrapper = styled.div`
@@ -364,6 +296,8 @@ const TitleSearch = styled(Input)`
     &::placeholder {
         color:white;
     }
+    width: 240px;
+    background-color: ${GlobalBackgroundColor};
 `
 
 const DropdownContainer = styled.div`
@@ -382,6 +316,7 @@ const DateSearch = styled.div`
     ${globalStyles.flex()}
     width: 400px;
     cursor: pointer;
+    background-color: ${GlobalBackgroundColor};
 `
 
 const SearchButton = styled(Button)`
@@ -389,10 +324,11 @@ const SearchButton = styled(Button)`
 `
 
 const NoDataContentsContainer = styled.div`
-    flex: 0 0 320px;
     ${globalStyles.flex()}
     width: 100%;
-    border: 1px solid black;
+    height: 100%;
+    font-size: 1.2rem;
+    font-weight: 700;
 `
 
 const ContentsContainer = styled.div`
@@ -403,7 +339,7 @@ const ContentsContainer = styled.div`
 `
 
 const ContentsItemContainer = styled.div<{ opened: boolean }>`
-    height: ${({ opened }) => opened ? 320 : 44}px;
+    height: ${({ opened }) => opened ? 'auto' : (44 + 'px')};
     transition: height .25s ease-out;
     border: 2px solid ${ContentsBorderColor};
     border-radius: 12px;
@@ -415,6 +351,33 @@ const ContentsItemTitleContainer = styled.div`
     border-radius: 10px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     padding: 4px 8px;
+    cursor: pointer;
+    display: flex !important;
+`
+
+const ContentsItemSubContainer = styled.div<{ opened: boolean }>`
+    height: ${({ opened }) => opened ? 348 : 40}px;
+    transition: height .25s ease-out;
+    margin-bottom: 4px;
+    overflow: auto;
+    padding: 0 16px;
+`
+
+const ContentsItemSubTitleContainer = styled.div`
+    height: 36px;
+    margin-bottom: 8px;
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+    border-radius: 10px;
+    background-color: ${ContentsBorderColor};
+`
+
+const SubTitleItemsContainer = styled.div`
+    height: 100%;
+    padding: 0 8px;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
+    & > button {
+        height: 90%;
+    }
 `
 
 const ContentsItemTitle = styled.div`
@@ -433,7 +396,7 @@ const ContentsItemTitleBtn = styled(Button)`
 `
 
 const ContentsItemInnerContainer = styled.div`
-    height: 260px;
+    height: 300px;
     padding: 8px 16px;
     overflow: auto;
     border-radius: 10px;
@@ -447,17 +410,18 @@ const ContentsItemInnerRowContainer = styled.div`
 const ContentsItemInnerColContainer = styled.div`
     flex: 1;
     height: 120px;
-    ${globalStyles.flex({ flexDirection: 'row' })}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
 `
 
 const ContentsItemInnerColTitle = styled.div`
-    flex: 0 0 64px;
+    flex: 0 0 100px;
+    text-align: end;
 `
 
 const ContentsItemInnerColContents = styled.div`
     flex: 1;
     border-radius: 8px;
-    height: 120px;
+    height: 140px;
     overflow: auto;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '4px' })}
 `
@@ -484,72 +448,7 @@ const ContentsItemInnerColContentWrapper = styled.div`
     text-align: center;
 `
 
-const PaginationContainer = styled.div`
-    flex: 0 0 100px;
-    width: 100%;
-    ${globalStyles.flex({ gap: '8px' })}
-`
-
-const PaginationNumbersContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '2px' })}
-    height: 30px;
-`
-
-const PaginationNumbersInnerContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
-    height: 100%;
-`
-
-const PaginationNumbersItem = styled.div<{ selected: boolean }>`
-    cursor: pointer;
-    min-width: 32px;
-    height: 32px;
-    padding: 0 8px;
-    border-radius: 100%;
-    color: white;
-    ${globalStyles.flex()}
-    background-color: ${({ selected }) => selected ? ContentsActivateColor : ButtonBackgroundColor};
-`
-
-const PaginationInputContainer = styled.div`
-    height: 28px;
-    width: 100%;
-    & > form {
-        ${globalStyles.flex({ flexDirection: 'row', gap: '6px' })}
-    }
-`
-
-const PaginationInput = styled(Input)`
-    width: 64px;
-    height: 100%;
-    text-align: center;
-`
-
-const PaginationInputCompleteBtn = styled.button`
-    color: ${TextActivateColor};
-    background-color: transparent;
-    border: none;
-    width: 30px;
-    padding: 0;
-    font-weight: bold;
-`
-
 const Arrow = styled(CollapseArrow)`
     height: 100%;
     padding: 4px;
-`
-
-const PaginationArrowContainer = styled.div`
-    height: 24px;
-    width: 24px;
-    cursor: pointer;
-    position: relative;
-`
-
-const PaginationArrow = styled.img`
-    width: 80%;
-    height: 80%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
 `

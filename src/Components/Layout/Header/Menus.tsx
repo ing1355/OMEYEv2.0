@@ -37,6 +37,7 @@ const HomeBtn = styled.img`
     height: ${HeaderHeight / 1.25}px;
     padding: 8px;
     cursor: pointer;
+    pointer-events: auto;
 `
 
 const MenuItemsContainer = styled.div`
@@ -47,7 +48,11 @@ const MenuItem = styled.div<{ selected: boolean }>`
     ${({ selected }) => selected && {
         color: TextActivateColor
     }}
-    font-size: .8rem;
+    &:hover {
+        color: ${TextActivateColor};
+    }
+    font-weight: bold;
+    font-size: 1rem;
     padding: 0 12px;
     cursor: pointer;
 `

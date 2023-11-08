@@ -1,14 +1,6 @@
 import { atom } from "recoil";
 import { CameraDataType, CaptureResultListItemType } from "../Constants/GlobalTypes";
-
-type RealTimeStatusType = 'IDLE' | 'RUNNING'
-
-export const REALTIMESTATUS: {
-    [key in RealTimeStatusType]: RealTimeStatusType
-} = {
-    IDLE: 'IDLE',
-    RUNNING: 'RUNNING'
-}
+import { PROGRESS_STATUS, ProgressStatusType } from "./ProgressModel";
 
 type RealTimeDataType = {
     cameraIdList: CameraDataType['cameraId'][],
@@ -25,7 +17,7 @@ export const realTimeData = atom<RealTimeDataType>({
     }
 })
 
-export const realTimeStatus = atom<RealTimeStatusType>({
+export const realTimeStatus = atom<ProgressStatusType>({
     key: "realTimeStatus/atom",
-    default: REALTIMESTATUS['IDLE']
+    default: PROGRESS_STATUS['IDLE']
 })

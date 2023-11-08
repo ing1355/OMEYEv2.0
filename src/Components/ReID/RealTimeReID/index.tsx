@@ -1,28 +1,24 @@
 import styled from "styled-components"
-import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
+import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, InputBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
-import { useEffect, useReducer, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react"
 import Button from "../../Constants/Button"
-import { RealTimeReidApi, ReidCancelApi, SseStartApi } from "../../../Constants/ApiRoutes"
+import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { REALTIMESTATUS, realTimeStatus } from "../../../Model/RealTimeDataModel"
-import { Axios, reidCancelFunc } from "../../../Functions/NetworkFunctions"
-import { conditionData } from "../../../Model/ConditionDataModel"
+import { realTimeStatus } from "../../../Model/RealTimeDataModel"
+import { Axios } from "../../../Functions/NetworkFunctions"
+import { conditionData, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import { ArrayDeduplication, getColorByScore } from "../../../Functions/GlobalFunctions"
-import { setStateType } from "../../../Constants/GlobalTypes"
+import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
-
-const testDataSet = (threshHold: number) => ({
-    cameraIdList: [612],
-    objectId: 1472,
-    threshHold,
-})
+import useMessage from "../../../Hooks/useMessage"
+import { CustomEventSource, GetAuthorizationToken } from "../../../Constants/GlobalConstantsValues"
+import { PROGRESS_STATUS, SSEResponseStatusType } from "../../../Model/ProgressModel"
+import { ObjectTypes } from "../ConstantsValues"
 
 const imageBoxHeight = 200
-
-let sse
 
 const ImageComponent = ({ data, y, className, selected, setSelected }: {
     data: RealTimeDataType
@@ -31,6 +27,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
     selected: RealTimeDataType | null
     setSelected: setStateType<RealTimeDataType | null>
 }) => {
+    
     return <div style={{
         width: '100%',
         height: imageBoxHeight + 'px',
@@ -38,9 +35,9 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
         top: y * imageBoxHeight + 'px',
         left: 0,
         cursor: 'pointer',
-        border: (selected && selected.imageURL === data.imageURL) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
+        border: (selected && data && JSON.stringify(selected.imageURL) === JSON.stringify(data.imageURL)) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
     }} className={className} onClick={() => {
-        setSelected(data)
+        if(data) setSelected(data)
     }}>
         <div style={{
             position: 'absolute',
@@ -48,11 +45,11 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
             right: '8px',
             fontWeight: 'bold',
             fontSize: '.8rem',
-            backgroundColor: getColorByScore(data.maxScore),
+            backgroundColor: data ? getColorByScore(data.accuracy) : 'transparent',
             padding: '4px 6px',
             borderRadius: '12px'
         }}>
-            {data.maxScore}%
+            {data ? data.accuracy : 0}%
         </div>
         <div style={{
             position: 'absolute',
@@ -66,11 +63,11 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: (selected && selected.imageURL === data.imageURL) ? ContentsActivateColor : ContentsBorderColor
+            backgroundColor: (data && selected && selected.imageURL === data.imageURL) ? ContentsActivateColor : ContentsBorderColor
         }}>
             {y + 1}
         </div>
-        <img src={data.imageURL} style={{
+        <img src={data && data.imageURL} style={{
             width: '100%',
             height: '100%'
         }} />
@@ -80,113 +77,169 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
 type RealTimeDataType = {
     imageURL: string
     timestamp: string
-    maxScore: number
+    accuracy: number
     cameraId: number
     error?: string
+    status?: SSEResponseStatusType
 }
 
-let images: RealTimeDataType[] = []
+let timerId: NodeJS.Timer
+
+const cancelFunc = (): void => {
+    navigator.sendBeacon(RealTimeReidCancelApi, GetAuthorizationToken());
+}
 
 const RealTimeReID = () => {
     const [selected, setSelected] = useState<RealTimeDataType | null>(null)
-    const [occurancy, setOccurancy] = useState(50)
-    const [ignored, forceUpdate] = useReducer((x) => x + 1, 0);
+    const [accuracy, setAccuracy] = useState(50)
+    const [images, setImages] = useState<RealTimeDataType[]>([])
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
+    const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const { cctv, targets } = useRecoilValue(conditionData)
+    const message = useMessage()
+    const sseRef = useRef<EventSource>()
+    const selectedRef = useRef(selected)
+    const statusRef = useRef(rtStatus)
+    const imagesRef = useRef<RealTimeDataType[]>([])
 
-    useEffect(() => {
-        if (rtStatus === REALTIMESTATUS['RUNNING']) {
-            window.addEventListener("unload", reidCancelFunc);
-            RealTimeSseSetting()
-            Axios("POST", RealTimeReidApi, testDataSet(occurancy) || {
-                cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
-                objectId: targets.filter(_ => _.selected)[0].objectId,
-                threshHold: occurancy,
-            }).then(res => {
-                console.log(res)
-            }).catch(err => {
-                setRtStatus(REALTIMESTATUS['IDLE'])
-            })
-        } else {
-            window.removeEventListener("unload", reidCancelFunc);
-        }
+    useLayoutEffect(() => {
+        selectedRef.current = selected
+    }, [selected])
+
+    useLayoutEffect(() => {
+        statusRef.current = rtStatus
     }, [rtStatus])
 
-    // useEffect(() => {
-    //     setInterval(() => {
-    //         images.unshift("/file/reidResult/1927/img/697_camera_1927_0_/1_20230807000000_0_69966dot66666666667sec_390_452_465_648_frame.png")
-    //         forceUpdate()
-    //     },1000)
-    // },[])
-
+    useEffect(() => {
+        if (rtStatus === PROGRESS_STATUS['RUNNING']) {
+            if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
+                setRtStatus(PROGRESS_STATUS['IDLE'])
+                return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
+            }
+            if (targets.filter(_ => _.selected).length === 0) {
+                setRtStatus(PROGRESS_STATUS['IDLE'])
+                return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' })
+            }
+            if (targets.filter(_ => _.selected).length > 1) {
+                setRtStatus(PROGRESS_STATUS['IDLE'])
+                return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
+            }
+            window.addEventListener("unload", cancelFunc);
+            RealTimeSseSetting()
+        } else {
+            window.removeEventListener("unload", cancelFunc);
+        }
+    }, [rtStatus])
+    
     const RealTimeSseSetting = () => {
-        sse = new EventSource(SseStartApi);
-        // sse = new EventSource(SseTestApi);
-        sse.onopen = (e: any) => {
-            console.log("open : ", e);
-            setInterval(() => {
-                images.splice(50,).forEach(_ => {
-                    URL.revokeObjectURL(_.imageURL)
-                })
-                forceUpdate()
-            }, 500)
-        };
-        sse.onmessage = (res: MessageEvent) => {
-            const data: RealTimeDataType = JSON.parse(
-                res.data.replace(/\\/gi, "")
-            );
-            const image = new Image();
-            image.src = data.imageURL;
-            image.crossOrigin = "Anonymous";
-            image.onload = (e) => {
-                fetch(data.imageURL)
-                    .then((res) => res.blob())
-                    .then((blob) => {
-                        images.unshift({
-                            imageURL: URL.createObjectURL(blob),
-                            timestamp: data.timestamp,
-                            cameraId: data.cameraId,
-                            maxScore: data.maxScore,
-                        })
-                        image.onload = null;
-                        image.src = '';
-                        image.remove()
-                    })
-                    .catch((err) => {
-                        console.log("Image Fetch Fail! ", err);
-                    });
+        sseRef.current = CustomEventSource(SseStartApi);
+        sseRef.current.onopen = async (e: any) => {
+            console.debug("sse open realtime: ", e);
+            const res = await Axios("POST", RealTimeReidApi, {
+                cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                objectId: targets.filter(_ => _.selected)[0].objectId,
+                threshHold: accuracy,
+            })
+            if (res) {
+                timerId = setInterval(() => {
+                    if (imagesRef.current.length > 49) {
+                        (selectedRef.current ?
+                            imagesRef.current.splice(49, imagesRef.current.length - 49, imagesRef.current.find(_ => JSON.stringify(selectedRef.current) === JSON.stringify(_))!) :
+                            imagesRef.current.splice(49, imagesRef.current.length - 49)).forEach(_ => {
+                                URL.revokeObjectURL(_.imageURL)
+                            })
+                    }
+                    setImages([...imagesRef.current])
+                }, 1000)
+            } else {
+                setRtStatus(PROGRESS_STATUS['IDLE'])
             }
         };
-        sse.onerror = (e: any) => {
-            e.target.close();
+        sseRef.current.onmessage = (res: MessageEvent) => {
+            try {
+                const data: RealTimeDataType = JSON.parse(
+                    res.data.replace(/\\/gi, "")
+                );
+                console.debug("sse message realtime : ", data)
+                const { imageURL, timestamp, cameraId, accuracy, status } = data
+                if (imageURL) {
+                    const image = new Image();
+                    image.src = imageURL;
+                    image.crossOrigin = "Anonymous";
+                    image.onload = (e) => {
+                        fetch(imageURL)
+                            .then((res) => res.blob())
+                            .then((blob) => {
+                                if (statusRef.current === 'RUNNING') {
+                                    imagesRef.current.unshift({
+                                        imageURL: URL.createObjectURL(blob),
+                                        timestamp,
+                                        cameraId,
+                                        accuracy,
+                                    })
+                                    image.onload = null;
+                                    image.src = '';
+                                    image.remove()
+                                }
+                            })
+                            .catch((err) => {
+                                console.error("Image Fetch Fail! ", err);
+                            });
+                    }
+                }
+                if (status === 'SSE_DESTROY') {
+                    console.debug('realtime sse end')
+                    if (imagesRef.current.length > 49) {
+                        (selectedRef.current ?
+                            imagesRef.current.splice(49, imagesRef.current.length - 49, imagesRef.current.find(_ => JSON.stringify(selectedRef.current) === JSON.stringify(_))!) :
+                            imagesRef.current.splice(49, imagesRef.current.length - 49)).forEach(_ => {
+                                URL.revokeObjectURL(_.imageURL)
+                            })
+                    }
+                    setRtStatus(PROGRESS_STATUS['IDLE'])
+                    clearInterval(timerId)
+                    sseRef.current!.close();
+                }
+            } catch (e) {
+                console.debug("realtime Error : ", e)
+            }
+        };
+        sseRef.current.onerror = (e: any) => {
+            console.debug('realtime sse error', e)
         };
     };
 
     return <Container>
         <InputRow>
-            최소 유사율(%) : <OccurancyInput value={occurancy} onChange={(val) => {
-                setOccurancy(Number(val))
+            최소 유사율(%) : <AccuracyInput onlyNumber maxNumber={100} value={accuracy} onChange={(val) => {
+                setAccuracy(Number(val))
             }} maxLength={3} />
-            <RequestBtn>
+            <RequestBtn hover onClick={() => {
+                Axios("PUT", UpdateRealTimeThresholdApi, {
+                    threshold: accuracy
+                })
+            }}>
                 변경
             </RequestBtn>
-            <RequestBtn concept="activate" onClick={() => {
-                if (rtStatus === REALTIMESTATUS['IDLE']) {
-                    setRtStatus(REALTIMESTATUS['RUNNING'])
+            <RequestBtn hover onClick={async () => {
+                if (rtStatus === PROGRESS_STATUS['IDLE']) {
+                    if (currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
+                    setRtStatus(PROGRESS_STATUS['RUNNING'])
                 } else {
-                    Axios("POST", ReidCancelApi).then(res => {
-                        setRtStatus(REALTIMESTATUS['IDLE'])
-                    })
+                    const res = await Axios("POST", RealTimeReidCancelApi)
+                    setRtStatus(PROGRESS_STATUS['IDLE'])
+                    // if(res) {
+                    // }
                 }
             }}>
-                {rtStatus === REALTIMESTATUS['RUNNING'] ? '실시간 분석 중지' : '실시간 분석 시작'}
+                {rtStatus === PROGRESS_STATUS['RUNNING'] ? '실시간 분석 중지' : '실시간 분석 시작'}
             </RequestBtn>
         </InputRow>
         <ResultsContainer>
             <ResultDetailsContainer>
                 <ResultImagesContainer>
                     <ResultImagesScrollContainer>
-                        {images.map((_, ind) => <ResultImageBox data={_} y={ind} key={_.imageURL} selected={selected} setSelected={setSelected} />)}
+                        {images.map((_, ind) => <ResultImageBox data={_} y={ind} key={JSON.stringify(_)} selected={selected} setSelected={setSelected} />)}
                     </ResultImagesScrollContainer>
                 </ResultImagesContainer>
                 <ResultDetailContainer>
@@ -226,7 +279,7 @@ const RealTimeReID = () => {
                                     유사율
                                 </ResultDetailDescriptionCol>
                                 <ResultDetailDescriptionCol>
-                                    {selected?.maxScore || 0}%
+                                    {selected?.accuracy || 0}%
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>
@@ -239,7 +292,7 @@ const RealTimeReID = () => {
                             </ResultDetailDescriptionRow>
                         </ResultDetailDescriptionTextContainer>
                         <ResultDetailMapContainer>
-                            <MapComponent singleCamera={selected?.cameraId} forSingleCamera noSearch />
+                            <MapComponent isDebug onlyMap noSelect idForViewChange={selected ? [selected.cameraId] : undefined} />
                         </ResultDetailMapContainer>
                     </ResultDetailDescriptionContainer>
                 </ResultDetailContainer>
@@ -264,7 +317,7 @@ const InputRow = styled.div`
     width: 100%;
 `
 
-const OccurancyInput = styled(Input)`
+const AccuracyInput = styled(Input)`
     height: 100%;
     width: 60px;
 `
@@ -334,7 +387,7 @@ const ResultDetailImageContainer = styled.div`
     ${globalStyles.flex()}
     padding: 8px 0;
 `
-    
+
 const ResultDetailVideoContainer = styled.div`
     height: calc(100% - 32px);
     width: 100%;

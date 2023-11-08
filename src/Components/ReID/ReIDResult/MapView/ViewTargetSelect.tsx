@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ButtonActiveBackgroundColor, ButtonDisabledBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled"
 import { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 
 type ViewTargetSelectProps = {
@@ -11,8 +11,6 @@ type ViewTargetSelectProps = {
     conditionChange: (ind: number[]) => void
     targetChange: (oId: number[][]) => void
 }
-
-export const pathColors = ['red', 'blue', 'green']
 
 const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSelectProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
@@ -26,6 +24,8 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
             if (selectedCondition.length === 0) {
                 setSelectedCondition([datas[0].index])
                 setSelectedTarget(Array.from({length: datas.length}).map(_ => []))
+            } else if (selectedTarget.length !== datas.length){
+                setSelectedTarget(selectedTarget.concat([[]]))
             }
         }
     }, [datas])
@@ -43,17 +43,17 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
     return <>
         <Container>
             {
-                datas.map((_, ind) => <ItemContainer key={ind} onClick={() => {
+                datas.map((_, ind) => <ItemContainer key={ind} onClick={(e) => {
+                    e.stopPropagation()
                     setSelectedView(ind)
                 }}>
                     <Icon selected={selectedCondition.includes(_.index)} onClick={(e) => {
-                        e.stopPropagation()
                         if (selectedCondition.includes(_.index)) {
                             setSelectedCondition(selectedCondition.filter(__ => __ !== _.index))
                         } else {
                             setSelectedCondition(selectedCondition.concat(_.index))
                         }
-                    }} targetColor={pathColors[ind]}/>
+                    }} targetColor={TextActivateColor}/>
                     <Text>
                         {_.title}
                     </Text>
@@ -70,7 +70,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
                             setSelectedTarget(selectedTarget.map((__, ind) => ind === selectedView ? __.concat(_) : __))
                         }
                     }}>
-                        <Icon selected={selectedTarget[selectedView]?.includes(_)} targetColor={'red'}/>
+                        <Icon selected={selectedTarget[selectedView]?.includes(_)} targetColor={TextActivateColor}/>
                         <Text>
                             대상 {ind+1}
                         </Text>
@@ -92,7 +92,7 @@ const Container = styled.div`
     border-radius: 12px;
     padding: 12px 24px;
     height: 40px;
-    max-width: 500px;
+    max-width: calc(100% - 300px);
     overflow: auto;
     ${globalStyles.flex({ flexDirection: 'row', gap: '16px', justifyContent: 'flex-start' })}
 `
@@ -105,13 +105,13 @@ const TargetContainer = styled.div`
     z-index: 10;
     border-radius: 12px;
     padding: 12px 24px;
-    max-width: 500px;
     overflow: auto;
     ${globalStyles.flex({ flexDirection: 'row', gap: '16px', justifyContent: 'flex-start' })}
 `
 
 const ItemContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px', justifyContent:'flex-start' })}
+    white-space: nowrap;
     cursor: pointer;
 `
 

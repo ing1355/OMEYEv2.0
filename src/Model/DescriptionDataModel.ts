@@ -1,6 +1,6 @@
 import { DefaultValue, atom, selector, selectorFamily } from "recoil";
 import { DescriptionCategoryKeyType, PersonDescriptionResultType, descriptionDataSingleType, descriptionDataType, descriptionParamType } from "../Components/ReID/Condition/TargetSelect/PersonDescription/DescriptionType";
-import { CameraDataType } from "../Constants/GlobalTypes";
+import { CameraDataType, TimeDataType } from "../Constants/GlobalTypes";
 
 const initialData: descriptionParamType = {
     general: {
@@ -47,11 +47,9 @@ const _data = atom({
 export type DescriptionRequestParamsType = {
     rank: number,
     attribution: descriptionDataType,
-    cameraSearchAreaList: {
-        id: number,
-        startTime: string,
-        endTime: string
-    }[]
+    cameraSearchAreaList: (TimeDataType & {
+        id: number
+    })[]
 }
 
 export const descriptionData = selector({
@@ -82,13 +80,6 @@ export const descriptionSingleData = selectorFamily<descriptionParamType[Descrip
             set(_data, oldData)
         }
     }
-})
-
-export type LoadingStatusType = 'IDLE' | 'RUNNING'
-
-export const _descriptionStatus = atom<LoadingStatusType>({
-    key: "descriptionRequest/status",
-    default: "IDLE"
 })
 
 const _rank = atom({
@@ -150,18 +141,6 @@ export const descriptionTimeData = selector({
                 time: newValue
             })
         }
-    }
-})
-
-export const descriptionStatusData = selector({
-    key: 'descriptionRequest/status/selector',
-    get: ({ get }) => get(_descriptionStatus),
-    set: ({ set }, newValue) => {
-        if(newValue === 'RUNNING') {
-            set(_result, [])
-            set(_selectedResult, [])
-        }
-        set(_descriptionStatus, newValue)
     }
 })
 

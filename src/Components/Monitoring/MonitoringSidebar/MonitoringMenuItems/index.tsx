@@ -1,10 +1,10 @@
-import StartAndStopMenu from "./StartAndStopMenu"
 import SelectMonitoringCCTVs from "./SelectMonitoringCCTVs"
+import ChangeLayout from "./ChangeLayout"
 
 const MonitoringMenuItems = () => {
     return <>
-        <StartAndStopMenu/>
-        <SelectMonitoringCCTVs/>
+        <SelectMonitoringCCTVs index={0}/>
+        <ChangeLayout index={1}/>
     </>
 }
 

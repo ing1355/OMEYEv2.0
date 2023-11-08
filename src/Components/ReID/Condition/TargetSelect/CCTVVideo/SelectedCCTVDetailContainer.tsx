@@ -2,36 +2,32 @@ import styled from "styled-components"
 import { SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import CaptureImageContainer from "../../Constants/CaptureImageContainer"
 import Button from "../../../../Constants/Button"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRecoilState } from "recoil"
 import { conditionTargetDatasCCTVTemp } from "../../../../../Model/ConditionDataModel"
-import { CameraDataType, CaptureResultListItemType, setStateType } from "../../../../../Constants/GlobalTypes"
-import maskOffIcon from "../../../../../assets/img/maskOffIcon.png"
-import maskOnIcon from "../../../../../assets/img/maskOnIcon.png"
+import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, setStateType } from "../../../../../Constants/GlobalTypes"
+import maskIcon from "../../../../../assets/img/maskIcon.png"
 import modalCloseIcon from "../../../../../assets/img/modalCloseIcon.png"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Constants/Params"
 import Video from "../../../../Constants/Video"
 import ImageView from "../../Constants/ImageView"
-import Input from "../../../../Constants/Input"
-import TimeModal, { TimeModalDataType } from "../../Constants/TimeModal"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../../Functions/GlobalFunctions"
-import { Axios } from "../../../../../Functions/NetworkFunctions"
-import { GetCameraVideoUrlApi } from "../../../../../Constants/ApiRoutes"
-import RtspPlayer from "../../../../../Functions/StreamingControls"
+import { ObjectTypes } from "../../../ConstantsValues"
+import { TimeModalDataType } from "../../Constants/TimeModal"
+import ResetIcon from '../../../../../assets/img/resetIcon.png'
+import useMessage from "../../../../../Hooks/useMessage"
 
 type SelectedCCTVDetailContainerProps = {
     selected: CameraDataType | null
     setSelected: setStateType<CameraDataType | null>
+    setTimeModalOpened: setStateType<boolean>
+    timeValue?: TimeModalDataType
 }
 
-let savedVideoPlayer: RtspPlayer;
-
-const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDetailContainerProps) => {
+const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened, timeValue }: SelectedCCTVDetailContainerProps) => {
     const [captureSrc, setCaptureSrc] = useState<string | undefined>(undefined)
     const [targetList, setTargetList] = useRecoilState(conditionTargetDatasCCTVTemp)
-    const [timeOpened, setTimeOpened] = useState(false)
-    const [timeValue, setTimeValue] = useState<TimeModalDataType|undefined>(undefined)
-    const savedVideoRef = useRef<HTMLVideoElement>(null)
+    const message = useMessage()
 
     const captureCallback = (resultList: CaptureResultListItemType[]) => {
         setTargetList(targetList.concat(resultList.map(_ => ({
@@ -43,20 +39,8 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
     }
 
     useEffect(() => {
-        if(timeValue) {
-            Axios('GET', GetCameraVideoUrlApi(selected?.cameraId!, timeValue.startTime)).then(({uuid, url}) => {
-                if(uuid) {
-                    if(savedVideoPlayer) {
-                        savedVideoPlayer.changeStream(uuid, savedVideoRef.current!)
-                    } else {
-                        savedVideoPlayer = new RtspPlayer(savedVideoRef.current!, RtspPlayer.types.HLS, uuid)
-                    }
-                } else {
-                    if(savedVideoRef.current) savedVideoRef.current.src = url
-                }
-            })
-        }
-    },[timeValue])
+        if(!selected) setCaptureSrc(undefined)
+    },[selected])
 
     return <>
         <Container visible={selected !== null}>
@@ -64,8 +48,13 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
                 {selected?.name}
                 <img src={modalCloseIcon} style={{
                     cursor: 'pointer',
-                    height: '100%',
-                    padding: '4px'
+                    width: '32px',
+                    height: '32px',
+                    padding: '4px',
+                    position: 'absolute',
+                    right: 16,
+                    top: 24,
+                    pointerEvents: 'auto'
                 }} onClick={() => {
                     setSelected(null)
                 }} />
@@ -102,9 +91,12 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
                     <VideoContainer>
                         <StreamingVideo cctvId={selected?.cameraId} />
                     </VideoContainer>
-                    <VideoCaptureBtn onClick={(e) => {
+                    <VideoCaptureBtn hover onClick={(e) => {
                         const target = e.currentTarget.previousElementSibling?.childNodes[0].childNodes[0] as HTMLVideoElement
-                        if (!target.played) return console.log('비디오 준비중!!')
+                        if (target.played.length === 0) return message.error({
+                            title: "입력값 에러",
+                            msg: "캡처할 영상이 존재하지 않습니다."
+                        })
                         let canvas = document.createElement("canvas");
                         canvas.width = target.videoWidth;
                         canvas.height = target.videoHeight;
@@ -121,25 +113,28 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
                             과거 영상
                         </div>
                         <div>
-                            <StreamingTimeInput onClick={() => {
-                                setTimeOpened(true)
+                            <StreamingTimeInput hover onClick={() => {
+                                setTimeModalOpened(true)
                             }}>
                                 {timeValue ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : '--년--월--일 --시--분--초'}
                             </StreamingTimeInput>
                         </div>
                     </VideosTitle>
                     <VideoContainer>
-                        <SavedVideo ref={savedVideoRef} autoPlay/>
+                        <StreamingVideo cctvId={selected?.cameraId} isTime timeValue={timeValue} />
                     </VideoContainer>
-                    <VideoCaptureBtn onClick={(e) => {
-                         const target = e.currentTarget.previousElementSibling?.childNodes[0] as HTMLVideoElement
-                         if (!target.played) return console.log('비디오 준비중!!')
-                         let canvas = document.createElement("canvas");
-                         canvas.width = target.videoWidth;
-                         canvas.height = target.videoHeight;
-                         let ctx = canvas.getContext("2d")!;
-                         ctx.drawImage(target, 0, 0, target.videoWidth, target.videoHeight);
-                         setCaptureSrc(canvas.toDataURL())
+                    <VideoCaptureBtn hover onClick={(e) => {
+                        const target = e.currentTarget.previousElementSibling?.childNodes[0].childNodes[0] as HTMLVideoElement
+                        if (target.played.length === 0) return message.error({
+                            title: "입력값 에러",
+                            msg: "캡처할 영상이 존재하지 않습니다."
+                        })
+                        let canvas = document.createElement("canvas");
+                        canvas.width = target.videoWidth;
+                        canvas.height = target.videoHeight;
+                        let ctx = canvas.getContext("2d")!;
+                        ctx.drawImage(target, 0, 0, target.videoWidth, target.videoHeight);
+                        setCaptureSrc(canvas.toDataURL())
                     }}>
                         캡처
                     </VideoCaptureBtn>
@@ -148,16 +143,28 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
             <CaptureImageContainer src={captureSrc} captureCallback={captureCallback} />
             <DetailTitle>
                 대상 조회 결과
+                <ResetBtn disabled={targetList.length === 0} onClick={() => {
+                    setTargetList([])
+                }}>
+                    <img src={ResetIcon} width="100%" height="100%" />
+                </ResetBtn>
             </DetailTitle>
             <CaptureResultListItemsContainer>
                 {
                     targetList.map(_ => <CaptureResultListItemBox key={_.id} selected={_.selected!}>
                         <CaptureResultListItemImageContainer>
-                            <CaptureResultListItemImage src={_.src} isFace={_.type === 'Face'} />
+                            <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} />
                         </CaptureResultListItemImageContainer>
                         <CaptureResultListItemFaceSelectContainer>
-                            {_.type === 'Face' && <MaskSelectIcon src={maskOffIcon} height="90%" />}
-                            <CaptureResultListItemSelectButton activate={_.selected!} selected={_.selected!} isMask={_.type === 'Face'} onClick={() => {
+                            {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hover activate={_.mask || false} onClick={() => {
+                                setTargetList(targetList.map(__ => __.id === _.id ? ({
+                                    ...__,
+                                    mask: !__.mask
+                                }) : __))
+                            }}>
+                                <img src={maskIcon} />
+                            </MaskSelect>}
+                            <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
                                 setTargetList(targetList.map(__ => {
                                     return __.id === _.id ? {
                                         ...__,
@@ -173,9 +180,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected }: SelectedCCTVDeta
                 }
             </CaptureResultListItemsContainer>
         </Container>
-        <TimeModal title="시간 선택" visible={timeOpened} setVisible={setTimeOpened} defaultValue={timeValue} onChange={date => {
-            if(date) setTimeValue(date)
-        }} noEndTime/>
+
     </>
 }
 
@@ -188,15 +193,14 @@ const Container = styled.div<{ visible: boolean }>`
     position: relative;
     z-index: 1002;
     transition: left .25s ease-out;
-    overflow: auto;
-    ${({ visible }) => `left: ${visible ? -50 : 0}%;`}
+    overflow-y: auto;
+    display: ${({ visible }) => visible ? 'block' : 'none'};
 `
 
 const DetailTitle = styled.div`
     font-size: 1.8rem;
     height: 32px;
     margin-bottom: 12px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 
 const DetailInfoRow = styled.div`
@@ -238,8 +242,14 @@ const CaptureResultListItemImage = styled(ImageView) <{ isFace: boolean }>`
     height: 100%;
 `
 
-const MaskSelectIcon = styled.img`
-    cursor: pointer;
+const MaskSelect = styled(Button)`
+    padding: 4px;
+    height: 100%;
+    width: 40px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
 const CaptureResultListItemFaceSelectContainer = styled.div`
@@ -307,4 +317,11 @@ const SavedVideo = styled.video`
     width: 100%;
     height: 100%;
     object-fit: fill;
+`
+
+const ResetBtn = styled(Button)`
+    height: 30px;
+    width: 30px;
+    padding: 4px;
+    margin-left: 12px;
 `

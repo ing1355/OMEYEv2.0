@@ -31,12 +31,12 @@ const items: {
         icon: videoExportMenuIcon,
         Component: VideoExport
     },
-    {
-        key: AreaAnalyzeMenuKey,
-        title: "영역분석",
-        icon: ReIDMenuIcon,
-        Component: AreaAnalyze
-    }
+    // {
+    //     key: AreaAnalyzeMenuKey,
+    //     title: "영역분석",
+    //     icon: ReIDMenuIcon,
+    //     Component: AreaAnalyze
+    // }
 ]
 
 export default items

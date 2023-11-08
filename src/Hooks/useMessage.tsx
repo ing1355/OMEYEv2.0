@@ -23,7 +23,7 @@ const renderJsxToContainer = (container: HTMLElement, node: React.ReactNode, opt
 let globalContainer: HTMLElement | undefined = undefined
 
 type MessageThemeType = 'info' | 'warning' | 'error' | 'success'
-type MessagePresetType = 'REIDCOMPLETE' | 'REIDSTART'
+type MessagePresetType = 'REIDCOMPLETE' | 'REIDSTART' | 'WRONG_PARAMETER' | 'REIDCANCEL' | 'REIDERROR'
 
 const mainColorByTheme = (theme: MessageThemeType): CSSProperties['color'] => {
     if(theme === 'info') return '#007BD6'
@@ -130,26 +130,43 @@ const useMessage = () => {
         return messageInstance
     }, [])
 
-    const createMessageByPreset = useCallback((preset: MessagePresetType) => {
+    const createMessageByPreset = useCallback((preset: MessagePresetType, msg?: string, callback?: () => void) => {
         if(preset === 'REIDCOMPLETE') {
             createMessage({
                 title: '분석 종료',
                 msg: 'ReID 분석이 종료되었습니다.\n아래 확인 버튼을 눌러 결과를 확인하세요.',
                 theme:'success',
-                callback: () => {
+                callback: callback ? callback : () => {
                     setReIDMenu(ReIDMenuKeys['REIDRESULT'])
                 }
+            })
+        } else if(preset === 'REIDCANCEL') {
+            createMessage({
+                title: '요청이 취소됨',
+                msg: '분석 요청이 취소되었습니다.\n다시 요청해주세요.'
             })
         } else if(preset === 'REIDSTART') {
             createMessage({
                 title: '분석 시작',
                 msg: 'ReID 분석이 시작되었습니다.\n우측 상단 메뉴에서 현재 진행 상황을 확인하실 수 있습니다.'
             })
+        } else if(preset === 'REIDERROR') {
+            createMessage({
+                title: "분석 실패",
+                msg: msg!,
+                theme: 'error'
+            })
+        } else if(preset === 'WRONG_PARAMETER') {
+            createMessage({
+                title: "입력값 에러",
+                msg: msg || "입력값이 잘못되었습니다.",
+                theme: 'error'
+            })
         }
     },[])
 
-    const preset = useCallback((preset: MessagePresetType) => {
-        createMessageByPreset(preset)
+    const preset = useCallback((preset: MessagePresetType, msg?: string, callback?: () => void) => {
+        createMessageByPreset(preset, msg, callback)
     },[])
     const info = useCallback((params: MessageParamsType) => {
         createMessage({...params, theme: 'info'})

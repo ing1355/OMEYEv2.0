@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../../styles/global-styled"
+import { TextActivateColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 
 type CardProps = {
@@ -21,10 +21,13 @@ export default Card
 
 const Container = styled(Button)`
     height: 60%;
-    flex: 0 0 25%;
+    flex: 0 0 20%;
     ${globalStyles.flex({gap: '8rem'})}
     cursor: pointer;
     font-size: 2rem;
+    &:hover {
+        border-color: ${TextActivateColor};
+    }
 `
 
 const Icon = styled.img`

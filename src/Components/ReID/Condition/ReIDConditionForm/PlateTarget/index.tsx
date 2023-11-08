@@ -1,6 +1,6 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../../../styles/global-styled"
-import { CaptureResultListItemType, setStateType } from "../../../../../Constants/GlobalTypes"
+import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../../styles/global-styled"
+import { CaptureResultListItemType, ReIDObjectTypeKeys, setStateType } from "../../../../../Constants/GlobalTypes"
 import { PlateStatusType } from "../TargetSelectColumn"
 import Button from "../../../../Constants/Button"
 import Input from "../../../../Constants/Input"
@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from "react"
 import { useRecoilState } from "recoil"
 import { conditionTargetDatas } from "../../../../../Model/ConditionDataModel"
 import { GetObjectIdByImage, SubmitCarVrp } from "../../../../../Functions/NetworkFunctions"
+import { ObjectTypes } from "../../../ConstantsValues"
+import useMessage from "../../../../../Hooks/useMessage"
 
 type PlateTargetProps = {
     data?: CaptureResultListItemType
@@ -19,13 +21,14 @@ type PlateTargetProps = {
 let plateId = 1
 
 const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
-    const { src, vrp, id, selected } = data || {}
+    const { src, ocr, id, selected } = data || {}
     const [plateInput, setPlateInput] = useState('')
+    const [globalData, setGlobalData] = useRecoilState(conditionTargetDatas(null))
     const imgRef = useRef<HTMLImageElement>(null)
-    const [globalData, setGlobalData] = useRecoilState(conditionTargetDatas)
+    const message = useMessage()
 
     useEffect(() => {
-        if (plateInput) {
+        if(status !== 'none') {
             const img = new Image();
             img.src = emptyIcon;
             img.onload = (e) => {
@@ -34,29 +37,36 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx!.drawImage(img, 0, 0);
-                ctx!.textAlign = "center";
+                ctx!.textAlign = "start";
                 ctx!.font = "120px Sans-serif";
-                ctx!.fillStyle = "rgba(255,255,255,1)";
-                ctx!.fillText(plateInput, 330, 270);
+                ctx!.fillStyle = "rgba(0,0,0,1)";
+                // ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 330, 270);
+                ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 215, 275);
+                // ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 260, 270);
                 imgRef.current!.src = canvas.toDataURL();
                 img.src = ""
             };
         }
-    }, [plateInput])
+    }, [ocr, plateInput])
 
     const addCompleteCallback = async () => {
-        if (plateInput.length !== 4) return;
+        if (plateInput.length !== 4) {
+            return message.error({title: "입력값 에러", msg:"번호판 4자리를 입력해주세요."})
+        }
+        if (plateInput.match(/[\*]{3}/g)) {
+            return message.error({title: "입력값 에러", msg:"번호판을 최소 2자리는 입력해주세요."})
+        }
         if (status === 'add') {
             const vrpObjectId = (await GetObjectIdByImage([{
                 image: imgRef.current!.src,
-                type: 'car_plate',
-                vrp: plateInput
+                type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
+                ocr: plateInput
             }]))[0]
             setGlobalData(globalData.concat({
                 id: plateId++,
                 src: imgRef.current!.src,
-                vrp: plateInput,
-                type: 'car_plate',
+                ocr: plateInput,
+                type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
                 selected: false,
                 objectId: vrpObjectId
             }))
@@ -64,15 +74,15 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
         setStatus('none')
     }
 
-    return <Container>
+    return <Container selected={selected || false}>
         <PlateIcon src={src || emptyIcon} ref={imgRef} />
         <PlateDescription>
             <PlateDescriptionInputContainer>
-                {vrp ? <>
-                    번호판 : {vrp}
+                {ocr ? <>
+                    번호판 : {ocr}
                 </> : <>
                     번호판을 입력해주세요
-                    <PlateDescriptionInput onlyNumber maxLength={4} value={plateInput} onChange={(str) => {
+                    <PlateDescriptionInput onlyNumber enableAsterisk maxLength={4} value={plateInput} onChange={(str) => {
                         setPlateInput(str)
                     }} />
                 </>}
@@ -81,13 +91,13 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 <PlateDescriptionBtn onClick={addCompleteCallback}>
                     저장
                 </PlateDescriptionBtn>
-                {status === 'update' && <PlateDescriptionBtn onClick={() => {
+                <PlateDescriptionBtn onClick={() => {
                     setStatus('none')
                 }}>
                     취소
-                </PlateDescriptionBtn>}
+                </PlateDescriptionBtn>
             </PlateDescriptionBtnsContainer> : <PlateDescriptionBtnsContainer>
-                <PlateDescriptionBtn onClick={() => {
+                <PlateDescriptionBtn hover onClick={() => {
                     setGlobalData(globalData.map(_ => _.id === id ? ({
                         ..._,
                         selected: !_.selected
@@ -100,7 +110,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 }}>
                     수정
                 </PlateDescriptionBtn> */}
-                <PlateDescriptionBtn onClick={() => {
+                <PlateDescriptionBtn hover onClick={() => {
                     setGlobalData(globalData.filter(_ => _.id !== id))
                 }}>
                     삭제
@@ -112,10 +122,11 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
 
 export default PlateTarget
 
-const Container = styled.div`
+const Container = styled.div<{selected: boolean}>`
     height: 100px;
     width: 100%;
-    border: 1px solid white;
+    border-radius: 8px;
+    border: 1px solid ${({selected}) => selected ? ContentsActivateColor : ContentsBorderColor};
     ${globalStyles.flex({ flexDirection: 'row' })}
 `
 
@@ -129,7 +140,7 @@ const PlateIcon = styled.img`
 const PlateDescription = styled.div`
     height: 100%;
     flex: 0 0 60%;
-    border-left: 1px solid white;
+    border-left: 1px solid ${ContentsBorderColor};
 `
 
 const PlateDescriptionInputContainer = styled.div`

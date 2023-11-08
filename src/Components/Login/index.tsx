@@ -10,8 +10,9 @@ import axios from 'axios';
 import { LoginApi, duplicateLoginApi } from '../../Constants/ApiRoutes';
 import { Axios } from '../../Functions/NetworkFunctions';
 import loginSideBackgroundImg from '../../assets/img/loginSideBackgroundImg.jpg'
+import logoTextImg from '../../assets/img/logoText.png'
 
-const copyRightText = 'OMEYE v2.0 © 2020. OneMoreSecuritv Inc. All Richts Reserved'
+const copyRightText = 'OMEYE v2.0 © 2023. OneMoreSecurity Inc. All Rights Reserved'
 
 const Login = () => {
     const [_, setIsLogin] = useRecoilState(isLogin)
@@ -20,7 +21,9 @@ const Login = () => {
             <WithLogoContainer>
                 <LogoContainer>
                     <LogoImg />
-                    원모어아이
+                    <LogoTextImgContainer>
+                    <img src={logoTextImg}/>
+                    </LogoTextImgContainer>
                 </LogoContainer>
                 <LoginForm onSubmit={async e => {
                     const { userId, password } = e.currentTarget.elements as any;
@@ -55,7 +58,7 @@ const Login = () => {
                         </LoginLabelText>
                         <LoginInput id="password" type='password' />
                     </LoginLabel>
-                    <LoginCompleteButton type='submit'>
+                    <LoginCompleteButton type='submit' hover>
                         로그인
                     </LoginCompleteButton>
                 </LoginForm>
@@ -106,6 +109,14 @@ const LogoContainer = styled.div`
 
 const LogoImg = styled(Logo)`
     height: 32px;
+`
+
+const LogoTextImgContainer = styled.div`
+    height: 30%;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
 const LoginForm = styled(Form)`

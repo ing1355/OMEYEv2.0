@@ -17,17 +17,11 @@ export const isLogin = selector<string|null>({
             if(!newValue) { // 로그아웃
                 // 모든 데이터 초기화
                 localStorage.removeItem(AuthorizationKey)
+                window.location.reload()
                 set(conditionRoute, [])
-                console.log('로그아웃 성공 !')
             } else {
                 localStorage.setItem(AuthorizationKey, newValue)
-                console.log('로그인 성공 !')
             }
-            set(_timeVisible, false)
-            set(_timeIndex, 0)
-            set(_areaVisible, false)
-            set(_areaIndex, 0)
-            set(menuState, null)
             return set(loginToken, newValue)
         }
     }

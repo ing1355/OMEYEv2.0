@@ -1,47 +1,57 @@
 import { useEffect, useState } from "react"
 import styled from "styled-components"
-import { CameraDataType } from "../../Constants/GlobalTypes"
+import { CameraDataType, setStateType } from "../../Constants/GlobalTypes"
 import CCTVTree from "../Layout/CCTVTree"
 import MapComponent from './Map'
 import MapIcon from '../../assets/img/MapIcon.png'
 import TreeIcon from '../../assets/img/TreeIcon.png'
 import { ContentsBorderColor, SectionBackgroundColor } from "../../styles/global-styled"
+import CCTVDropdownSearch from "./CCTVDropdownSearch"
 
 type TreeAndMapComponentProps = {
-    onChange: (selected: CameraDataType['cameraId'][]) => void
-    defaultValue?: CameraDataType['cameraId'][]
+    selectedCCTVs: CameraDataType['cameraId'][]
+    setSelectedCCTVs: setStateType<CameraDataType['cameraId'][]>
+    validFunc?: () => boolean
+    singleSelect?: boolean
 }
 
-const TreeAndMapComponent = ({onChange, defaultValue}: TreeAndMapComponentProps) => {
+let isThrottled = false;
+
+function throttle(func: Function, delay: number) {
+
+    return function (...args: any[]) {
+        if (!isThrottled) {
+            func(...args)
+            isThrottled = true;
+            setTimeout(() => {
+                isThrottled = false;
+            }, delay);
+        }
+    };
+}
+
+const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: TreeAndMapComponentProps) => {
     const [isTreeView, setIsTreeView] = useState(true)
-    const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
-
-    useEffect(() => {
-        onChange(selectedCCTVs)
-    },[selectedCCTVs])
-
-    useEffect(() => {
-        if(defaultValue && (JSON.stringify(defaultValue) !== JSON.stringify(selectedCCTVs))) setSelectedCCTVs(defaultValue)
-    },[defaultValue])
+    const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId'][]|undefined>(undefined)
+    const _setSelectedCCTVs = throttle(setSelectedCCTVs, 10)
 
     return <CCTVSelectContainer>
         <ToggleBtn onClick={() => {
             setIsTreeView(!isTreeView)
         }}>
-            <ToggleIcon src={isTreeView ? MapIcon : TreeIcon}/>
+            <ToggleIcon src={isTreeView ? MapIcon : TreeIcon} />
         </ToggleBtn>
         <CCTVSelectInnerContainer isView={isTreeView}>
             <TreeContainer>
-                <CCTVTree selectedCCTVs={selectedCCTVs} selectedChange={targets => {
-                    setSelectedCCTVs(targets)
-                }} />
+                <CCTVTree selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} singleTarget={singleSelect} searchCCTVId={searchCCTV ? searchCCTV : undefined}/>
             </TreeContainer>
         </CCTVSelectInnerContainer>
         <CCTVSelectInnerContainer isView={!isTreeView}>
-            <MapComponent selectedCCTVs={selectedCCTVs} selectedChange={targets => {
-                setSelectedCCTVs(targets)
-            }} />
+            <MapComponent selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} forSingleCamera={singleSelect} idForViewChange={searchCCTV ? searchCCTV : undefined}/>
         </CCTVSelectInnerContainer>
+        <CCTVDropdownSearch onChange={(target) => {
+            setSearchCCTV([target.cameraId])
+        }}/>
     </CCTVSelectContainer>
 }
 

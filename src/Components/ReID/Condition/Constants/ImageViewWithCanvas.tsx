@@ -1,62 +1,59 @@
 import styled from "styled-components"
 import { useCallback, useEffect, useRef } from "react"
-import { CaptureResultListItemType, CaptureResultType, CaptureType, ObjectType, PointType, setStateType } from "../../../../Constants/GlobalTypes"
+import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType, ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ImageView from "./ImageView"
-import { ReIDObjectTypeKeys } from "../../ConstantsValues"
+import { ObjectTypes } from "../../ConstantsValues"
+import { useRecoilValue } from "recoil"
+import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 
 type ImageViewProps = {
     src?: string
     style?: React.CSSProperties
+    containerStyle?: React.CSSProperties
     captureType: CaptureType
     captureResult: CaptureResultType[]
     captureCallback?: (val: CaptureResultListItemType[]) => void
+    userCaptureOn: boolean
 }
 
 let targetListId = 0
 
-function autoCaptureAct(target: HTMLImageElement, originalCanvas: HTMLCanvasElement, rectCanvas: HTMLCanvasElement, tempRectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
+export const getLastTargetListId = () => {
+    return targetListId++
+}
+
+function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
     let ctx = rectCanvas.getContext('2d');
-    // rectCanvas.width = target.clientWidth;
-    // rectCanvas.height = target.clientHeight;
-    const width_resolution = target.clientWidth / originalCanvas.width;
-    const height_resolution = target.clientHeight / originalCanvas.height;
 
     targets.forEach((target, ind) => {
         const { type, points } = target;
-        // let Point = points!.map((point, pInd: number) => {
-        //     if (pInd % 2 === 0) {
-        //         return point * width_resolution;
-        //     } else {
-        //         return point * height_resolution;
-        //     }
-        // }) as PointType;
         ctx!.beginPath();
         ctx!.lineWidth = 4;
-        drawWithType(rectCanvas, tempRectCanvas, points as PointType, type);
+        drawWithType(rectCanvas, points as PointType, type);
     });
 }
 
-function drawWithType(rectCanvas: HTMLCanvasElement, tempRectCanvas: HTMLCanvasElement, Point: PointType, type: ReIDObjectTypeKeys) {
+function drawWithType(rectCanvas: HTMLCanvasElement, Point: PointType, type: ReIDObjectTypeKeys) {
     let width = Point[2] - Point[0];
     let height = Point[3] - Point[1];
     let ctx = rectCanvas.getContext('2d')!;
     const selectColor = '#f07f3c';
     const _isTarget = false
     switch (type) {
-        case 'Person':
+        case ReIDObjectTypeKeys[ObjectTypes['PERSON']]:
             ctx.rect(Point[0], Point[1], width, height);
             if (_isTarget) ctx!.strokeStyle = selectColor;
             else ctx.strokeStyle = '#00F6FF';
             ctx.stroke();
             break;
-        case 'Face':
+        case ReIDObjectTypeKeys[ObjectTypes['FACE']]:
             ctx.lineWidth = 3;
             ctx.arc((Point[2] + Point[0]) / 2, (Point[3] + Point[1]) / 2, width > height ? width / 2 : height / 2, 0, Math.PI * 2);
             if (_isTarget) ctx.strokeStyle = selectColor;
             else ctx.strokeStyle = 'yellow';
             ctx.stroke();
             break;
-        case 'car_plate':
+        case ReIDObjectTypeKeys[ObjectTypes['PLATE']]:
             ctx.rect(Point[0], Point[1], width, height);
             if (_isTarget) ctx.strokeStyle = selectColor;
             else ctx.strokeStyle = 'green';
@@ -65,60 +62,70 @@ function drawWithType(rectCanvas: HTMLCanvasElement, tempRectCanvas: HTMLCanvasE
         default:
             break;
     }
-    ctx.drawImage(tempRectCanvas, 0, 0, rectCanvas.width, rectCanvas.height);
 }
 
-const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback }: ImageViewProps) => {
+const getImageByCanvas = (width: number, height: number, src: CanvasImageSource, x: number, y: number) => {
+    let _canvas = document.createElement('canvas')
+    _canvas.width = width
+    _canvas.height = height
+    let _ctx = _canvas.getContext('2d')!
+    _ctx.drawImage(src, x, y, width, height, 0, 0, width, height)
+    return _canvas.toDataURL()
+}
+
+const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captureType, userCaptureOn, containerStyle }: ImageViewProps) => {
     const imgRef = useRef<HTMLImageElement>(null)
-    const originalCanvasRef = useRef<HTMLCanvasElement>(null)
     const rectCanvasRef = useRef<HTMLCanvasElement>(null)
+    const userCanvasRef = useRef<HTMLCanvasElement>(null)
     const fullScreenRef = useRef<Node>()
-    
+    const isClicked = useRef(false)
+    const downMouseX = useRef(0)
+    const downMouseY = useRef(0)
+    const mouseX = useRef(0)
+    const mouseY = useRef(0)
+    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const globalDiv = useRef<HTMLDivElement>()
+
+    useEffect(() => {
+        if (rectCanvasRef.current) {
+            const canvas = rectCanvasRef.current
+            let ctx = canvas!.getContext('2d')!;
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+        }
+        if (userCanvasRef.current) {
+            const canvas = userCanvasRef.current
+            let ctx = canvas!.getContext('2d')!;
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+        }
+    }, [src])
+
     const exitFullscreen = useCallback(() => {
         fullScreenRef.current?.removeEventListener('click', exitFullscreen)
         document.body.removeChild(fullScreenRef.current!);
     }, [])
 
-    const drawRectFunc = useCallback((src: string, targets: CaptureResultType[]) => {
+    const drawRectFunc = useCallback((targets: CaptureResultType[]) => {
         rectCanvasRef.current!.getContext('2d')!.clearRect(0, 0, rectCanvasRef.current!.width, rectCanvasRef.current!.height);
-        let tempRectCanvas = document.createElement('canvas')
-        const img_temp = new Image();
-        img_temp.src = src;
-        img_temp.onload = (e) => {
-            tempRectCanvas.width = img_temp.width;
-            tempRectCanvas.height = img_temp.height;
-            originalCanvasRef.current!.width = img_temp.width;
-            originalCanvasRef.current!.height = img_temp.height;
-            rectCanvasRef.current!.width = img_temp.width;
-            rectCanvasRef.current!.height = img_temp.height;
-            let tempCtx = originalCanvasRef.current!.getContext('2d')!;
-            tempCtx.drawImage(img_temp, img_temp.width, img_temp.height);
-            autoCaptureAct(imgRef.current!, originalCanvasRef.current!, rectCanvasRef.current!, tempRectCanvas, targets);
-            let temp: CaptureResultListItemType[] = []
-            targets.forEach(_ => {
-                const _width = _.points[2] - _.points[0]
-                const _height = _.points[3] - _.points[1]
-                const start_x = _.points[0]
-                const start_y = _.points[1]
-                let _canvas = document.createElement('canvas')
-                _canvas.width = _width
-                _canvas.height = _height
-                let _ctx = _canvas.getContext('2d')
-                _ctx?.drawImage(img_temp, start_x, start_y, _width, _height, 0, 0, _width, _height)
-                temp.push({
-                    type: _.type,
-                    mask: false,
-                    id: targetListId++,
-                    src: _canvas.toDataURL()
-                })
+        autoCaptureAct(rectCanvasRef.current!, targets);
+        let temp: CaptureResultListItemType[] = []
+        targets.forEach(_ => {
+            const _width = _.points[2] - _.points[0]
+            const _height = _.points[3] - _.points[1]
+            const start_x = _.points[0]
+            const start_y = _.points[1]
+            temp.push({
+                type: _.type,
+                mask: false,
+                id: getLastTargetListId(),
+                src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y)
             })
-            if(captureCallback) captureCallback(temp)
-        }
+        })
+        if (captureCallback) captureCallback(temp)
     }, [captureCallback])
 
     useEffect(() => {
         if (captureResult.length > 0) {
-            drawRectFunc(src!, captureResult)
+            drawRectFunc(captureResult)
         }
     }, [captureResult])
 
@@ -126,33 +133,135 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback }: Ima
         if (src) {
             let ctx = rectCanvasRef.current!.getContext('2d');
             ctx!.clearRect(0, 0, rectCanvasRef.current!.width, rectCanvasRef.current!.height);
+            const img_temp = new Image();
+            img_temp.src = src;
+            img_temp.onload = (e) => {
+                const userCanvas = userCanvasRef.current!
+                const autoCanvas = rectCanvasRef.current!
+                userCanvas.width = img_temp.width
+                userCanvas.height = img_temp.height
+                autoCanvas.width = img_temp.width
+                autoCanvas.height = img_temp.height
+            }
         }
     }, [src])
 
-    return <ImageView src={src} style={style} ref={imgRef}>
-        <CanvasContainer>
-            <canvas
-                ref={originalCanvasRef}
-                style={{ pointerEvents: 'none', display: 'none' }}
-            />
+    useEffect(() => {
+        if (rectCanvasRef.current) {
+            let ctx = rectCanvasRef.current.getContext('2d');
+            ctx!.clearRect(0, 0, rectCanvasRef.current.width, rectCanvasRef.current.height);
+        }
+        if (userCanvasRef.current) {
+            let ctx = userCanvasRef.current.getContext('2d')!;
+            ctx.clearRect(0, 0, userCanvasRef.current.width, userCanvasRef.current.height);
+        }
+        isClicked.current = false
+    }, [captureType])
+
+    return <Container style={containerStyle}>
+        <ImageView src={src} style={{ ...style }} ref={imgRef} />
+        <CanvasContainer style={{
+            zIndex: captureType === 'auto' ? (captureResult.length > 0 ? 1002 : 1000) : 1002,
+            pointerEvents: captureType === 'user' ? 'auto' : 'none'
+        }}>
             <canvas
                 ref={rectCanvasRef}
-                style={{ position: 'absolute', zIndex: '1', pointerEvents: 'none', width:'100%' }}
+                style={{ position: 'absolute', zIndex: '1', pointerEvents: 'none', width: '100%', height: '100%', visibility: captureType === 'auto' ? 'visible' : 'hidden' }}
+            />
+            <canvas
+                ref={userCanvasRef}
+                style={{ position: 'absolute', zIndex: '1', pointerEvents: captureType === 'auto' ? 'none' : 'auto', cursor: 'crosshair', width: '100%', height: '100%', visibility: (userCaptureOn && captureType === 'user') ? 'visible' : 'hidden' }}
+                onMouseDown={(e) => {
+                    if (userCaptureOn) {
+                        const canvas = e.currentTarget
+                        const canvasRect = canvas.getBoundingClientRect();
+                        const res_x = canvas.width / canvasRect.width
+                        const res_y = canvas.height / canvasRect.height
+                        downMouseX.current = (e.clientX - canvasRect.left) * res_x;
+                        downMouseY.current = (e.clientY - canvasRect.top) * res_y;
+                        const div = document.createElement('div')
+                        div.style.position = 'absolute'
+                        div.style.width = "100%"
+                        div.style.height = "100%"
+                        div.style.zIndex = "9999"
+                        div.style.cursor = 'crosshair'
+                        div.style.top = '0'
+                        div.style.left = '0'
+                        div.onmousemove = (_e) => {
+                            const _x = _e.clientX - canvasRect.left
+                            const _y = _e.clientY - canvasRect.top 
+                            mouseX.current = (_x < 0 ? 0 : (_x > canvasRect.width ? canvasRect.width : _x)) * res_x;
+                            mouseY.current = (_y < 0 ? 0 : (_y > canvasRect.height ? canvasRect.height : _y)) * res_y;
+                            let ctx = canvas.getContext('2d')!;
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.setLineDash([3, 3]);
+                            ctx.beginPath();
+                            let width = mouseX.current - downMouseX.current;
+                            let height = mouseY.current - downMouseY.current;
+                            ctx.rect(downMouseX.current, downMouseY.current, width, height);
+                            ctx.strokeStyle = 'red';
+                            ctx.lineWidth = 4;
+                            ctx.lineJoin = 'round';
+                            ctx.stroke();
+                        }
+                        div.onmouseup = () => {
+                            if (captureCallback) {
+                                captureCallback([{
+                                    type: currentObjectType!,
+                                    mask: false,
+                                    id: getLastTargetListId(),
+                                    src: getImageByCanvas(mouseX.current - downMouseX.current, mouseY.current - downMouseY.current, imgRef.current!, downMouseX.current, downMouseY.current)
+                                }])
+                            }
+                            div.remove()
+                        }
+                        document.body.appendChild(div)
+                    }
+                }}
+                onMouseMove={e => {
+                    if (isClicked.current && userCaptureOn) {
+                        const canvas = e.currentTarget
+                        const canvasRect = canvas.getBoundingClientRect();
+                        const res_x = canvas.width / canvasRect.width
+                        const res_y = canvas.height / canvasRect.height
+                        mouseX.current = (e.clientX - canvasRect.left) * res_x;
+                        mouseY.current = (e.clientY - canvasRect.top) * res_y;
+                        let ctx = canvas.getContext('2d')!;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.setLineDash([3, 3]);
+                        ctx.beginPath();
+                        let width = mouseX.current - downMouseX.current;
+                        let height = mouseY.current - downMouseY.current;
+                        ctx.rect(downMouseX.current, downMouseY.current, width, height);
+                        ctx.strokeStyle = 'red';
+                        ctx.lineWidth = 4;
+                        ctx.lineJoin = 'round';
+                        ctx.stroke();
+                    }
+                }}
             />
         </CanvasContainer>
-    </ImageView>
+    </Container>
 }
 
 export default ImageViewWithCanvas
 
-const CanvasContainer = styled.div`
-    position: absolute;
-    z-index: 1002;
+const Container = styled.div`
+    position: relative;
     width: 100%;
     height: 100%;
+`
+
+const CanvasContainer = styled.div`
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
     & > canvas {
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
+        object-fit: contain;
     }
 `

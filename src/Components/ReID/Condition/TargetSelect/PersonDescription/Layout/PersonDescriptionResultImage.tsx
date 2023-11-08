@@ -23,6 +23,7 @@ import LongInner from "../../../../../../assets/img/descriptions/ResultImages/Lo
 import ShortInner from "../../../../../../assets/img/descriptions/ResultImages/ShortInner";
 import OnepieceInner from "../../../../../../assets/img/descriptions/ResultImages/OnepieceInner";
 import ShirtInner from "../../../../../../assets/img/descriptions/ResultImages/ShirtInner";
+import { PersonDescriptionResultImageID } from "../../../Constants/ConstantsValues";
 
 // const PersonDescriptionGeneralImages = ({data}: {data : descriptionDataType['general']['gender']}) => {
 //     return <>
@@ -87,15 +88,15 @@ const PatternLineImage = ({ pattern, lineImage, x, y, z, width, height, lineProp
         height,
     }}>
         <div style={{
-            position:'absolute',
+            position: 'absolute',
             left: patternProps?.x,
             top: patternProps?.y,
             height: patternProps?.height,
             width: '100%'
         }}>
-            <ResultImage src={bottomMergedPatternItems.find(_ => _.key === pattern)?.icon} z="100" height="100%"/>
+            <ResultImage src={bottomMergedPatternItems.find(_ => _.key === pattern)?.icon} z="100" height="100%" />
             <div style={{
-                position:'absolute',
+                position: 'absolute',
                 top: '110%',
                 left: '50%',
                 transform: 'translateX(-50%)'
@@ -145,54 +146,61 @@ const PersonDescriptionResultImage = () => {
     const hasInner = (inner.color.length > 0 || inner.pattern)
     const hasOuter = (outer.type || outer.pattern || outer.color.length > 0 || outer.shape)
     const hasBottom = (bottom.type || bottom.color.length > 0 || bottom.pattern)
+    
     return <>
         <Title>
             속성 미리보기
         </Title>
         <BodyCanvas>
-            <ResultImage src={!general.hair ? Body : OnlyBody} height={bodyHeight} y={bodyTop} z={10} />
-            {general.hair && <ResultImage src={descriptionSelectItems.general.hair.items.find(_ => _.key === general.hair)?.resultIcon} height={bodyHeight} y={bodyTop} z={11} />}
-            {etc.glasses && <ResultImage src={descriptionSelectItems.etc.glasses.items.find(_ => _.key === etc.glasses)?.resultIcon} height={bodyHeight} y={bodyTop} z={12} />}
-            {etc.mask && <ResultImage src={descriptionSelectItems.etc.mask.items.find(_ => _.key === etc.mask)?.resultIcon} height={bodyHeight} y={bodyTop} z={13} />}
-            {hasBottom && <SVGComponentHOC Src={descriptionSelectItems.bottom.type.items.find(_ => _.key === bottom.type)?.SvgComponent ?? descriptionSelectItems.bottom.type.items[1].SvgComponent} height={bodyHeight} y={bodyTop} colors={bottom.color} z={19} x={bodyLeft} />}
-            {(hasInner || hasOuter) && <SVGComponentHOC Src={findInnerTypeSrc(outer.type)} height={bodyHeight} y={bodyTop} x={bodyLeft} z={99} colors={inner.color} />}
-            {/* {(hasInner || hasOuter) && <SvgIcon Src={hasOuter ? findInnerTypeSrc(outer.type) : shortInnerSVG} height={bodyHeight} y={bodyTop} x={bodyLeft} z={99} colors={inner.color} />} */}
-            {shoes.type && <ResultImage src={descriptionSelectItems.shoes.type.items.find(_ => _.key === shoes.type)?.resultIcon} height={bodyHeight} y={bodyTop} z={20} />}
-            {(hasInner || outer.type || outer.shape || outer.pattern || outer.color.length > 0) && <SVGComponentHOC Src={!outer.type ? defaultOuterSrc : descriptionSelectItems.outer.type.items.find(_ => _.key === outer.type)?.SvgComponent} x={bodyLeft} y={bodyTop} height={bodyHeight} z={20} colors={outer.color} />}
-            {outer.shape && outer.shape !== 'longsleeve' && <ResultImage src={findOuterShapeSrc(outer.type, outer.shape)} height={bodyHeight} y={bodyTop} z={99} />}
-            {outer.pattern && <PatternLineImage pattern={outer.pattern} lineImage={OuterLine} width="40%" height="30%" z={999} y="8%" x={outerAndBottomPatternX} lineProps={{
-                width: '200%',
-                height: '200%',
-                y: '0%',
-                x: '20%'
-            }} patternProps={{
-                height: '40%',
-                x: '-8%',
-                y: '18%',
-                label: bottomMergedPatternItems.find(_ => _.key === outer.pattern)?.title
-            }} />}
-            {bottom.pattern && <PatternLineImage pattern={bottom.pattern} lineImage={BottomLine} width="40%" height="30%" z={999} y="53%" x={outerAndBottomPatternX} lineProps={{
-                width: '200%',
-                height: '200%',
-                y: '-125%',
-                x: '20%'
-            }} patternProps={{
-                height: '40%',
-                x: '-8%',
-                y: '21%',
-                label: bottomMergedPatternItems.find(_ => _.key === bottom.pattern)?.title
-            }} />}
-            {inner.pattern && <PatternLineImage pattern={inner.pattern} lineImage={InnerLine} width="50%" height="30%" z={999} y="20.5%" x="50%" lineProps={{
-                width: '200%',
-                height: '200%',
-                y: '-20%',
-                x: '-100%'
-            }} patternProps={{
-                height: '40%',
-                x: '8%',
-                y: '49%',
-                label: bottomMergedPatternItems.find(_ => _.key === inner.pattern)?.title
-            }} />}
+            <div id={PersonDescriptionResultImageID} style={{
+                width: '100%',
+                height: '100%'
+            }}>
+                <ResultImage src={!general.hair ? Body : OnlyBody} height={bodyHeight} y={bodyTop} z={10} />
+                {general.hair && <ResultImage src={descriptionSelectItems.general.hair.items.find(_ => _.key === general.hair)?.resultIcon} height={bodyHeight} y={bodyTop} z={11} />}
+                {etc.glasses && <ResultImage src={descriptionSelectItems.etc.glasses.items.find(_ => _.key === etc.glasses)?.resultIcon} height={bodyHeight} y={bodyTop} z={12} />}
+                {etc.mask && <ResultImage src={descriptionSelectItems.etc.mask.items.find(_ => _.key === etc.mask)?.resultIcon} height={bodyHeight} y={bodyTop} z={13} />}
+                {hasBottom && <SVGComponentHOC Src={descriptionSelectItems.bottom.type.items.find(_ => _.key === bottom.type)?.SvgComponent ?? descriptionSelectItems.bottom.type.items[1].SvgComponent} height={bodyHeight} y={bodyTop} colors={bottom.color} z={19} x={bodyLeft} />}
+                {(hasInner || hasOuter) && <SVGComponentHOC Src={findInnerTypeSrc(outer.type)} height={bodyHeight} y={bodyTop} x={bodyLeft} z={99} colors={inner.color} />}
+                {/* {(hasInner || hasOuter) && <SvgIcon Src={hasOuter ? findInnerTypeSrc(outer.type) : shortInnerSVG} height={bodyHeight} y={bodyTop} x={bodyLeft} z={99} colors={inner.color} />} */}
+                {shoes.type && <ResultImage src={descriptionSelectItems.shoes.type.items.find(_ => _.key === shoes.type)?.resultIcon} height={bodyHeight} y={bodyTop} z={20} />}
+                {(hasInner || outer.type || outer.shape || outer.pattern || outer.color.length > 0) && <SVGComponentHOC Src={!outer.type ? defaultOuterSrc : descriptionSelectItems.outer.type.items.find(_ => _.key === outer.type)?.SvgComponent} x={bodyLeft} y={bodyTop} height={bodyHeight} z={20} colors={outer.color} />}
+                {outer.shape && outer.shape !== 'longsleeve' && <ResultImage src={findOuterShapeSrc(outer.type, outer.shape)} height={bodyHeight} y={bodyTop} z={99} />}
+                {outer.pattern && <PatternLineImage pattern={outer.pattern} lineImage={OuterLine} width="40%" height="30%" z={999} y="8%" x={outerAndBottomPatternX} lineProps={{
+                    width: '200%',
+                    height: '200%',
+                    y: '0%',
+                    x: '20%'
+                }} patternProps={{
+                    height: '40%',
+                    x: '-8%',
+                    y: '18%',
+                    label: bottomMergedPatternItems.find(_ => _.key === outer.pattern)?.title
+                }} />}
+                {bottom.pattern && <PatternLineImage pattern={bottom.pattern} lineImage={BottomLine} width="40%" height="30%" z={999} y="53%" x={outerAndBottomPatternX} lineProps={{
+                    width: '200%',
+                    height: '200%',
+                    y: '-125%',
+                    x: '20%'
+                }} patternProps={{
+                    height: '40%',
+                    x: '-8%',
+                    y: '21%',
+                    label: bottomMergedPatternItems.find(_ => _.key === bottom.pattern)?.title
+                }} />}
+                {inner.pattern && <PatternLineImage pattern={inner.pattern} lineImage={InnerLine} width="50%" height="30%" z={999} y="20.5%" x="50%" lineProps={{
+                    width: '200%',
+                    height: '200%',
+                    y: '-20%',
+                    x: '-100%'
+                }} patternProps={{
+                    height: '40%',
+                    x: '8%',
+                    y: '49%',
+                    label: bottomMergedPatternItems.find(_ => _.key === inner.pattern)?.title
+                }} />}
+
+            </div>
         </BodyCanvas>
         <OtherCanvasContainer>
             <div style={{
