@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { ReIDLogDataType, ReIDSearchParamsType, SearchReIDLogDatas, useReIDLogDatas } from "../../../Model/ReIDLogModel"
-import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
+import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
 import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
 import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
@@ -14,6 +14,7 @@ import TimeModal, { TimeModalDataType } from "../Condition/Constants/TimeModal"
 import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
+import clearIcon from '../../../assets/img/rankUpIcon.png'
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
@@ -100,6 +101,12 @@ const ReIDLogs = () => {
                         setTimeVisible(true)
                     }}>
                         {timeValue ? `${convertFullTimeStringToHumanTimeFormat(timeValue.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)}` : '시간을 입력해주세요.'}
+                        {timeValue && <ClearBtnContainer onClick={e => {
+                            e.stopPropagation()
+                            setTimeValue(undefined)
+                        }}>
+                            <ClearBtn src={clearIcon}/>
+                        </ClearBtnContainer>}
                     </DateSearch>
                     <SearchButton hover icon={searchIcon} type="submit">
                         검색
@@ -115,8 +122,7 @@ const ReIDLogs = () => {
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
                                 }}>
-                                    {/* <ForLog data={[_.requestGroups, _.reidId]}/> */}
-                                    <ContentsItemTitle>검색 {_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
+                                    <ContentsItemTitle>{_.userId} - No.{_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
                                     <ContentsItemTitleBtnsContainer>
                                         {/* <ContentsItemTitleBtn hover onClick={() => {
 
@@ -317,6 +323,7 @@ const DateSearch = styled.div`
     width: 400px;
     cursor: pointer;
     background-color: ${GlobalBackgroundColor};
+    position: relative;
 `
 
 const SearchButton = styled(Button)`
@@ -451,4 +458,24 @@ const ContentsItemInnerColContentWrapper = styled.div`
 const Arrow = styled(CollapseArrow)`
     height: 100%;
     padding: 4px;
+`
+
+const ClearBtnContainer = styled.div`
+    position: absolute;
+    top: 50%;
+    width: 36px;
+    height: 36px;
+    right: 0px;
+    padding: 8px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    &:hover {
+        border: 1px solid ${TextActivateColor};
+    }
+`
+
+const ClearBtn = styled.img`
+    width: 100%;
+    height: 100%;
+    transform: rotateZ(45deg);
 `

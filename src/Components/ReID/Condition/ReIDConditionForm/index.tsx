@@ -38,7 +38,7 @@ const ReIDConditionForm = () => {
                 </TopButton>
                 <TopButton hover icon={conditionDataUploadIcon} onClick={() => {
                     UploadSingleConditionJsonData((json: ConditionDataSingleType) => {
-                        if(json.targets[0].type !== currentObjectType) return message.error({
+                        if(json.targets.length > 0 && json.targets[0].type !== currentObjectType) return message.error({
                             title: "입력값 에러",
                             msg: "불러온 데이터의 타입과 현재 선택한 타입이 일치하지 않습니다."
                         })

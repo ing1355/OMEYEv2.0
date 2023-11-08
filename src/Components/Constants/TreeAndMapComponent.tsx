@@ -3,10 +3,13 @@ import styled from "styled-components"
 import { CameraDataType, setStateType } from "../../Constants/GlobalTypes"
 import CCTVTree from "../Layout/CCTVTree"
 import MapComponent from './Map'
+import clearIcon from '../../assets/img/resetIcon.png'
 import MapIcon from '../../assets/img/MapIcon.png'
 import TreeIcon from '../../assets/img/TreeIcon.png'
 import { ContentsBorderColor, SectionBackgroundColor } from "../../styles/global-styled"
 import CCTVDropdownSearch from "./CCTVDropdownSearch"
+import Button from "./Button"
+import useMessage from "../../Hooks/useMessage"
 
 type TreeAndMapComponentProps = {
     selectedCCTVs: CameraDataType['cameraId'][]
@@ -34,13 +37,21 @@ const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: 
     const [isTreeView, setIsTreeView] = useState(true)
     const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId'][]|undefined>(undefined)
     const _setSelectedCCTVs = throttle(setSelectedCCTVs, 10)
+    const message = useMessage()
 
     return <CCTVSelectContainer>
-        <ToggleBtn onClick={() => {
+        <ToggleBtn hover onClick={() => {
             setIsTreeView(!isTreeView)
         }}>
             <ToggleIcon src={isTreeView ? MapIcon : TreeIcon} />
         </ToggleBtn>
+        <ClearBtn hover onClick={() => {
+            if(selectedCCTVs.length === 0) return message.error({title: "입력값 에러", msg:"선택한 CCTV 목록이 존재하지 않습니다."})
+            setSelectedCCTVs([])
+            message.success({title: "초기화", msg:"선택한 CCTV 목록이 초기화되었습니다."})
+        }}>
+            <ToggleIcon src={clearIcon} />
+        </ClearBtn>
         <CCTVSelectInnerContainer isView={isTreeView}>
             <TreeContainer>
                 <CCTVTree selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} singleTarget={singleSelect} searchCCTVId={searchCCTV ? searchCCTV : undefined}/>
@@ -64,18 +75,32 @@ const CCTVSelectContainer = styled.div`
     overflow: auto;
 `
 
-const ToggleBtn = styled.div`
+const ToggleBtn = styled(Button)`
     width: 48px;
     height: 48px;
-    padding: 4px;
+    padding: 12px;
     position: absolute;
     left: 10px;
     top: 10px;
     z-index: 2;
-    border-radius: 10px
+    border-radius: 50%;
     border: 1px solid ${ContentsBorderColor};
     cursor: pointer;
-    background-color: transparent;
+    background-color: ${SectionBackgroundColor};
+`
+
+const ClearBtn = styled(Button)`
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+    position: absolute;
+    left: 66px;
+    top: 10px;
+    z-index: 2;
+    border-radius: 50%;
+    border: 1px solid ${ContentsBorderColor};
+    cursor: pointer;
+    background-color: ${SectionBackgroundColor};
 `
 
 const ToggleIcon = styled.img`

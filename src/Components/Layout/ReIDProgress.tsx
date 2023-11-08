@@ -534,6 +534,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
             let temp: typeof progressData = [];
             if (_progressRequestParams.type === 'REID') {
                 const _params = params as ReIDRequestParamsType[]
+                console.log("params : ",_params)
                 if (!_params.every(_ => _.objects.every(__ => __.type === _params[0].objects[0].type))) {
                     setProgressRequestParams(defaultProgressRequestParams)
                     return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })

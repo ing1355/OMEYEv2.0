@@ -82,7 +82,7 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoPr
     
     return <Container>
         <VideoWrapper objectFit={objectFit} src={_src || ""} ref={videoRef} autoPlay crossOrigin="anonymous" width="100%" height="100%" controls={!(!_src)}/>
-        {((!_src || (!src && isTime && !timeValue))) && <Poster src={noImage}/>}
+        {(((!_src && !info && !cctvId) || (!src && isTime && !timeValue))) && <Poster src={noImage}/>}
     </Container>
 },(pre, next) => {
     if(pre.cctvId !== next.cctvId) return false

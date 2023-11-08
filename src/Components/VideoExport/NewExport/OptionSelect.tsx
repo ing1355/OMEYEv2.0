@@ -6,7 +6,6 @@ import { ContentsBorderColor, globalStyles } from "../../../styles/global-styled
 import { VideoExportMaskingType, VideoExportRowDataType } from "../../../Model/VideoExportDataModel"
 import Input from "../../Constants/Input"
 import InfoIcon from '../../../assets/img/infoIcon.png'
-import testPng from '../../../assets/test1.png'
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { GetThumbnailImageApi } from "../../../Constants/ApiRoutes"
 import { CameraDataType, TimeDataType } from "../../../Constants/GlobalTypes"
@@ -245,17 +244,17 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             </OptionsTitle>
             <OptionContentsContainer>
                 <MaskingBtnContainer>
-                    <MaskingBtn activate={masking.includes("area")} onClick={() => {
+                    <MaskingBtn hover activate={masking.includes("area")} onClick={() => {
                         maskingOptionChange("area")
                     }}>
                         영역 비식별화
                     </MaskingBtn>
-                    <MaskingBtn activate={masking.includes("head")} onClick={() => {
+                    <MaskingBtn hover activate={masking.includes("head")} onClick={() => {
                         maskingOptionChange("head")
                     }}>
                         얼굴 비식별화
                     </MaskingBtn>
-                    <MaskingBtn activate={masking?.includes("carplate")} onClick={() => {
+                    <MaskingBtn hover activate={masking?.includes("carplate")} onClick={() => {
                         maskingOptionChange("carplate")
                     }}>
                         번호판 비식별화
@@ -388,6 +387,9 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                             }
                         }} />
                     {thumbnailSrc && <img ref={imgRef} src={"data:image/jpeg;base64," + thumbnailSrc} width="100%" height="100%" />}
+                <ClearBtn hover>
+                    초기화
+                </ClearBtn>
                 </AreaMaskingImgContainer>
             </OptionContentsContainer>
             <OptionsTitle>
@@ -429,7 +431,7 @@ const ContentsContainer = styled.div`
 `
 
 const MaskingBtnContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 
 const MaskingBtn = styled(Button)`
@@ -458,7 +460,7 @@ const MaskingInfoIcon = styled.img`
 
 const AreaMaskingImgContainer = styled.div<{ visible: boolean }>`
     transition: height .25s ease-out;
-    height: ${({ visible }) => visible ? 330 : 0}px;
+    height: ${({ visible }) => visible ? 363 : 0}px;
     margin-top: 8px;
     & > img {
         height: 330px;
@@ -470,4 +472,9 @@ const AreaMaskingImgContainer = styled.div<{ visible: boolean }>`
 
 const RectCanvas = styled.canvas`
     position: absolute;
+`
+
+const ClearBtn = styled(Button)`
+    width: 100%;
+    margin-top: 8px;
 `

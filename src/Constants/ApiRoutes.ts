@@ -42,6 +42,7 @@ export const UpdateRealTimeThresholdApi = '/api/v2/reid/real-time/update-thresho
 export const SubmitCarVrpApi = '/api/v1/target/car/vrp';
 
 export const VideoExportApi = '/api/v2/export/de-identity-video'
+export const VideoExportCancelApi = '/api/v2/export/cancel'
 export const GetVideoHistoryApi = '/api/v2/export/get-list'
 
 export const GetThumbnailImageApi = '/api/v2/thumbnail'

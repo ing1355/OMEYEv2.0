@@ -41,7 +41,7 @@ const AreaBoundaryColumn = () => {
                 areaData.map((_, ind) => <AreaDataItem key={ind} selected={_.selected || false}>
                     <AreaDataItemTitle>
                         <div>
-                            CCTV {ind + 1}
+                            그룹 {ind + 1}
                         </div>
                         <HeaderBtnsContainer>
                             <IconBtn type="edit" onClick={() => {

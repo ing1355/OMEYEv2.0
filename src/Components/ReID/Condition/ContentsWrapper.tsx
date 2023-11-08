@@ -249,7 +249,7 @@ const ContentsWrapper = () => {
                 {ConditionRouteInfo[_].Component}
             </ContentsContainer>)}
         </Container>
-        <TimeModal title={`시간 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`} defaultValue={time[timeIndex] && {
+        <TimeModal title={`그룹 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`} defaultValue={time[timeIndex] && {
             startTime: time[timeIndex].time[0],
             endTime: time[timeIndex].time[1]
         }} onChange={data => {
@@ -259,7 +259,7 @@ const ContentsWrapper = () => {
             setTimeVisible(false)
         }} />
         <AreaSelect
-            title={`CCTV${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
+            title={`그룹 ${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
             visible={areaVisible}
             defaultSelected={(areaData[areaIndex] && areaData[areaIndex].cctvList) || []}
             complete={data => {

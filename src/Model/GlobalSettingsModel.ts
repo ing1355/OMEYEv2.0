@@ -13,7 +13,7 @@ type GlobalSettingType = {
 const getMaxStoredDay = selector<number>({
     key: 'maxStoredDay/selector',
     get: async () => {
-        return 365
+        return 364
         const res = await Axios("GET", GetCameraStoredTimeApi) as {start: string, end: string}
         if(res) {
             return Math.ceil(distanceDaysTwoDate(new Date(res.end!), new Date(res.start)))
@@ -22,7 +22,7 @@ const getMaxStoredDay = selector<number>({
     }
 })
 
-export const maxStoredDay = atom<number>({
+const maxStoredDay = atom<number>({
     key: "maxStoredDay",
     default: getMaxStoredDay
 })

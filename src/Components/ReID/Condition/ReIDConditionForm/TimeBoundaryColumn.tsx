@@ -51,7 +51,7 @@ const TimeBoundaryColumn = () => {
                     timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false}>
                         <TimeDataItemTitle>
                             <div>
-                                시간 {ind + 1}
+                                그룹 {ind + 1}
                             </div>
                             <HeaderBtnsContainer>
                                 <IconBtn disabled={isRealTime} type="edit" onClick={() => {

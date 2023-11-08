@@ -1,5 +1,6 @@
 import { ChildrenType } from "../../global"
 import Contents from "./Contents"
+import Footer from "./Footer"
 import Header from "./Header"
 
 type LayoutProps = {
@@ -12,6 +13,7 @@ const Layout = ({ children }: LayoutProps) => {
         <Contents>
             {children}
         </Contents>
+        <Footer/>
     </>
 }
 

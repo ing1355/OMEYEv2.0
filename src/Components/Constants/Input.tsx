@@ -89,8 +89,8 @@ const _Input = (props?: InputProps) => {
                 if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
                 else {
                     let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
-                    if(props.maxNumber) {
-                        if(Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+                    if (props.maxNumber) {
+                        if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
                     }
                     e.currentTarget.value = temp
                 }
@@ -120,6 +120,13 @@ const Input = styled(_Input)`
     background-color: ${InputBackgroundColor};
     &:focus::-webkit-input-placeholder {
         color: transparent;
+    }
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+        -webkit-transition: "color 9999s ease-out, background-color 9999s ease-out";
+        -webkit-transition-delay: 9999s;
     }
     &:disabled {
         opacity: 0.5;

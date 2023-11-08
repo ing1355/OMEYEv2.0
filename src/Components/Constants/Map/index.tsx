@@ -19,6 +19,7 @@ import AdditionalReIDContainer from "./AdditionalReIDContainer";
 import { menuState } from "../../../Model/MenuModel";
 import { conditionMenu } from "../../../Model/ConditionMenuModel";
 import CCTVDropdownSearch from "../CCTVDropdownSearch";
+import selectedMarkerLocationIcon from '../../../assets/img/selectedMarkerLocationIcon.png'
 
 type MapComponentProps = PropsWithChildren & {
     selectedCCTVs?: CameraDataType['cameraId'][]
@@ -182,7 +183,10 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
             <SelectedViewBtn hover onClick={() => {
                 if (map.current) map.current?.changeViewToSelectedCCTVs()
             }}>
-                위치
+                <img src={selectedMarkerLocationIcon} style={{
+                    width: '100%',
+                    height: '100%'
+                }}/>
             </SelectedViewBtn>
             {children || <></>}
             {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
@@ -441,4 +445,5 @@ const SelectedViewBtn = styled(Button)`
     height: 42px;
     z-index: 1005;
     border: none;
+    padding: 8px;
 `

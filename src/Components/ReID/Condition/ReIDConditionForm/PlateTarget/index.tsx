@@ -56,6 +56,9 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
         if (plateInput.match(/[\*]{3}/g)) {
             return message.error({title: "입력값 에러", msg:"번호판을 최소 2자리는 입력해주세요."})
         }
+        if (globalData.find(_ => _.ocr === plateInput)) {
+            return message.error({title: "입력값 에러", msg:"동일한 번호판 대상이 이미 존재합니다."})
+        }
         if (status === 'add') {
             const vrpObjectId = (await GetObjectIdByImage([{
                 image: imgRef.current!.src,

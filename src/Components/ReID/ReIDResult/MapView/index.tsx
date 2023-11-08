@@ -3,7 +3,6 @@ import { useRecoilValue } from "recoil";
 import MapComponent from "../../../Constants/Map"
 import styled from "styled-components";
 import { ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
-import noImage from '../../../../assets/img/logo.png'
 import CCTVIcon from '../../../../assets/img/CCTVSelectedIcon.png'
 import CCTVStartIcon from '../../../../assets/img/CCTVStartIcon.png'
 import CCTVEndIcon from '../../../../assets/img/CCTVEndIcon.png'
@@ -35,6 +34,9 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
         objectIds: _.resultList.map(__ => __.objectId)
     })), [resultData])
 
+    useEffect(() => {
+        console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
+    },[selectedData, selectedCondition, selectedTarget])
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
     

@@ -26,8 +26,8 @@ export type ReIDLogDataType = {
     createdTime: string
     closedTime: string
     requestGroups: ReIDRequestGroupDataType[]
+    userId: string
     // status: string
-    // userId: string
     // object: {
     //     id: number
     //     imgPath: string

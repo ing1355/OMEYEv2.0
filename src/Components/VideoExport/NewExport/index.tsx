@@ -6,7 +6,7 @@ import CompleteExportIcon from '../../../assets/img/completeExportIcon.png'
 import CanDownloadExportIcon from '../../../assets/img/canDownloadExportIcon.png'
 import DeleteIcon from '../../../assets/img/closeIcon.png'
 import CompleteIcon from '../../../assets/img/exportCompleteIcon.png'
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import TimeModal from "../../ReID/Condition/Constants/TimeModal"
 import CCTVNameById from "../../Constants/CCTVNameById"
 import Progress from "../../Layout/Progress"
@@ -14,7 +14,7 @@ import AreaSelect from "../../ReID/Condition/Constants/AreaSelect"
 import Button from "../../Constants/Button"
 import { FileDownloadByUrl, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions"
 import { SseStartApi, VideoExportApi } from "../../../Constants/ApiRoutes"
-import { Axios } from "../../../Functions/NetworkFunctions"
+import { Axios, videoExportCancelFunc } from "../../../Functions/NetworkFunctions"
 import { VideoExportApiParameterType, VideoExportRowDataType, VideoExportSseResponseType } from "../../../Model/VideoExportDataModel"
 import OptionSelect from "./OptionSelect"
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues"
@@ -30,6 +30,8 @@ const msgByStatus = (status: VideoExportRowDataType['status']) => {
         case 'canDownload': return '다운로드 가능'
         case 'complete': return '다운로드 완료'
         case 'downloading': return '다운로드 중'
+        case 'cancel': return '취소됨'
+        case 'wait': return '대기 중'
         case 'none':
         default: return ''
     }
@@ -54,8 +56,14 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
 }) => {
     const { cctvId, status, options, time } = data
     const [percent, setPercent] = useState(0)
+    const [count, setCount] = useState(0)
     const sseRef = useRef<EventSource>()
     const dataRef = useRef(data)
+    const timerRef = useRef<NodeJS.Timer>()
+
+    const canChangeInput = useMemo(() => {
+        return status === 'none' || status === 'canDownload' || status === 'cancel'
+    },[status])
     
     useEffect(() => {
         dataRef.current = data
@@ -70,6 +78,16 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
         }
     }, [cctvId, time, status])
 
+    useEffect(() => {
+        if(status === 'downloading') {
+            timerRef.current = setInterval(() => setCount(_ => (_ + 1) % 3),1000)
+            window.addEventListener('unload', videoExportCancelFunc)
+        } else {
+            window.addEventListener('unload', videoExportCancelFunc)
+            if(status === 'complete' && timerRef.current) clearInterval(timerRef.current)
+        }
+    },[status])
+
     const sseSetting = () => {
         sseRef.current = CustomEventSource(SseStartApi)
         sseRef.current.onopen = async (e) => {
@@ -82,11 +100,13 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
                 },
                 options
             }] as VideoExportApiParameterType[])
-            if(res) setData({ ...dataRef.current, status: 'downloading' })
+            if(res) {
+                setData({ ...dataRef.current, status: 'downloading' })
+            }
         }
         sseRef.current.onmessage = (res: MessageEvent) => {
             console.debug('video export sse message : ', JSON.parse(res.data.replace(/\\/gi, '')))
-            const { type, progress, path } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
+            const { type, progress, path, status } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
             if (type === 'complete') setPercent(progress)
             if (type === 'done') setData({ ...dataRef.current, status: 'complete' })
             if (path) {
@@ -96,10 +116,15 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
                     URL.revokeObjectURL(tempUrl)
                 })
             }
+            if(status === 'EXPORT_CANCEL') {
+                setData({ ...dataRef.current, status: 'cancel' })
+            }
+            if(status === 'SSE_DESTROY') {
+                sseRef.current!.close()
+            }
         }
         sseRef.current.onerror = (e) => {
             console.debug('video export sse end')
-            sseRef.current!.close()
         }
     }
 
@@ -112,8 +137,8 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
                 {msgByStatus(status)}
             </StatusTitle>
             <CCTVName>
-                <NeedSelectTitle disabled={status === 'complete'} onClick={() => {
-                    inputTypeChange('cctv')
+                <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
+                    if(canChangeInput) inputTypeChange('cctv')
                 }}>
                     {cctvId ? <CCTVNameById cctvId={cctvId} /> : '클릭하여 반출할 CCTV 선택'}
                 </NeedSelectTitle>
@@ -121,8 +146,8 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
             <ProgressContainer>
                 <Progress percent={percent} color={TextActivateColor} />
             </ProgressContainer>
-            <NeedSelectTitle disabled={status === 'complete'} onClick={() => {
-                inputTypeChange('time')
+            <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
+                if(canChangeInput) inputTypeChange('time')
             }}>
                 {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '클릭하여 반출할 날짜 선택'}
             </NeedSelectTitle>
@@ -143,7 +168,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
             <ActionBottomContainer>
                 <ActionBottomBtnsContainer>
                     <OptionBtn
-                        disabled={status === 'none' || status === 'complete'}
+                        disabled={status === 'downloading' || status === 'complete'}
                         onClick={() => {
                             setIndex()
                         }}>
@@ -151,10 +176,11 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex }:
                     </OptionBtn>
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
-                    <ActionBottomBtn disabled={status !== 'canDownload'} onClick={() => {
-                        sseSetting()
+                    <ActionBottomBtn disabled={status === 'complete'} onClick={() => {
+                        if(status === 'downloading') videoExportCancelFunc()
+                        else sseSetting()
                     }}>
-                        반출하기
+                        {status === 'downloading' ? '취소' : '반출하기'}
                     </ActionBottomBtn>
                 </ActionBottomBtnsContainer>
             </ActionBottomContainer>

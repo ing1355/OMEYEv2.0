@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react"
 import backIcon from '../../../../assets/img/backIcon.png'
 import { distanceDaysTwoDate } from "../../../../Functions/GlobalFunctions"
 import { useRecoilValue } from "recoil"
-import { maxStoredDay } from "../../../../Model/GlobalSettingsModel"
+import { globalSingleSetting } from "../../../../Model/GlobalSettingsModel"
 
 const weeks = ["일", "월", "화", "수", "목", "금", "토"]
 
@@ -18,7 +18,8 @@ type CalendarProps = {
 const Calendar = ({ onChange, otherDate, value }: CalendarProps) => {
     const currentDate = new Date()
     const [date, setDate] = useState(new Date())
-    const _maxStoredDay = useRecoilValue(maxStoredDay)
+    const _maxStoredDay = useRecoilValue(globalSingleSetting('maxStoredDay'))
+    const maxStoredDay = _maxStoredDay as number
     const firstDay = useMemo(() => new Date(date.getFullYear(), date.getMonth(), 1).getDay(), [date])
     const lastDay = useMemo(() => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(), [date])
     
@@ -44,11 +45,11 @@ const Calendar = ({ onChange, otherDate, value }: CalendarProps) => {
         return temp
     }).map((_, ind) => <DaysTextContainer
         key={ind}
-        disabled={!(distanceDaysTwoDate(currentDate, _) <= _maxStoredDay && _.getTime() <= currentDate.getTime())}
+        disabled={!(distanceDaysTwoDate(currentDate, _) <= maxStoredDay && _.getTime() <= currentDate.getTime())}
         onClick={() => {
-            if((distanceDaysTwoDate(currentDate, _) <= _maxStoredDay && _.getTime() <= currentDate.getTime())) daySelectFunc(_)
+            if((distanceDaysTwoDate(currentDate, _) <= maxStoredDay && _.getTime() <= currentDate.getTime())) daySelectFunc(_)
         }}
-        enable={distanceDaysTwoDate(currentDate, _) <= _maxStoredDay && _.getTime() <= currentDate.getTime()}
+        enable={distanceDaysTwoDate(currentDate, _) <= maxStoredDay && _.getTime() <= currentDate.getTime()}
         selected={value !== undefined && value !== null && value.getMonth() === _.getMonth() && value.getDate() === _.getDate()}>
         <DaysText
             isInclude={isIncludeDate(_)}
@@ -84,12 +85,12 @@ const Calendar = ({ onChange, otherDate, value }: CalendarProps) => {
     }
     
     const hasNotNextMonth = () => {
-        return currentDate.getMonth() <= date.getMonth()
+        return currentDate.getMonth() <= date.getMonth() && currentDate.getFullYear() <= date.getFullYear()
     }
     const hasNotPrevMonth = () => {
         const clone = new Date(currentDate)
-        clone.setDate(currentDate.getDate() - _maxStoredDay)
-        return clone.getMonth() === date.getMonth()
+        clone.setDate(currentDate.getDate() - maxStoredDay)
+        return clone.getMonth() === date.getMonth() && clone.getFullYear() === date.getFullYear()
     }
     
     return <Container>

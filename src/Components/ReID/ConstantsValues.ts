@@ -22,7 +22,7 @@ export enum ReIDMenuKeys {
   REALTIMEREID
 }
 
-export const ReIDObjectTypeEmptyIcons = [personEmptyIcon, faceEmptyIcon, plateEmptyIcon]
+export const ReIDObjectTypeEmptyIcons = [personEmptyIcon, faceEmptyIcon, "", plateEmptyIcon]
 
 export const ReIDObjectTypes: {
     key: ReIDObjectTypeKeys

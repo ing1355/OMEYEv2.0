@@ -89,6 +89,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                     {_.etc}
                 </ResultDescriptionContainer>
                 <ResultListItemsContainer>
+                    <ForLog data={_.resultList[0].timeAndCctvGroup.map(_ => _.results)}/>
                     {!_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.some(__ => Array.from(__.results).some(([key, val]) => val.length > 0)) && <NoDataContainer>
                         {
                             (globalCurrentReIdId === reidId && progressStatus.status === PROGRESS_STATUS['RUNNING']) ? <>
@@ -131,7 +132,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                     }
                                                 }
                                             }}>
-                                                선택 (발견 시각: {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)} , {_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && `유사율: ${result.accuracy}%`})
+                                                선택 (발견 시각: {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}{_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && ` , 유사율: ${result.accuracy}%`})
                                             </SelectBtn>
                                         </TimeGroupCCTVItemBox>)}
                                     </TimeGroupCCTVRowContentsContainer>

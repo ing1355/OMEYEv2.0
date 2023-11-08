@@ -1,4 +1,4 @@
-import React, { DetailedHTMLProps, useRef } from "react"
+import React, { CSSProperties, DetailedHTMLProps, useRef } from "react"
 import styled from "styled-components"
 import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ButtonDisabledBackgroundColor } from "../../styles/global-styled"
 
@@ -8,7 +8,7 @@ type ConcepType = "default" | "activate" | "icon"
 const Button = ({ icon, children, iconStyle, activate, concept, ...props }: ButtonType & {
     children?: JSX.Element | JSX.Element[] | React.ReactNode | string
     icon?: string
-    iconStyle?: React.CSSProperties
+    iconStyle?: CSSProperties
     activate?: boolean
     concept?: ConcepType
     hover?: boolean

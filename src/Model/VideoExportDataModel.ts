@@ -3,8 +3,9 @@ import { Axios } from "../Functions/NetworkFunctions";
 import { BasicLogDataType, CameraDataType, TimeDataType } from "../Constants/GlobalTypes";
 import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
 import { GetVideoHistoryApi } from "../Constants/ApiRoutes";
+import { SSEResponseStatusType } from "./ProgressModel";
 
-export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait'
+export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait' | 'cancel'
 
 export type VideoExportCategoryType = "영역 비식별화" | "얼굴 비식별화" | "번호판 비식별화"
 
@@ -56,6 +57,7 @@ export type VideoExportSseResponseType = {
     path?: string
     type: 'complete' | 'done'
     timeGroupId: number
+    status?: SSEResponseStatusType
 }
 
 type VideoExportHistoryApiResponseType = BasicLogDataType<VideoExoprtHistoryDataType[]>
