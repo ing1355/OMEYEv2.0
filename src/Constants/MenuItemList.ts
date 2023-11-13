@@ -1,11 +1,13 @@
 import Monitoring from "../Components/Monitoring";
 import ReID from "../Components/ReID";
 import VideoExport from "../Components/VideoExport";
-import { AreaAnalyzeMenuKey, MenuKeys, MonitoringMenuKey, ReIdMenuKey, VideoExportMenuKey } from "./GlobalConstantsValues";
+import { AreaAnalyzeMenuKey, MenuKeys, MonitoringMenuKey, ReIdMenuKey, SettingsMenuKey, VideoExportMenuKey } from "./GlobalConstantsValues";
 import monitoringMenuIcon from '../assets/img/monitoringMenuIcon.png'
 import ReIDMenuIcon from '../assets/img/ReIDMenuIcon.png'
 import videoExportMenuIcon from '../assets/img/videoExportMenuIcon.png'
 import AreaAnalyze from "../Components/AreaAnalyze";
+import Settings from "../Components/Settings";
+import settingsMenuIcon from '../assets/img/settingsMenuIcon.png';
 
 const items: {
     key: MenuKeys
@@ -30,6 +32,12 @@ const items: {
         title: "영상반출",
         icon: videoExportMenuIcon,
         Component: VideoExport
+    },
+    {
+        key: SettingsMenuKey,
+        title: "설정",
+        icon: settingsMenuIcon,
+        Component: Settings
     },
     // {
     //     key: AreaAnalyzeMenuKey,

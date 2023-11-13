@@ -11,12 +11,14 @@ type ReIdMenuKeyType = 'REIDMENU'
 type MonitoringMenuKeyType = 'MONITORINGMENU'
 type VideoExportMenuKeyType = 'VIDEOEXPORTMENU'
 type AreaAnalyzeMenuKeyType = 'AREAANALAYZE'
-export type MenuKeys = ReIdMenuKeyType | MonitoringMenuKeyType | VideoExportMenuKeyType | AreaAnalyzeMenuKeyType | null
+type SettingsMenuKeyType = 'SETTINGSMENU'
+export type MenuKeys = ReIdMenuKeyType | MonitoringMenuKeyType | VideoExportMenuKeyType | AreaAnalyzeMenuKeyType | SettingsMenuKeyType| null
 // export const MainMenuKey: MainMenuKeyType = 'MAINMENU'
 export const ReIdMenuKey: ReIdMenuKeyType = 'REIDMENU'
 export const MonitoringMenuKey: MonitoringMenuKeyType = 'MONITORINGMENU'
 export const VideoExportMenuKey: VideoExportMenuKeyType = 'VIDEOEXPORTMENU'
 export const AreaAnalyzeMenuKey: AreaAnalyzeMenuKeyType = 'AREAANALAYZE'
+export const SettingsMenuKey: SettingsMenuKeyType = 'SETTINGSMENU'
 
 export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
 

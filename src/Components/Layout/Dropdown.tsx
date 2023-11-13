@@ -17,9 +17,10 @@ export type DropdownProps<T> = {
     defaultValue?: DropdownItemType<T>['value']
     disableFunc?: (val: DropdownItemType<T>) => boolean
     disableCallback?: () => void
+    bodyStyle?: React.CSSProperties
 }
 
-const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback }: DropdownProps<T>) => {
+const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
     const openedRef = useRef(opened)
     const dropdownRef = useRef<HTMLDivElement>(null)
@@ -68,7 +69,7 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFun
                 }}/>
             </>
         </DropdownButton>
-        <DropdownContentContainer opened={opened}>
+        <DropdownContentContainer opened={opened} style={bodyStyle}>
             {
                 itemList.map(_ => <DropdownContentItem key={_.key as string} onClick={() => {
                     setOpened(false)

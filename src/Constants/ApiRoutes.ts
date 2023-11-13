@@ -45,3 +45,14 @@ export const VideoExportApi = '/api/v2/export/de-identity-video'
 export const GetVideoHistoryApi = '/api/v2/export/get-list'
 
 export const GetThumbnailImageApi = '/api/v2/thumbnail'
+
+// 설정
+// 계정 설정
+export const UserAccountApi = '/api/v2/users'
+export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
+
+// VMS 설정
+
+// OMEYE 설정
+
+// 서버 관리
