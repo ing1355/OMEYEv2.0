@@ -80,11 +80,11 @@ console.log('searchInputValue',searchInputValue)
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,
       page: currentPage,
-      role: searchValue === 'role' ? searchInputValue : '',
-      username: searchValue === 'username' ? searchInputValue : '',
-      name: searchValue === 'name' ? searchInputValue : '',
-      email: searchValue === 'email' ? searchInputValue : '',
-      phoneNumber: searchValue === 'phoneNumber' ? searchInputValue : '',
+      role: searchValue === 'role' ? searchInputValue === '' ? null : searchInputValue : null,
+      username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
+      name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
+      email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
+      phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
     })
     if (res) setUsersAccountRows(res);
   }
