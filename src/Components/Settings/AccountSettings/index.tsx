@@ -18,14 +18,14 @@ import resetIcon from "../../../assets/img/resetIcon.png"
 
 const AccountSearchDropdownList = [
   {
-    key: 'role',
-    value: 'role',
-    label: '등급'
-  }, 
-  {
     key: 'username',
     value: 'username',
     label: '아이디'
+  }, 
+  {
+    key: 'role',
+    value: 'role',
+    label: '등급'
   }, 
   {
     key: 'name',
@@ -41,7 +41,25 @@ const AccountSearchDropdownList = [
     key: 'phoneNumber',
     value: 'phoneNumber',
     label: '전화번호'
-  },  
+  }
+];
+
+const RoleSearchDropdownList = [
+  {
+    key: 'USER',
+    value: 'USER',
+    label: 'USER'
+  }, 
+  {
+    key: 'ADMIN',
+    value: 'ADMIN',
+    label: 'ADMIN'
+  }, 
+  {
+    key: 'DEVELOPER',
+    value: 'DEVELOPER',
+    label: 'DEVELOPER'
+  }
 ];
 
 type usersType = {
@@ -71,7 +89,7 @@ const AccountSettings = () => {
   const [usersAccountRows, setUsersAccountRows] = useState<ResType>({totalCount: 0, results: []});
   const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember);
   const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember);
-  const [searchValue, setSearchValue] = useState<AccountSearchValues>('role');
+  const [searchValue, setSearchValue] = useState<AccountSearchValues>('username');
   const [searchInputValue, setSearchInputValue] = useState<string>('');
 
 console.log('searchInputValue',searchInputValue)
@@ -80,8 +98,8 @@ console.log('searchInputValue',searchInputValue)
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,
       page: currentPage,
-      role: searchValue === 'role' ? searchInputValue === '' ? null : searchInputValue : null,
       username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
+      role: searchValue === 'role' ? searchInputValue === '' ? null : searchInputValue : null,
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
       email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
       phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
@@ -134,6 +152,20 @@ console.log('searchInputValue',searchInputValue)
               setSearchValue(val.value as AccountSearchValues);
             }}
           />
+          {/* {searchValue === 'role' ?
+            <TopDropdown 
+              itemList={RoleSearchDropdownList} 
+              bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
+              onChange={val => {
+                setSearchValue(val.value as AccountSearchValues);
+              }}
+            />
+          :
+            <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
+              setSearchInputValue(value);
+            }} 
+            />
+          } */}
           <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
             setSearchInputValue(value);
           }} 
@@ -194,8 +226,8 @@ console.log('searchInputValue',searchInputValue)
           >
             <input type="checkbox" checked={allCheckFun()}/>
           </div>
-          <div style={{width: '15%'}}>등급</div>
           <div style={{width: '15%'}}>아이디</div>
+          <div style={{width: '15%'}}>등급</div>
           <div style={{width: '15%'}}>이름</div>
           <div style={{width: '25%'}}>이메일</div>
           <div style={{width: '20%'}}>전화번호</div>
@@ -223,8 +255,8 @@ console.log('searchInputValue',searchInputValue)
                       }}
                     >
                       <div style={{width: '5%'}}><input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/></div>
-                      <div style={{width: '15%'}}>{data.role}</div>
                       <div style={{width: '15%'}}>{data.username}</div>
+                      <div style={{width: '15%'}}>{data.role}</div>
                       <div style={{width: '15%'}}>{data.name}</div>
                       <div style={{width: '25%'}}>{data.email}</div>
                       <div style={{width: '20%'}}>{data.phoneNumber}</div>
