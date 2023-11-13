@@ -8,6 +8,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil"
 import { conditionTargetDatasCCTVTemp, selectedConditionObjectType } from "../../../../../Model/ConditionDataModel"
 import TreeAndMapComponent from "../../../../Constants/TreeAndMapComponent"
 import TimeModal, { TimeModalDataType } from "../../Constants/TimeModal"
+import useMessage from "../../../../../Hooks/useMessage"
 
 const CCTVVideo = () => {
     const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
@@ -16,8 +17,9 @@ const CCTVVideo = () => {
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
     const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const setCctvDatasTemp = useSetRecoilState(conditionTargetDatasCCTVTemp)
-    const containerRef = useRef<HTMLDivElement>(null)
     const [grabbed, setGrabbed] = useState(false)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const message = useMessage()
 
     useEffect(() => {
         setCctvDatasTemp([])
@@ -61,7 +63,10 @@ const CCTVVideo = () => {
             }
         }}>
             <TreeMapComponentContainer>
-                <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} />
+                <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={(cctvs) => {
+                    if(cctvs.length > 15) return message.error({title: "입력값 에러", msg: "너무 많은 수를 선택하였습니다.(최대 15개)"})
+                    setSelectedCCTVs(cctvs)
+                }} />
             </TreeMapComponentContainer>
             <SelectedCCTVListContainer selected={selectedVideo !== null}>
                 <FlexContainer>

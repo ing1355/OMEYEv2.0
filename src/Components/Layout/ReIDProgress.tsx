@@ -4,7 +4,7 @@ import React, { Suspense, useEffect, useRef, useState } from "react"
 import Button from "../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
 import { useRecoilState, useSetRecoilState } from "recoil"
-import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../Model/ReIdResultModel"
+import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../Model/ReIdResultModel"
 import ProgressTimeIcon from '../../assets/img/ProgressTimeIcon.png'
 import ProgressVideoIcon from '../../assets/img/ProgressVideoIcon.png'
 import ProgressLocationIcon from '../../assets/img/ProgressLocationIcon.png'
@@ -12,7 +12,7 @@ import ProgressAIIcon from '../../assets/img/ProgressAIIcon.png'
 import Progress from "./Progress"
 import CollapseArrow from "../Constants/CollapseArrow"
 import { Axios, reidCancelFunc } from "../../Functions/NetworkFunctions"
-import { convertFullTimeStringToHumanTimeFormat } from "../../Functions/GlobalFunctions"
+import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../Functions/GlobalFunctions"
 import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
@@ -58,17 +58,6 @@ const getFailByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
 }
 
 let intervalId: NodeJS.Timer
-
-const getLoadingTimeString = (time: number) => {
-    const hour = Math.floor(time / 3600)
-    const minute = Math.floor(time / 60) % 60
-    const second = time % 60
-    let str = ""
-    if (hour) str += `${hour}시간 `
-    if (minute) str += `${minute}분 `
-    str += `${second}초 경과`
-    return str
-}
 
 const CCTVProgressRow = React.memo(({ videoPercent, aiPercent, cctvId }: {
     videoPercent: number | string
@@ -207,10 +196,7 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
     </Contents>
 }
 
-export let globalCurrentReIdId = 0
-
 const ReIDProgress = ({ visible }: ReIDProgressProps) => {
-    const [currentReIdId, setCurrentReIdId] = useState(0)
     const [loadingTime, setLoadingTime] = useState(0)
     const [progressStatus, setProgressStatus] = useRecoilState(ProgressStatus)
     const setReidResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
@@ -219,15 +205,16 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     const [_progressRequestParams, setProgressRequestParams] = useRecoilState(ProgressRequestParams)
     const params = _progressRequestParams.params
     const [progressData, setProgressData] = useRecoilState(ProgressData)
+    const [globalCurrentReIdId, setGlobalCurrentReIdId] = useRecoilState(globalCurrentReidId)
     const [reidResult, setReidResult] = useRecoilState(ReIDAllResultData)
-    const [singleReIdResult, setSingleReIdresult] = useRecoilState(ReIDResultData((_progressRequestParams.params as AdditionalReIDRequestParamsType).reidId || null))
+    const [singleReIdResult, setSingleReIdresult] = useRecoilState(ReIDResultData((_progressRequestParams.params as AdditionalReIDRequestParamsType).reIdId || null))
     const setSelectedResultCondition = useSetRecoilState(ReIDResultSelectedCondition)
     const [isProgress, setIsProgress] = useState(false)
     const sseRef = useRef<EventSource>()
     const message = useMessage()
     const reidResultRef = useRef(reidResult)
     const singleReidResultRef = useRef(singleReIdResult)
-    const currentReIdIdRef = useRef(currentReIdId)
+    const currentReIdIdRef = useRef(globalCurrentReIdId)
     const progressDataRef = useRef(progressData)
     const reidResultTempRef = useRef(reidResult)
     const additionalReidResultTempRef = useRef(singleReIdResult)
@@ -237,6 +224,8 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     
     useEffect(() => {
         reidResultRef.current = reidResult
+        reidResultTempRef.current = reidResult
+        console.debug('ReIDResult change : ', reidResult)
     }, [reidResult])
 
     useEffect(() => {
@@ -244,9 +233,8 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     }, [singleReIdResult])
 
     useEffect(() => {
-        currentReIdIdRef.current = currentReIdId
-        globalCurrentReIdId = currentReIdId
-    }, [currentReIdId])
+        currentReIdIdRef.current = globalCurrentReIdId
+    }, [globalCurrentReIdId])
 
     useEffect(() => {
         console.debug('progressStatus 변경 : ', progressStatus)
@@ -265,6 +253,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     },[isProgress])
 
     useEffect(() => {
+        const intervalTime = 500
         if (isProgress) {
             setLoadingTime(0)
             intervalId = setInterval(() => {
@@ -272,15 +261,15 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
             }, 1000)
             progressTimer.current = setInterval(() => {
                 setProgressData(progressDataRef.current)
-            }, 300)
+            }, intervalTime)
             if (_progressRequestParams.type === 'REID') {
                 reidResultTimer.current = setInterval(() => {
                     setReidResult(reidResultTempRef.current)
-                }, 300)
+                }, intervalTime)
             } else if (_progressRequestParams.type === 'ADDITIONALREID') {
                 additinoalReidResultTimer.current = setInterval(() => {
                     setSingleReIdresult(additionalReidResultTempRef.current)
-                }, 300)
+                }, intervalTime)
             }
         } else {
             clearInterval(intervalId)
@@ -307,9 +296,9 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                 switch (_progressRequestParams.type) {
                     case 'ADDITIONALREID': {
                         const _additionalParams = params as AdditionalReIDRequestParamsType
-                        const { title, etc, reidId, objects, timeGroups, rank, cctvIds } = _additionalParams
+                        const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
                         console.debug("params : ", _additionalParams)
-                        const res = await Axios('POST', AdditionalReIdApi(_additionalParams.reidId!), {
+                        const res = await Axios('POST', AdditionalReIdApi(_additionalParams.reIdId!), {
                             etc,
                             objectIds: objects.map(_ => _.id),
                             timeGroups,
@@ -345,7 +334,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                     case 'REID': {
                         const _params = params as ReIDRequestParamsType[]
                         const res: {
-                            reidId: number
+                            reIdId: number
                         } = await Axios('POST', StartReIdApi, _params.map(_ => ({
                             etc: _.etc,
                             objectIds: _.objects.map(__ => __.id),
@@ -355,8 +344,9 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                             rank: _.rank
                         })) as ReIDStartRequestParamsType)
                         if (res) {
+                            console.log(res)
                             reidResultTempRef.current = [...reidResult, {
-                                reIdId: res.reidId,
+                                reIdId: res.reIdId,
                                 data: _params.map(__ => ({
                                     title: __.title,
                                     etc: __.etc,
@@ -377,9 +367,6 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                                     }))
                                 }))
                             }]
-                            setCurrentReIdId(res.reidId)
-                            setGlobalMenu(ReIdMenuKey)
-                            setMenu(ReIDMenuKeys['REIDRESULT'])
                         } else {
                             setProgressRequestParams(defaultProgressRequestParams)
                         }
@@ -422,7 +409,6 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                             case 'REID':
                             case 'ADDITIONALREID': {
                                 callback = () => {
-                                    console.debug(`${type} complete button click by data : `, data)
                                     setReidResultSelectedView([currentReIdIdRef.current])
                                     if (type === 'REID') setSelectedResultCondition(0)
                                     else setSelectedResultCondition(singleReidResultRef.current?.data.length! - 1)
@@ -442,6 +428,13 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                     } else if (status === REID_START_MSG) {
                         console.debug(`${type} start event`)
                         message.preset('REIDSTART')
+                        if(reIdId) {
+                            setReidResultSelectedView([reIdId])
+                            setGlobalCurrentReIdId(reIdId)
+                        }
+                        setSelectedResultCondition(0)
+                        setGlobalMenu(ReIdMenuKey)
+                        setMenu(ReIDMenuKeys['REIDRESULT'])
                         setProgressStatus({ type, status: PROGRESS_STATUS['RUNNING'] })
                     } else if (status === SSE_DESTORY_MSG) {
                         console.debug(`${type} sse destroy event`)
@@ -449,12 +442,13 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                             message.preset('REIDERROR', errorCode)
                             setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
                         }
+                        sseRef.current?.close()
+                        sseRef.current = undefined
                     }
                     switch (type) {
                         case 'ADDITIONALREID': {
                             const { results, objectId } = data
                             if (results) {
-                                setCurrentReIdId(reIdId!)
                                 if (singleReidResultRef.current) {
                                     additionalReidResultTempRef.current = {
                                         ...singleReidResultRef.current,
@@ -602,7 +596,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                     </TitleContainer>
                     <CancelBtn hover onClick={() => {
                         if (progressStatus.status === PROGRESS_STATUS['COMPLETE']) {
-                            const targetResult = reidResult.find(_ => _.reIdId === currentReIdId)
+                            const targetResult = reidResult.find(_ => _.reIdId === globalCurrentReIdId)
                             if (targetResult) {
                                 setReidResultSelectedView([reidResult[reidResult.length - 1].reIdId])
                                 if (_progressRequestParams.type === 'ADDITIONALREID') setSelectedResultCondition(targetResult.data.length - 1)
@@ -644,7 +638,7 @@ const ProgressContainer = styled.div<{ visible: boolean }>`
     position: absolute;
     cursor: default;
     top: calc(100% + 14px);
-    width: 600px;
+    width: 800px;
     height: 800px;
     max-height: 800px;
     right: -23px;

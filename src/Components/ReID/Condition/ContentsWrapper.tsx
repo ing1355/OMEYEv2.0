@@ -16,7 +16,7 @@ import { GetObjectIdByImage } from "../../../Functions/NetworkFunctions"
 import { ArrayDeduplication, DivToImg } from "../../../Functions/GlobalFunctions"
 import TimeModal from "./Constants/TimeModal"
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible } from "../../../Model/ConditionParamsModalModel"
-import { Fragment, useEffect, useLayoutEffect, useState } from "react"
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react"
 import { realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
 import AreaSelect from "./Constants/AreaSelect"
@@ -26,10 +26,7 @@ import { getLastTargetListId } from "./Constants/ImageViewWithCanvas"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 
-let listId = 0
-
 const ContentsWrapper = () => {
-    const [saveDisabled, setSaveDisabled] = useState(false)
     const routeInfo = useRecoilValue(conditionRoute)
     const progressStatus = useRecoilValue(ProgressStatus)
     const personDescriptionData = useRecoilValue(descriptionData)
@@ -42,7 +39,6 @@ const ContentsWrapper = () => {
     const [timeIndex, setTimeIndex] = useRecoilState(TimeSelectIndex)
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
     const [timeVisible, setTimeVisible] = useRecoilState(TimeSelectVisible)
-    const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(currentObjectType!))
     const [areaVisible, setAreaVisible] = useRecoilState(AreaSelectVisible)
     const [areaIndex, setAreaIndex] = useRecoilState(AreaSelectIndex)
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
@@ -52,10 +48,10 @@ const ContentsWrapper = () => {
     const { routePop, routeJump, routePush, getAllRoutes, getRouteName } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
-
-    useEffect(() => {
-        setSaveDisabled(false)
-    }, [_conditionData])
+    const allSelected = useMemo(() => {
+        if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
+        return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
+    },[_conditionData])
 
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
@@ -117,6 +113,9 @@ const ContentsWrapper = () => {
                     }
                     if (targets.filter(_ => _.selected).length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
+                    }
+                    if (rank < 1) {
+                        return message.error({ title: '입력값 에러', msg: '분석 결과 후보 수는 최소 1개 이상이어야 합니다.' })
                     }
                     if (targets.filter(_ => _.selected).find(_ => _.type === 'ATTRIBUTION')) {
                         return message.error({ title: '입력값 에러', msg: '인상착의 대상은 실시간 분석을 사용할 수 없습니다.' })
@@ -224,19 +223,36 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton disabled={disableCompleteBtn() || isRealTime || saveDisabled || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({..._conditionData, selected: _.selected, id: _.id}))} onClick={() => {
-                        setSaveDisabled(true)
-                        let tempConditionData = { ..._conditionData }
-                        tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
-                        tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
-                        tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
-                        setConditionList(conditionList.concat({ ...tempConditionData, selected: false, id: listId++ }))
-                        message.success({
-                            title: "저장 성공",
-                            msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "조건 목록" 메뉴에서 확인할 수 있습니다.'
-                        })
+                    {routeInfo.length === 2 && <CompleteButton disabled={targets.length === 0 && cctv.length === 0 && time.length === 0} onClick={() => {
+                        if(allSelected) {
+                            setTargetDatas(targets.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                            setTimeData(time.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                            setAreaData(cctv.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                        } else {
+                            setTargetDatas(targets.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                            setTimeData(time.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                            setAreaData(cctv.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                        }
                     }}>
-                        현재 조건 저장
+                        전체 선택{allSelected && ' 해제'}
                     </CompleteButton>}
                     <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
                         completeCallback()

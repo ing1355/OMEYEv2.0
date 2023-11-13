@@ -11,7 +11,7 @@ type ConditionListSetByTypeProps = {
 
 const ConditionListSetByType = ({ type }: ConditionListSetByTypeProps) => {
     const [datas, setDatas] = useRecoilState(conditionTargetDatasListByObjectType(type))
-
+    
     const changeSingleData = (data: ConditionListType) => {
         setDatas(datas.map(_ => _.id === data.id ? data : _))
     }

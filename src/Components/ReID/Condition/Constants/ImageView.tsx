@@ -18,7 +18,7 @@ const ImageWithRetry = forwardRef<HTMLImageElement, ImageViewProps>((props, ref)
         setImageSrc(props.src)
     }, [props.src])
 
-    return <ImageContent width={imageSrc === noImage ? "50%" : "100%"} height={"100%"} ref={ref} {...props} style={{
+    return <ImageContent width="100%" height="100%" ref={ref} {...props} style={{
         ...props.style
     }} src={imageSrc} onError={() => {
         if (imageSrc !== noImage) {
@@ -30,10 +30,10 @@ const ImageWithRetry = forwardRef<HTMLImageElement, ImageViewProps>((props, ref)
                 }, 1000);
             }
         }
-    }} />
+    }} onLoad={props.onLoad}/>
 })
 
-const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, children, className, onLoad }, ref) => {
+const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, children, className }, ref) => {
     const imgRef = useRef<HTMLImageElement>(null)
     const fullScreenRef = useRef<Node>()
 
@@ -51,8 +51,6 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
         e.stopPropagation()
     }}
     className={className} style={{
-        width: src === undefined ? '50%' : '100%',
-        height: src === undefined ? '50%' : '100%',
         ...style
     }} 
     onClick={(e) => {
@@ -78,7 +76,9 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
     }} onContextMenu={(e) => {
         e.preventDefault()
     }}>
-        <ImageWithRetry ref={ref || imgRef} src={src || noImage} onLoad={onLoad} />
+        <ImageWithRetry ref={ref || imgRef} src={src || noImage} onLoad={e => {
+            console.log('load')
+        }} />
         {children}
     </ImageContainer>
 })

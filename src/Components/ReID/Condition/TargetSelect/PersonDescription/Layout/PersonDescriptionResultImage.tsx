@@ -25,11 +25,6 @@ import OnepieceInner from "../../../../../../assets/img/descriptions/ResultImage
 import ShirtInner from "../../../../../../assets/img/descriptions/ResultImages/ShirtInner";
 import { PersonDescriptionResultImageID } from "../../../Constants/ConstantsValues";
 
-// const PersonDescriptionGeneralImages = ({data}: {data : descriptionDataType['general']['gender']}) => {
-//     return <>
-//     </>
-// }
-
 export type WithPatternColorsDescriptionItemProps = {
     Src?: React.FC<{ colorProps: JSX.Element | JSX.Element[] }>
     colors?: descriptionColorType[]

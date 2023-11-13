@@ -10,10 +10,8 @@ import Button from "../../../Constants/Button"
 import { useState } from "react"
 import PlateTarget from "./PlateTarget"
 import IconBtn from "../../../Constants/IconBtn"
-import { convertFullTimeStringToHumanTimeFormat, getMethodNameByKey } from "../../../../Functions/GlobalFunctions"
-import CCTVNameById from "../../../Constants/CCTVNameById"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
-import { ObjectTypes } from "../../ConstantsValues"
+import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 
 export type PlateStatusType = 'none' | 'add' | 'update'
@@ -31,17 +29,19 @@ const TargetSelectColumn = () => {
 
     const addAction = () => {
         if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
-        else if(selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
+        else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
         else routePush(ReIDConditionTargetSelectMethodRoute.key)
     }
 
     const allSelectAction = () => {
         setDatas(datas.every(_ => _.selected) ? datas.map(_ => ({ ..._, selected: false })) : datas.map(_ => ({ ..._, selected: true })))
     }
-    
+
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`대상(${datas.length})`}
+            titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
+            isTarget
             initAction={initAction}
             dataAddAction={addAction}
             noDataText="대상 추가"
@@ -51,8 +51,13 @@ const TargetSelectColumn = () => {
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
             <ItemsScrollContainer>
-                {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus}/>}
-                {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus}/> : <ItemContainer key={_.id} selected={_.selected || false}>
+                {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
+                {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+                    setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                        ..._,
+                        selected: !_.selected
+                    }))
+                }}>
                     <ItemSubContainer>
                         <ItemImage src={_.src} />
                         <ItemDescription>
@@ -62,16 +67,11 @@ const TargetSelectColumn = () => {
                                 }} />
                             </ItemDescriptionHeader>
                             <ItemDescriptionContents>
-                                <TargetDescriptionByType data={_}/>
+                                <TargetDescriptionByType data={_} />
                             </ItemDescriptionContents>
                         </ItemDescription>
                     </ItemSubContainer>
-                    <ItemSelectBtn activate={_.selected} onClick={() => {
-                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
-                            ..._,
-                            selected: !_.selected
-                        }))
-                    }}>
+                    <ItemSelectBtn hover activate={_.selected}>
                         {_.selected ? '해제' : '선택'}
                     </ItemSelectBtn>
                 </ItemContainer>)}
@@ -96,10 +96,11 @@ const ItemsScrollContainer = styled.div`
 
 const ItemContainer = styled.div<{ selected: boolean }>`
     width: 100%;
-    flex: 0 0 250px;
+    flex: 0 0 300px;
     ${globalStyles.flex({ gap: '4px' })}
     ${globalStyles.conditionDataItemBox}
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
+    cursor: pointer;
 `
 
 const ItemSubContainer = styled.div`
@@ -136,6 +137,7 @@ const ItemDescriptionContents = styled.div`
     flex: 0 0 calc(100% - 28px);
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '8px' })}
+    overflow-wrap: anywhere;
 `
 
 const ItemDescriptionContentText = styled.div`

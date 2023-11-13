@@ -6,6 +6,7 @@ import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../
 import { AreaSelectIndex, AreaSelectVisible } from "../../../../Model/ConditionParamsModalModel"
 import Button from "../../../Constants/Button"
 import IconBtn from "../../../Constants/IconBtn"
+import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
 
 const AreaBoundaryColumn = () => {
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
@@ -31,6 +32,7 @@ const AreaBoundaryColumn = () => {
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`CCTV(${areaData.length})`}
+            titleIcon={cctvIcon}
             isDataExist={areaData.length > 0}
             initAction={initAction}
             dataAddAction={addAction}

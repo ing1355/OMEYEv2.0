@@ -35,7 +35,7 @@ function throttle(func: Function, delay: number) {
 
 const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: TreeAndMapComponentProps) => {
     const [isTreeView, setIsTreeView] = useState(true)
-    const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId'][]|undefined>(undefined)
+    const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId']|undefined>(undefined)
     const _setSelectedCCTVs = throttle(setSelectedCCTVs, 10)
     const message = useMessage()
 
@@ -61,7 +61,7 @@ const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: 
             <MapComponent selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} forSingleCamera={singleSelect} idForViewChange={searchCCTV ? searchCCTV : undefined}/>
         </CCTVSelectInnerContainer>
         <CCTVDropdownSearch onChange={(target) => {
-            setSearchCCTV([target.cameraId])
+            setSearchCCTV(target.cameraId)
         }}/>
     </CCTVSelectContainer>
 }

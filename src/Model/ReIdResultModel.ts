@@ -17,7 +17,7 @@ export type ReIDRequestParamsType = {
 }
 
 export type AdditionalReIDRequestParamsType = ReIDRequestParamsType & {
-  reidId?: number
+  reIdId?: number
 }
 
 const _reidResultDatas = atom<ReIDResultType[]>({
@@ -48,6 +48,11 @@ const _reidResultSelctedCondition = atom<number>({
 const _additionalReidTimeValue = atom<TimeModalDataType | undefined>({
   key: "reid/additional/timevalue",
   default: undefined
+})
+
+export const globalCurrentReidId = atom<number>({
+  key: "reid/currentId",
+  default: 0
 })
 
 export const ReIDResultDataKeys = selector({

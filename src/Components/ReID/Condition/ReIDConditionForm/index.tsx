@@ -3,23 +3,32 @@ import { globalStyles } from "../../../../styles/global-styled"
 import Input from "../../../Constants/Input"
 import Button from "../../../Constants/Button"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { ConditionDataSingleType, conditionData, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { ConditionDataSingleType, conditionData, conditionTargetDatasListByObjectType, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import TargetSelectColumn from "./TargetSelectColumn"
 import ETCColumn from "./ETCColumn"
 import TimeBoundaryColumn from "./TimeBoundaryColumn"
 import AreaBoundaryColumn from "./AreaBoundaryColumn"
 import { DownloadSingleConditionJsonData, UploadSingleConditionJsonData } from "../../../../Functions/GlobalFunctions"
 import conditionDataSaveIcon from '../../../../assets/img/conditionDataSaveIcon.png'
+import exportIcon from '../../../../assets/img/exportIcon.png'
 import conditionDataUploadIcon from '../../../../assets/img/conditionDataUploadIcon.png'
 import resetIcon from '../../../../assets/img/resetDisabledIcon.png'
 import useMessage from "../../../../Hooks/useMessage"
 import { ReIDObjectTypes } from "../../ConstantsValues"
 
+let listId = 0
+
+export const createConditionList = () => {
+    return listId++
+}
+
 const ReIDConditionForm = () => {
     const [title, setTitle] = useRecoilState(conditionTitleData)
     const [datas, setDatas] = useRecoilState(conditionData)
     const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(currentObjectType!))
     const message = useMessage()
+    const { targets, rank, time, name, cctv, isRealTime, etc } = datas
     
     return <>
         <TopInputAndButtonsContainer>
@@ -52,10 +61,25 @@ const ReIDConditionForm = () => {
                 }}>
                     가져오기
                 </TopButton>
-                <TopButton hover icon={conditionDataSaveIcon} onClick={() => {
+                <TopButton hover icon={exportIcon} onClick={() => {
                     DownloadSingleConditionJsonData(datas)
                 }}>
                     내보내기
+                </TopButton>
+                <TopButton hover icon={exportIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({...datas, selected: _.selected, id: _.id}))} onClick={() => {
+                    if(!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({title: "입력값 에러", msg:"조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다."})
+                    let tempConditionData = { ...datas }
+                    tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
+                    tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
+                    tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
+                    tempConditionData.name = tempConditionData.name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색"
+                    setConditionList(conditionList.concat({ ...tempConditionData, selected: false, id: createConditionList() }))
+                    message.success({
+                        title: "저장 성공",
+                        msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "조건 목록" 메뉴에서 확인할 수 있습니다.'
+                    })
+                }}>
+                    현재 조건 저장
                 </TopButton>
             </TopButtonsContainer>
         </TopInputAndButtonsContainer>

@@ -6,7 +6,7 @@ import Button from "../Constants/Button"
 
 type ModalProps = PropsWithChildren & {
     visible: boolean
-    complete?: (data?: any) => void
+    complete?: (data?: any) => void|boolean
     close: () => void
     title: string
     noComplete?: boolean
@@ -44,8 +44,13 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
         }}>
             <Header>
                 {!noComplete && <CompleteBtn activate onClick={() => {
-                    if(complete) complete()
-                    close()
+                    if(complete) {
+                        if(!complete()) {
+                            close()
+                        }
+                    } else {
+                        close()
+                    }
                 }}>
                     {isConfirm ? '확인' : '완료'}
                 </CompleteBtn>}

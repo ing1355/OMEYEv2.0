@@ -10,8 +10,9 @@ import conditionDataAddIcon from '../../../../assets/img/conditionDataAddIcon.pn
 import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHoverIcon.png'
 import conditionDataMinusIcon from '../../../../assets/img/conditionDataMinusIcon.png'
 import conditionDataMinusHoverIcon from '../../../../assets/img/conditionDataMinusHoverIcon.png'
+import rankIcon from '../../../../assets/img/rankIcon.png'
 
-const RankBtn = ({callback, hoverIcon, icon}: {
+const RankBtn = ({ callback, hoverIcon, icon }: {
     callback: () => void
     hoverIcon: string
     icon: string
@@ -65,9 +66,14 @@ const RankComponent = () => {
 
     return <RankContainer>
         <TitleContainer>
-            <Title>
-                분석 결과 후보 수
-            </Title>
+            <TitleInnerContainer>
+                <TitleIconContainer>
+                    <TitleIcon src={rankIcon} />
+                </TitleIconContainer>
+                <TitleText>
+                    분석 결과 후보 수
+                </TitleText>
+            </TitleInnerContainer>
         </TitleContainer>
         <RankInputContainer>
             <RankInputInnerContainer>
@@ -78,11 +84,11 @@ const RankComponent = () => {
                     setRank(parseInt(value))
                 }} onBlur={e => {
                     if (rank === 0) setRank(10)
-                }} autoComplete="off"/>
+                }} />
             </RankInputInnerContainer>
             <RankInputButtonsContainer>
-                <RankBtn icon={conditionDataAddIcon} hoverIcon={conditionDataAddHoverIcon} callback={rankUpCallback}/>
-                <RankBtn icon={conditionDataMinusIcon} hoverIcon={conditionDataMinusHoverIcon} callback={rankDownCallback}/>
+                <RankBtn icon={conditionDataAddIcon} hoverIcon={conditionDataAddHoverIcon} callback={rankUpCallback} />
+                <RankBtn icon={conditionDataMinusIcon} hoverIcon={conditionDataMinusHoverIcon} callback={rankDownCallback} />
             </RankInputButtonsContainer>
         </RankInputContainer>
     </RankContainer>
@@ -95,9 +101,9 @@ const ReIDDescriptionComponent = () => {
 
     return <DescriptionContainer>
         <TitleContainer>
-            <Title>
+            <TitleText>
                 비고
-            </Title>
+            </TitleText>
         </TitleContainer>
         <DescriptionInputContainer onClick={() => {
             if (inputRef.current && !isRealTime) inputRef.current.focus()
@@ -218,7 +224,24 @@ const TitleContainer = styled.div`
     margin-bottom: 8px;
 `
 
-const Title = styled.div`
+const TitleInnerContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
+    flex: 1;
+`
+
+const TitleIconContainer = styled.div`
+    flex: 0 0 26px;
+    margin-right: 6px;
+    height: 100%;
+    ${globalStyles.flex()}
+`
+
+const TitleIcon = styled.img`
+    width: 100%;
+    height: 100%;
+`
+
+const TitleText = styled.div`
+    font-size: 1.3rem;
     color: white;
-    font-size: 1.5rem;
 `

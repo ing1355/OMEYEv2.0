@@ -30,14 +30,16 @@ type InputProps = {
 }
 
 const _Input = (props?: InputProps) => {
+
     useEffect(() => {
         if (props?.type === 'textarea') {
             if (!props?.value) {
                 const target = props.inputRef?.current
-                target.style.height = 30 + 'px'
+                if(target) target.style.height = 30 + 'px'
             }
         }
     }, [props?.value, props?.type])
+
     const attributes = {
         ref: props?.inputRef,
         maxLength: props?.maxLength ?? (props?.type === 'textarea' ? 300 : 16),
@@ -48,7 +50,7 @@ const _Input = (props?: InputProps) => {
         id: props?.id,
         disabled: props?.disabled,
         placeholder: props?.placeholder,
-        autoComplete: props?.autoComplete
+        autoComplete: props?.autoComplete || 'off'
     }
     const inputAttributes = {
         ...attributes,

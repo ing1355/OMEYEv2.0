@@ -2,11 +2,12 @@ import { useRecoilState, useSetRecoilState } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
 import { conditionIsRealTimeData, conditionTimeDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import { TimeSelectIndex, TimeSelectVisible } from "../../../../Model/ConditionParamsModalModel"
 import Button from "../../../Constants/Button"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import IconBtn from "../../../Constants/IconBtn"
+import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 
 const TimeBoundaryColumn = () => {
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
@@ -40,6 +41,7 @@ const TimeBoundaryColumn = () => {
         <Container>
             <ConditionParamsInputColumnComponent
                 title={`시간(${timeData.length})`}
+                titleIcon={timeIcon}
                 isDataExist={timeData.length > 0}
                 initAction={initAction}
                 dataAddAction={addAction}

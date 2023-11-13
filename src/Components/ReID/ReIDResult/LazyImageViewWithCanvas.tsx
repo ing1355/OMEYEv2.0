@@ -38,30 +38,7 @@ const LazyImageViewWithCanvas: React.FC<ILazyImage> = ({ src, className }): JSX.
         // 화면에 보여지기 전이라면 NoImage, 화면에 보여지고 있다면 src에 해당하는 이미지
         <>
             {
-                isLoading ? <img ref={imgRef} src={NoImage} className={className} /> : <ImageView key={src} ref={imgRef} src={src} className={className} onLoad={(e) => {
-                    // const coord = GetCoordByUrl(src);
-                    // let ctx = canvasRef.current?.getContext("2d");
-                    // const img = e.currentTarget
-                    // img.crossOrigin = "Anonymous"
-                    // canvasRef.current!.width = img.naturalWidth
-                    // canvasRef.current!.height = img.naturalHeight
-                    // ctx?.drawImage(img, 0, 0)
-                    // ctx!.beginPath();
-                    // let width = coord[2] - coord[0];
-                    // let height = coord[3] - coord[1];
-                    // ctx!.rect(
-                    //     coord[0],
-                    //     coord[1],
-                    //     width,
-                    //     height
-                    // );
-                    // ctx!.strokeStyle = "red";
-                    // ctx!.lineWidth = 8;
-                    // ctx!.lineJoin = "round";
-                    // ctx!.stroke();
-                    // ctx!.globalCompositeOperation = "destination-over";
-                    // img.src = canvasRef.current!.toDataURL()
-                }} />
+                isLoading ? <img ref={imgRef} src={NoImage} className={className} /> : <ImageView key={src} ref={imgRef} src={src} className={className}/>
             }
             <canvas ref={canvasRef} style={{
                 display: 'none'

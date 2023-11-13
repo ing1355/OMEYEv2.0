@@ -30,6 +30,7 @@ import cctvEndIcon from '../../../assets/img/CCTVEndIcon.png'
 import { getDistance } from "ol/sphere";
 import { ContentsActivateColor } from "../../../styles/global-styled";
 import { CSSProperties } from "react";
+import { Extent } from "ol/extent";
 
 enum mapState {
     NORMAL,
@@ -388,6 +389,23 @@ export class OlMap extends CustomMap<Map> {
         if(!this.noSelect) this.registerBoxEndHandler();
     }
 
+    fitWithPaddingByExtent(ext: Extent): void {
+        let padding: number = 100
+        const currentZoomLv = this.map.getView().getZoom()
+        // if(currentZoomLv) {
+        //     if(currentZoomLv > 20) {
+        //         padding = 1000
+        //     } else if(currentZoomLv > 18) {
+        //         padding = 1000
+        //     } else if(currentZoomLv > 16) {
+        //         padding = 1000
+        //     } else {
+        //         padding = 1000
+        //     }
+        // }
+        this.map.getView().fit(ext.map((_,ind) => ind < 2 ? _ - padding : _ + padding))
+    }
+
     registerMouseMoveHandler(): void {
         this.map.on("pointermove", (evt) => {
             if (this.singleCameraId) return;
@@ -426,7 +444,7 @@ export class OlMap extends CustomMap<Map> {
             if (feature) {
                 let features: Feature[] = feature.get("features");
                 if (features) {
-                    this.map.getView().fit(new VectorSource({ features: features }).getExtent());
+                    this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
                 } else {
                     this.clickId = feature.getId()
                     switch (this.map.get(mapStateKey)) {
@@ -490,7 +508,7 @@ export class OlMap extends CustomMap<Map> {
         })
         if (featureTemp.length) {
             this.VS.addFeatures(featureTemp)
-            this.map.getView().fit(this.VS.getExtent());
+            this.fitWithPaddingByExtent(this.VS.getExtent())
         }
     }
 
@@ -504,7 +522,7 @@ export class OlMap extends CustomMap<Map> {
         })
         if (featureTemp.length) {
             this.VS.addFeatures(featureTemp)
-            this.map.getView().fit(this.VS.getExtent());
+            this.fitWithPaddingByExtent(this.VS.getExtent())
         }
     }
 
@@ -573,7 +591,7 @@ export class OlMap extends CustomMap<Map> {
                     this.arrowVS.addFeature(resultFeature)
                 }
             })
-            this.map.getView().fit(this.arrowVS.getExtent());
+            this.fitWithPaddingByExtent(this.arrowVS.getExtent())
         }
         if(cctvIds.length > 0) {
             const startFeature = this.VS.getFeatureById(cctvIds[0])
@@ -714,7 +732,7 @@ export class OlMap extends CustomMap<Map> {
         if(selectedFeatuerIds.length > 0) {
             const temp = new VectorSource({features: []})
             temp.addFeatures(selectedFeatuerIds.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)))
-            this.map.getView().fit(temp.getExtent())
+            this.fitWithPaddingByExtent(temp.getExtent())
         }
     }
 }

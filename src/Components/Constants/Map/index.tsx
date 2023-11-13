@@ -28,15 +28,15 @@ type MapComponentProps = PropsWithChildren & {
     singleCamera?: CameraDataType['cameraId']
     forSingleCamera?: boolean
     pathCameras?: CameraDataType['cameraId'][]
-    idForViewChange?: CameraDataType['cameraId'][]
+    idForViewChange?: CameraDataType['cameraId']
     forAddtraffic?: boolean
-    reidId?: number
+    reIdId?: number
     onlyMap?: boolean
     noSelect?: boolean
     isDebug?: boolean
 }
 
-const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reidId, onlyMap, noSelect, isDebug }: MapComponentProps) => {
+const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, isDebug }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
     const [r, setR] = useState('1')
@@ -57,9 +57,9 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         id: number,
         type: ReIDObjectTypeKeys
     }[]>([])
-    const targetReidresult = useRecoilValue(ReIDResultData(reidId!))
+    const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
     const progressStatus = useRecoilValue(ProgressStatus)
-    const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reidId!))
+    const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
     const globalMenuState = useRecoilValue(menuState)
     const conditionMenuState = useRecoilValue(conditionMenu)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
@@ -77,7 +77,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 map.current = new OlMap(mapElement.current!, forAddtraffic, forAddtraffic ? addTrafficInputContainer.current! : circleSelectContainer.current!, forSingleCamera, noSelect)
                 break;
         }
-
         map.current.init()
         if (!cameras && !(singleCamera && forSingleCamera)) map.current.createMarkersBySites(sitesData)
         if (forAddtraffic) {
@@ -133,7 +132,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
 
     useEffect(() => {
         if (idForViewChange) {
-            map.current?.viewChangeById(idForViewChange[0])
+            map.current?.viewChangeById(idForViewChange)
         }
     }, [idForViewChange])
 
@@ -279,7 +278,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         setProgressRequestParams({
                             type: 'ADDITIONALREID',
                             params: {
-                                reidId,
+                                reIdId,
                                 title: titleInput,
                                 etc: etcInput,
                                 rank: rankInput,

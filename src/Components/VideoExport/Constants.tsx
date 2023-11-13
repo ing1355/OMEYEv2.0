@@ -1,17 +1,19 @@
 import styled from "styled-components"
 import { VideoExportRowDataType } from "../../Model/VideoExportDataModel"
 import { ButtonActiveBackgroundColor, ButtonInActiveBackgroundColor } from "../../styles/global-styled"
+import CategoryTag from "./CategoryTag"
 
 export const OptionTags = ({ options }: {
     options: VideoExportRowDataType['options']
 }) => {
     if (!options) return <></>
-    const { masking, password } = options
+    const { masking, password, description } = options
     return <>
-        {masking.includes('area') && <Tag>영역 비식별화</Tag>}
-        {masking.includes('head') && <Tag>얼굴 비식별화</Tag>}
-        {masking.includes('carplate') && <Tag>번호판 비식별화</Tag>}
-        {password && <Tag>암호화</Tag>}
+        {description && <CategoryTag selected title="비고" description={description}/>}
+        {masking.includes('area') && <CategoryTag selected title="영역 비식별화"/>}
+        {masking.includes('head') && <CategoryTag selected title="얼굴 비식별화"/>}
+        {masking.includes('carplate') && <CategoryTag selected title="번호판 비식별화"/>}
+        {password && <CategoryTag selected title="암호화"/>}
     </>
 }
 

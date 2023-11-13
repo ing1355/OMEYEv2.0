@@ -16,7 +16,7 @@ const ViewByCategory = ({ type }: {
             <NewExport />
         </ChangedView>
         <ChangedView selected={type === 'list'}>
-            <ExportHistory />
+            <ExportHistory visible={type === 'list'}/>
         </ChangedView>
     </>
 }
@@ -91,5 +91,7 @@ const ChangedView = styled.div<{ selected: boolean }>`
     padding: 24px;
     border-radius: 10px;
     background-color: ${SectionBackgroundColor};
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: relative;
 `

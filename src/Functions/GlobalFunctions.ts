@@ -252,6 +252,10 @@ export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorSt
     return `${year}-${month}-${day}${separator}${hour}:${minute}:${second}`
 }
 
+export const convertFullTimeStringToHumanTimeFormatByDate = (date: Date) => {
+    return convertFullTimeStringToHumanTimeFormat(convertFullTimeString(date))
+}
+
 export function getTimeDifference(startTime: string, endTime: string): string {
     const start = new Date(convertFullTimeStringToHumanTimeFormat(startTime));
     const end = new Date(convertFullTimeStringToHumanTimeFormat(endTime));
@@ -326,4 +330,15 @@ export const DivToImg = async (div: HTMLDivElement) => {
     })
     const result = canvas.toDataURL()
     return result
+}
+
+export const getLoadingTimeString = (time: number) => {
+    const hour = Math.floor(time / 3600)
+    const minute = Math.floor(time / 60) % 60
+    const second = time % 60
+    let str = ""
+    if (hour) str += `${hour}시간 `
+    if (minute) str += `${minute}분 `
+    str += `${second}초 경과`
+    return str
 }

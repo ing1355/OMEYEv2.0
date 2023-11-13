@@ -5,6 +5,7 @@ import DescriptionMethodIcon from '../../assets/img/DescriptionMethodIcon.png'
 import plateEmptyIcon from '../../assets/img/emptyPlateObjectIcon.png'
 import faceEmptyIcon from '../../assets/img/FaceEmptyIcon.png'
 import personEmptyIcon from '../../assets/img/PersonEmptyIcon.png'
+import DescriptionEmptyIcon from '../../assets/img/DescriptionEmptyIcon.png'
 import { ReIDObjectTypeKeys } from '../../Constants/GlobalTypes'
 
 export enum ObjectTypes {
@@ -22,7 +23,7 @@ export enum ReIDMenuKeys {
   REALTIMEREID
 }
 
-export const ReIDObjectTypeEmptyIcons = [personEmptyIcon, faceEmptyIcon, "", plateEmptyIcon]
+export const ReIDObjectTypeEmptyIcons = [personEmptyIcon, faceEmptyIcon, DescriptionEmptyIcon, plateEmptyIcon]
 
 export const ReIDObjectTypes: {
     key: ReIDObjectTypeKeys

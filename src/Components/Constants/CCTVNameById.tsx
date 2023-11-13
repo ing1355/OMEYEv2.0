@@ -5,7 +5,8 @@ import { GetCameraById } from "../../Model/SiteDataModel"
 const CCTVNameById = ({ cctvId }: {
     cctvId: CameraDataType['cameraId']
 }) => {
-    const name = useRecoilValue(GetCameraById(cctvId))?.name
+    const name = useRecoilValue(GetCameraById(Number(cctvId)))?.name
+    
     return <>
         {name}
     </>

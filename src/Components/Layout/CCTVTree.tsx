@@ -1,7 +1,7 @@
 import { useRecoilValue } from "recoil"
 import styled from "styled-components"
 import { SitesDataForTreeView } from "../../Model/SiteDataModel"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { CameraDataType, SiteDataType } from "../../Constants/GlobalTypes"
 import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ContentsBorderColor, globalStyles } from "../../styles/global-styled"
 import CCTVIcon from '../../assets/img/treeCCTVIcon.png'
@@ -17,7 +17,7 @@ type CCTVTreeProps = {
     selectedChange: (targets: CameraDataType['cameraId'][]) => void
     singleTarget?: boolean
     openedInit?: boolean
-    searchCCTVId?: CameraDataType['cameraId'][]
+    searchCCTVId?: CameraDataType['cameraId']
 }
 
 const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] => {
@@ -33,10 +33,33 @@ const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] =>
 const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId }: CCTVTreeProps) => {
     const [opened, setOpened] = useState<SiteDataType['fullName'][]>([])
     const sitesData = useRecoilValue(SitesDataForTreeView)
+    const lastClickedCCTV = useRef<CameraDataType['cameraId']>(0)
+    const shiftKeyClicked = useRef(false)
+
+    const keyDownCallback = useCallback((e: KeyboardEvent) => {
+        if(e.key === 'Shift') {
+            shiftKeyClicked.current = true
+        }
+    },[])
+
+    const keyUpCallback = useCallback((e: KeyboardEvent) => {
+        if(e.key === 'Shift') {
+            shiftKeyClicked.current = false
+        }
+    },[])
 
     useEffect(() => {
-        if (searchCCTVId && searchCCTVId[0]) {
-            selectedChange(ArrayDeduplication([...selectedCCTVs, searchCCTVId[0]]))
+        document.addEventListener('keydown', keyDownCallback)
+        document.addEventListener('keyup', keyUpCallback)
+        return () => {
+            document.removeEventListener('keydown', keyDownCallback)
+            document.removeEventListener('keyup', keyUpCallback)
+        }
+    },[])
+
+    useEffect(() => {
+        if (searchCCTVId && searchCCTVId) {
+            selectedChange(ArrayDeduplication([...selectedCCTVs, searchCCTVId]))
         }
     }, [searchCCTVId])
 
@@ -48,7 +71,7 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
         return nodeHeight + ((data.cameras && (data.cameras.length > 0)) ? (data.cameras.length * nodeHeight) : 0) + (data.sites && data.sites.length > 0 ? data.sites.reduce((pre, cur) => pre + getSiteNodeHeight(cur), 0) : 0)
     }
 
-    const createCameraNode = (data: CameraDataType, depth: number, hasBrother: boolean) => {
+    const createCameraNode = (data: CameraDataType, depth: number, hasBrother: boolean, parent: SiteDataType) => {
         return <NodeContainer depth={depth} opened={true} key={data.cameraId}>
             <NodeContentsContainer>
                 {
@@ -62,7 +85,22 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                         selectedChange([data.cameraId])
                     } else {
                         if (selectedCCTVs.includes(data.cameraId)) selectedChange(selectedCCTVs.filter(_ => _ !== data.cameraId))
-                        else selectedChange(selectedCCTVs.concat(data.cameraId))
+                        else {
+                            if(parent.cameras.find(_ => _.cameraId === lastClickedCCTV.current) && shiftKeyClicked.current) {
+                                const l_ind = parent.cameras.findIndex(_ => _.cameraId === lastClickedCCTV.current)
+                                const s_ind = parent.cameras.findIndex(_ => _.cameraId === data.cameraId)
+                                if(l_ind !== -1 && s_ind !== -1) {
+                                    if(l_ind > s_ind) {
+                                        selectedChange(ArrayDeduplication(selectedCCTVs.concat(parent.cameras.filter((_, i) => i <= l_ind && i >= s_ind).map(_ => _.cameraId))))
+                                    } else {
+                                        selectedChange(ArrayDeduplication(selectedCCTVs.concat(parent.cameras.filter((_, i) => i >= l_ind && i <= s_ind).map(_ => _.cameraId))))
+                                    }
+                                }
+                            } else {
+                                selectedChange(selectedCCTVs.concat(data.cameraId))
+                            }
+                        }
+                        lastClickedCCTV.current = data.cameraId
                     }
                 }} style={{
                     maxWidth: `calc(100% - ${depth * depthPadding}px)`
@@ -83,28 +121,30 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                 {
                     Array.from({ length: depth }).map((_, ind) => <DepthLine key={ind} bottom={parentHasCameras} right={(ind + 1) === depth} />)
                 }
-                <NodeItemContainer isSelected={allCameraIds.some(_ => selectedCCTVs.includes(_))} onMouseDown={e => {
+                <NodeItemContainer isSelected={allCameraIds.length > 0 && allCameraIds.every(_ => selectedCCTVs.includes(_))} onMouseDown={e => {
                     e.stopPropagation()
                 }} onClick={(e) => {
                     e.stopPropagation()
-                    if (opened.includes(data.fullName)) setOpened(opened.filter(_ => !_?.includes(data.fullName!)))
-                    else setOpened(opened.concat(data.fullName))
+                    if(allCameraIds.length > 0) {
+                        if (opened.includes(data.fullName)) setOpened(opened.filter(_ => !_?.includes(data.fullName!)))
+                        else setOpened(opened.concat(data.fullName))
+                    }
                 }} style={{
                     paddingLeft: nodeHeight + 'px',
                     paddingRight: !singleTarget ? '32px' : '0px'
                 }}>
-                    <ArrowWrapper opened={opened.includes(data.fullName)} onClick={(e) => {
+                    {allCameraIds.length > 0 && <ArrowWrapper opened={opened.includes(data.fullName)} onClick={(e) => {
                         e.stopPropagation()
                         if (opened.includes(data.fullName)) setOpened(opened.filter(_ => !_?.includes(data.fullName!)))
                         else setOpened(opened.concat(data.fullName))
-                    }} />
+                    }} />}
                     <NodeTitleText>
                         {data.siteName}
                     </NodeTitleText>
                     <div>
                         ({allCameraIds.filter(_ => selectedCCTVs.includes(_)).length}/{allCameraIds.length})
                     </div>
-                    <AllSelectBtn activate={allCameraIds.every(_ => selectedCCTVs.includes(_))} hover onMouseDown={e => {
+                    {!singleTarget && allCameraIds.length > 0 && <AllSelectBtn activate={allCameraIds.every(_ => selectedCCTVs.includes(_))} hover onMouseDown={e => {
                         e.stopPropagation()
                     }} onClick={e => {
                         e.stopPropagation()
@@ -112,11 +152,11 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                         else selectedChange(ArrayDeduplication(selectedCCTVs.concat(allCameraIds)))
                     }}>
                         전체 {allCameraIds.every(_ => selectedCCTVs.includes(_)) ? '해제' : '선택'}
-                    </AllSelectBtn>
+                    </AllSelectBtn>}
                 </NodeItemContainer>
             </NodeContentsContainer>
             {data.sites && data.sites.length > 0 && data.sites.map(_ => createSiteNode(_, depth + 1, data.cameras && data.cameras.length > 0))}
-            {data.cameras && data.cameras.length > 0 && data.cameras.map((_, cameraInd, arr) => createCameraNode(_, depth + 1, cameraInd !== arr.length - 1))}
+            {data.cameras && data.cameras.length > 0 && data.cameras.map((_, cameraInd, arr) => createCameraNode(_, depth + 1, cameraInd !== arr.length - 1, data))}
         </NodeContainer>
     }
 

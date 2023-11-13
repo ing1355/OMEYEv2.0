@@ -22,10 +22,10 @@ const LoadingComponent = () => {
 const Main = () => {
     const sitesState = useRecoilValueLoadable(SitesData)
     const vmsStoredTime = useRecoilValueLoadable(globalSettings)
-    
+    console.log(sitesState)
     if (sitesState.state === 'loading') return <LoadingComponent />
     if (vmsStoredTime.state === 'loading') return <LoadingComponent />
-
+    
     return <Menus />
 }
 

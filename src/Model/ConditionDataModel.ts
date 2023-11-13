@@ -4,7 +4,8 @@ import { ReIDConditionFormRoute } from "../Components/ReID/Condition/Constants/R
 import { conditionRoute } from "./ConditionRouteModel";
 import { CaptureResultListItemType, ReIDObjectTypeKeys } from "../Constants/GlobalTypes";
 import { _timeIndex } from "./ConditionParamsModalModel";
-import { FaceConditionTestData, PersonConditionTestData, PlateConditionTestData } from "./TestDatas";
+import { AttributionConditionTestData, FaceConditionTestData, PersonConditionTestData, PlateConditionTestData } from "./TestDatas";
+import { IS_PRODUCTION } from "../Constants/GlobalConstantsValues";
 
 export type ConditionDataCCTVType = {
     cctvList: number[],
@@ -45,14 +46,15 @@ export type ConditionDataType = { selectedType: ReIDObjectTypeKeys | null } & Co
 const _data = atom<ConditionDataType>({
     key: "conditionData",
     default: {
-        selectedType: 'PERSON',
+        selectedType: 'ATTRIBUTION',
         FACE: createDefaultConditionData('FACE'),
         // Face: FaceConditionTestData,
         PERSON: createDefaultConditionData('PERSON'),
         // PERSON: PersonConditionTestData,
         CARPLATE: createDefaultConditionData('CARPLATE'),
         // car_plate: PlateConditionTestData
-        ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')
+        // ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')
+        ATTRIBUTION: IS_PRODUCTION ? createDefaultConditionData('ATTRIBUTION') : AttributionConditionTestData
     }
 })
 

@@ -8,7 +8,7 @@ import emptyIcon from '../../../../../assets/img/emptyPlateObjectIcon.png'
 import { useEffect, useRef, useState } from "react"
 import { useRecoilState } from "recoil"
 import { conditionTargetDatas } from "../../../../../Model/ConditionDataModel"
-import { GetObjectIdByImage, SubmitCarVrp } from "../../../../../Functions/NetworkFunctions"
+import { GetObjectIdByImage } from "../../../../../Functions/NetworkFunctions"
 import { ObjectTypes } from "../../../ConstantsValues"
 import useMessage from "../../../../../Hooks/useMessage"
 

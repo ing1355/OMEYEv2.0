@@ -27,7 +27,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
     selected: RealTimeDataType | null
     setSelected: setStateType<RealTimeDataType | null>
 }) => {
-    
+
     return <div style={{
         width: '100%',
         height: imageBoxHeight + 'px',
@@ -37,7 +37,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
         cursor: 'pointer',
         border: (selected && data && JSON.stringify(selected.imageURL) === JSON.stringify(data.imageURL)) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
     }} className={className} onClick={() => {
-        if(data) setSelected(data)
+        if (data) setSelected(data)
     }}>
         <div style={{
             position: 'absolute',
@@ -111,6 +111,7 @@ const RealTimeReID = () => {
     }, [rtStatus])
 
     useEffect(() => {
+        console.debug("RealTime Status Change : ", rtStatus)
         if (rtStatus === PROGRESS_STATUS['RUNNING']) {
             if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
@@ -130,8 +131,9 @@ const RealTimeReID = () => {
             window.removeEventListener("unload", cancelFunc);
         }
     }, [rtStatus])
-    
+
     const RealTimeSseSetting = () => {
+        console.debug("RealTime Sse Setting")
         sseRef.current = CustomEventSource(SseStartApi);
         sseRef.current.onopen = async (e: any) => {
             console.debug("sse open realtime: ", e);
@@ -199,6 +201,7 @@ const RealTimeReID = () => {
                     setRtStatus(PROGRESS_STATUS['IDLE'])
                     clearInterval(timerId)
                     sseRef.current!.close();
+                    sseRef.current = undefined
                 }
             } catch (e) {
                 console.debug("realtime Error : ", e)
@@ -292,7 +295,7 @@ const RealTimeReID = () => {
                             </ResultDetailDescriptionRow>
                         </ResultDetailDescriptionTextContainer>
                         <ResultDetailMapContainer>
-                            <MapComponent isDebug onlyMap noSelect idForViewChange={selected ? [selected.cameraId] : undefined} />
+                            <MapComponent isDebug onlyMap noSelect idForViewChange={selected ? selected.cameraId : undefined} selectedCCTVs={selected ? [selected.cameraId] : undefined} />
                         </ResultDetailMapContainer>
                     </ResultDetailDescriptionContainer>
                 </ResultDetailContainer>

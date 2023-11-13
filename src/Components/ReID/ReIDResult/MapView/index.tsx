@@ -18,15 +18,15 @@ import ForLog from "../../../Constants/ForLog";
 
 type MapViewProps = {
     opened: boolean
-    reidId: number
+    reIdId: number
 }
 
-const MapView = ({ opened, reidId }: MapViewProps) => {
+const MapView = ({ opened, reIdId }: MapViewProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
     const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType[] | null>(null)
-    const resultData = useRecoilValue(ReIDResultData(reidId))
-    const selectedData = useRecoilValue(SingleReIDSelectedData(reidId))
+    const resultData = useRecoilValue(ReIDResultData(reIdId))
+    const selectedData = useRecoilValue(SingleReIDSelectedData(reIdId))
 
     const filteredViewData = useMemo(() => resultData?.data.map((_, index) => ({
         title: _.title,
@@ -68,9 +68,9 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
             <MapContainer>
                 <MapComponent
                     pathCameras={filteredPathCameras}
-                    idForViewChange={detailResult ? [detailResult[0].cctvId!] : undefined}
+                    idForViewChange={detailResult ? detailResult[0].cctvId! : undefined}
                     forAddtraffic
-                    reidId={reidId}
+                    reIdId={reIdId}
                     onlyMap>
                 </MapComponent>
                 <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {

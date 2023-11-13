@@ -15,10 +15,10 @@ import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
 import clearIcon from '../../../assets/img/rankUpIcon.png'
-import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
+import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
-import { Axios } from "../../../Functions/NetworkFunctions"
+import { Axios, GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import { GetReidDataApi } from "../../../Constants/ApiRoutes"
 import Pagination from "../../Layout/Pagination"
 
@@ -44,7 +44,6 @@ const ReIDLogs = () => {
         page: currentPage + 1
     })
 
-    const paginationInputRef = useRef<HTMLInputElement>()
     const titleInputRef = useRef<HTMLInputElement>()
 
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
@@ -56,7 +55,6 @@ const ReIDLogs = () => {
     useEffect(() => {
         refresh()
         params.current = { ...params.current, page: currentPage + 1 }
-        if (paginationInputRef.current) paginationInputRef.current.value = (currentPage + 1).toString()
     }, [currentPage])
 
     useEffect(() => {
@@ -131,10 +129,26 @@ const ReIDLogs = () => {
                                         </ContentsItemTitleBtn> */}
                                         <ContentsItemTitleBtn hover onClick={async (e) => {
                                             e.stopPropagation()
-                                            const newData = await Axios("GET", GetReidDataApi(_.reidId))
+                                            const temp = await GetReIDResultById(_.reidId)
+                                            const newData: ReIDResultType = {...temp, data: temp.data.map(d => ({
+                                                ...d,
+                                                resultList: d.resultList.map(r => ({
+                                                    ...r,
+                                                    timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                                                        console.log(t)
+                                                        return {
+                                                            ...t,
+                                                            results: Object.entries(t.results) as any
+                                                        }
+                                                    })
+                                                }))
+                                            }))}
+                                            console.log(temp, newData)
                                             if (reidResults.some(r => r.reIdId === _.reidId)) {
+                                                console.log('some?????????', reidResults, _.reidId)
                                                 setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
                                             } else {
+                                                console.log('not some?????????', reidResults.concat(newData))
                                                 setReidResults(reidResults.concat(newData))
                                             }
                                             setReIDSelectedcondition(0)
@@ -151,7 +165,7 @@ const ReIDLogs = () => {
                                     _.requestGroups.map((__, _ind) => <ContentsItemSubContainer opened={true} key={_ind}>
                                         <ContentsItemSubTitleContainer>
                                             <div />
-                                            {__.title}
+                                            {__.title === 'live' ? '실시간 분석' : __.title}
                                             <SubTitleItemsContainer>
                                                 <ContentsItemTitleBtn hover onClick={async () => {
                                                     // const resultData = await Axios("GET", GetReidDataApi(_.reidId)) as ReIDResultType
@@ -194,7 +208,7 @@ const ReIDLogs = () => {
                                                         justifyContent: 'center'
                                                     }}>
                                                         <ContentsItemInnerColContentWrapper>
-                                                            {__.rank}
+                                                            {__.timeGroups[0].startTime === 'live' ? '실시간 분석' : __.rank}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -209,6 +223,7 @@ const ReIDLogs = () => {
                                                             {__.status === 'IN_PROGRESS' && "진행중"}
                                                             {__.status === 'SUCCESS' && getTimeDifference(__.requestStartTime, __.requestEndTime)}
                                                             {__.status === 'CANCEL' && "취소된 요청"}
+                                                            {__.status === 'EMPTY' && "강제 종료된 요청(비정상 에러)"}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -220,7 +235,9 @@ const ReIDLogs = () => {
                                                     </ContentsItemInnerColTitle>
                                                     <ContentsItemInnerColContents>
                                                         {
-                                                            __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
+                                                            __.timeGroups[0].startTime === 'live' ? <ContentsItemInnerColContentWrapper key={ind}>
+                                                            실시간 분석
+                                                        </ContentsItemInnerColContentWrapper> : __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
                                                                 {convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(time.endTime)}
                                                             </ContentsItemInnerColContentWrapper>)
                                                         }
@@ -248,7 +265,7 @@ const ReIDLogs = () => {
                                                         <ContentsItemInnerColContentWrapper style={{
                                                             height: '100%'
                                                         }}>
-                                                            {__.etc}
+                                                            {__.etc === 'live' ? '실시간 분석' : __.etc}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -421,7 +438,7 @@ const ContentsItemInnerColContainer = styled.div`
 `
 
 const ContentsItemInnerColTitle = styled.div`
-    flex: 0 0 100px;
+    flex: 0 0 120px;
     text-align: end;
 `
 

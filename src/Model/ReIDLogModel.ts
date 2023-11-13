@@ -9,7 +9,7 @@ export type ReIDRequestGroupDataType = {
     rank: number
     requestEndTime: string
     requestStartTime: string
-    status: 'IN_PROGRESS' | 'SUCCESS' | 'CANCEL'
+    status: 'IN_PROGRESS' | 'SUCCESS' | 'CANCEL' | 'EMPTY'
     targetObjects: {
         id: number
         imgUrl: string

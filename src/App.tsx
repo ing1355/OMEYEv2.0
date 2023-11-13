@@ -38,6 +38,18 @@ const App = () => {
   const [handlerComplete, setHandlerComplete] = useState(false)
   const _message = useMessage()
 
+  useEffect(() => {
+    if(loginState) {
+      window.addEventListener('beforeunload', e => {
+        e.preventDefault()
+        e.returnValue = ''
+      })
+    }
+    return () => {
+      
+    }
+  },[loginState])
+
   useLayoutEffect(() => {
     axios.interceptors.response.use(res => {
       return res;

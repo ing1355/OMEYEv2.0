@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { ContentsActivateColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { AllReIDSelectedResultData, ReIDAllResultData, ReIDResultDataKeys, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
+import { AllReIDSelectedResultData, ReIDAllResultData, ReIDResultDataKeys, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../Model/ReIdResultModel"
 import { useEffect, useState } from "react"
 import Button from "../../Constants/Button"
 import ResultContainer from "./ResultContainer"
@@ -13,8 +13,8 @@ import { GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import Modal from "../../Layout/Modal"
 import { ReIDObjectTypeEmptyIcons } from "../ConstantsValues"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
-import { globalCurrentReIdId } from "../../Layout/ReIDProgress"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
+import ForLog from "../../Constants/ForLog"
 
 const ReIDResult = () => {
     const [isMapView, setIsMapView] = useState(false)
@@ -22,9 +22,10 @@ const ReIDResult = () => {
     const [selectedView, setSelectedView] = useRecoilState(ReIDResultSelectedView)
     const reidSelectedDatas = useRecoilValue(AllReIDSelectedResultData)
     const progressStatus = useRecoilValue(ProgressStatus)
-    const [reidSelectedCondition, setReidSElectedCondition] = useRecoilState(ReIDResultSelectedCondition)
+    const [reidSelectedCondition, setReidSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
     const [resultDatas, setResultDatas] = useRecoilState(ReIDAllResultData)
     const reIDResultKeys = useRecoilValue(ReIDResultDataKeys)
+    const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
 
     const mapViewToggle = () => {
         setIsMapView(!isMapView)
@@ -54,7 +55,7 @@ const ReIDResult = () => {
                     {
                         resultDatas.map((_, ind, arr) => <Title key={ind} isSelected={selectedView[0] === _.reIdId} onClick={() => {
                             setSelectedView([_.reIdId])
-                            setReidSElectedCondition(0)
+                            setReidSelectedCondition(0)
                         }}>
                             <img src={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.data[0].resultList[0].objectType)]} style={{
                                 height: '80%',
@@ -85,7 +86,7 @@ const ReIDResult = () => {
                 {
                     reIDResultKeys.map((_, ind) => <ResultContainer key={ind} reidId={_} visible={!isMapView && (selectedView[0] === _)} />)
                 }
-                <MapView opened={isMapView} reidId={selectedView[0]} />
+                <MapView opened={isMapView} reIdId={selectedView[0]} />
             </ContentsContainer>
         </Container>
         <Modal isConfirm title="분석 결과 삭제" complete={() => {

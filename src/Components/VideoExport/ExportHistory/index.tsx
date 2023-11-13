@@ -1,14 +1,17 @@
 import styled from "styled-components"
 import { globalStyles } from "../../../styles/global-styled"
 import CategoryTag from "../CategoryTag"
-import { useRef, useState } from "react"
-import { VideoExportCategoryType, VideoExportSearchParamsType, useVideoExportLogDatas } from "../../../Model/VideoExportDataModel"
+import { useEffect, useRef, useState } from "react"
+import { VideoExportCategoryType, VideoExportHistories, VideoExportSearchParamsType, useVideoExportLogDatas } from "../../../Model/VideoExportDataModel"
 import HistoryItem from "./HistoryItem"
 import Pagination from "../../Layout/Pagination"
+import { useRecoilRefresher_UNSTABLE } from "recoil"
 
 const categories: VideoExportCategoryType[] = ["영역 비식별화", "얼굴 비식별화", "번호판 비식별화"]
 
-const ExportHistory = () => {
+const ExportHistory = ({visible}: {
+    visible: boolean
+}) => {
     const [category, setCategory] = useState<VideoExportCategoryType[]>([])
     const [currentPage, setCurrentPage] = useState(0)
     
@@ -17,9 +20,17 @@ const ExportHistory = () => {
     })
     const logs = useVideoExportLogDatas(params.current)
     
+    const refresh = useRecoilRefresher_UNSTABLE(VideoExportHistories(params.current))
+
+    useEffect(() => {
+        if(visible) {
+            refresh()
+            params.current = { ...params.current, page: currentPage + 1 }
+        }
+    }, [currentPage, visible])
 
     return <Container>
-        <Header>
+        {/* <Header>
             <HeaderLabel>
                 카테고리로 보기 :
             </HeaderLabel>
@@ -32,7 +43,7 @@ const ExportHistory = () => {
                     }
                 }} />)}
             </HeaderCategoryContainer>
-        </Header>
+        </Header> */}
         <Contents>
             {
                 logs && logs?.totalCount > 0 ? <>
@@ -73,8 +84,6 @@ const Contents = styled.div`
     width: 100%;
 `
 
-
-
 const NoDataTitle = styled.div`
     ${globalStyles.flex()}
     width: 100%;
@@ -83,7 +92,7 @@ const NoDataTitle = styled.div`
 `
 
 const ListContainer = styled.div`
-    max-height: calc(100% - 82px);
+    max-height: calc(100% - 42px);
     margin-bottom: 16px;
     width: 100%;
     overflow: auto;

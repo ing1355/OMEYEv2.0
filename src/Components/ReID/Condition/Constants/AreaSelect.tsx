@@ -1,8 +1,6 @@
 import styled from "styled-components"
 import DataSelectModal from "./DataSelectModal"
-import MapComponent from "../../../Constants/Map"
 import { useEffect, useState } from "react"
-import CCTVTree from "../../../Layout/CCTVTree"
 import { CameraDataType } from "../../../../Constants/GlobalTypes"
 import { globalStyles } from "../../../../styles/global-styled"
 import useMessage from "../../../../Hooks/useMessage"

@@ -75,7 +75,7 @@ export default HistoryItem
 
 const Container = styled.div`
     flex: 0 0 32%;
-    height: 230px;
+    height: 240px;
     border: 1px solid ${ContentsBorderColor};
     border-radius: 12px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '1%' })}

@@ -25,13 +25,13 @@ const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemPro
         </Header>
         <ContentsContainer>
             <TargetContainer>
+                <ETCTitle>
+                    대상 이미지
+                </ETCTitle>
                 <TargetDescriptionContainer>
                     <TargetImageContainer>
                         <TargetImage src={targets[imageIndex] && targets[imageIndex].src} />
                     </TargetImageContainer>
-                    <TargetDescriptionInnerContainer>
-                        <TargetDescriptionByType data={targets[imageIndex]}/>
-                    </TargetDescriptionInnerContainer>
                 </TargetDescriptionContainer>
                 <TargetImageIndexChangeContainer>
                     <Arrow src={ArrowIcon} disabled={imageIndex === 0} onClick={() => {
@@ -45,6 +45,16 @@ const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemPro
                     }} />
                 </TargetImageIndexChangeContainer>
             </TargetContainer>
+            <DescriptionContainer>
+                <ETCTitle>
+                    대상 설명
+                </ETCTitle>
+                <CCTVContents>
+                    <TargetDescriptionInnerContainer>
+                        <TargetDescriptionByType data={targets[imageIndex] || {}} />
+                    </TargetDescriptionInnerContainer>
+                </CCTVContents>
+            </DescriptionContainer>
             <CCTVsContainer>
                 <ETCTitle>
                     CCTV
@@ -149,11 +159,13 @@ const Arrow = styled.img<{ disabled: boolean }>`
 `
 
 const TargetDescriptionContainer = styled.div`
-    height: 90%;
+    height: calc(100% - 40px);
+    border: 1px solid ${ContentsBorderColor};
+    border-radius: 12px;
 `
 
 const TargetImageContainer = styled.div`
-    height: 70%;
+    height: 100%;
     padding: 2px;
 `
 
@@ -162,9 +174,7 @@ const TargetImage = styled(ImageView)`
 `
 
 const TargetDescriptionInnerContainer = styled.div`
-    height: 30%;
-    text-align: center;
-    padding: 4px 8px;
+    height: 100%;
     overflow: auto;
 `
 
@@ -176,7 +186,7 @@ const ItemDescriptionContentText = styled.div`
 
 const CCTVsContainer = styled.div`
     height: 100%;
-    flex: 0 0 15%;
+    flex: 0 0 10%;
 `
 
 const ETCTitle = styled.div`
@@ -192,7 +202,8 @@ const CCTVContents = styled.div`
     overflow: auto;
     ${globalStyles.flex({ gap: '8px', justifyContent: 'flex-start' })}
     ${globalStyles.contentsBorder}
-    padding: 8px;
+    padding: 8px 12px;
+    overflow-wrap: anywhere;
 `
 
 const CCTVRow = styled.div`
@@ -267,4 +278,9 @@ const LastBtn = styled(Button)`
     margin: 0;
     padding-block: 0;
     padding-inline: 0;
+`
+
+const DescriptionContainer = styled.div`
+    flex: 0 0 25%;
+    height: 100%;
 `

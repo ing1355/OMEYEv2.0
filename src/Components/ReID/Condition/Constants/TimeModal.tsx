@@ -50,7 +50,7 @@ export const TimeInput = ({value, label, onChange, maxLength, inputRef, isHour}:
     },[focus])
 
     return <TimeInputContainer ref={containerRef}>
-        <SingleTimeInput value={value} onChange={onChange} maxLength={maxLength} inputRef={inputRef} onFocus={() => {
+        <SingleTimeInput value={value} onlyNumber onChange={onChange} maxLength={maxLength} inputRef={inputRef} onFocus={() => {
             setFocus(true)
         }}/>{label}
         <TimeSelect visible={focus} isHour={isHour} defaultValue={Number(value)} onChange={(val) => {
@@ -181,9 +181,9 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
                     }} otherDate={endDate} />
                     <TextInputWrapper>
                         <TextInputContainer>
-                            <SingleTimeInput disabled value={startDate ? startDate.getFullYear().toString() : '--'} />년
-                            <SingleTimeInput disabled value={startDate ? (startDate.getMonth() + 1).toString() : '--'} />월
-                            <SingleTimeInput disabled value={startDate ? startDate.getDate().toString() : '--'} />일
+                            <SingleTimeInput disabled onlyNumber value={startDate ? startDate.getFullYear().toString() : '--'} />년
+                            <SingleTimeInput disabled onlyNumber value={startDate ? (startDate.getMonth() + 1).toString() : '--'} />월
+                            <SingleTimeInput disabled onlyNumber value={startDate ? startDate.getDate().toString() : '--'} />일
                         </TextInputContainer>
                         <TextInputContainer>
                             <TimeInput value={startHour} onChange={(val) => {
@@ -211,9 +211,9 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
                     }} otherDate={startDate} />
                     <TextInputWrapper>
                         <TextInputContainer>
-                            <SingleTimeInput disabled value={endDate ? endDate.getFullYear().toString() : '--'} />년
-                            <SingleTimeInput disabled value={endDate ? (endDate.getMonth() + 1).toString() : '--'} />월
-                            <SingleTimeInput disabled value={endDate ? endDate.getDate().toString() : '--'} />일
+                            <SingleTimeInput disabled onlyNumber value={endDate ? endDate.getFullYear().toString() : '--'} />년
+                            <SingleTimeInput disabled onlyNumber value={endDate ? (endDate.getMonth() + 1).toString() : '--'} />월
+                            <SingleTimeInput disabled onlyNumber value={endDate ? endDate.getDate().toString() : '--'} />일
                         </TextInputContainer>
                         <TextInputContainer>
                             <TimeInput value={endHour} onChange={(val) => {
