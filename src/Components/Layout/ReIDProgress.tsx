@@ -33,11 +33,11 @@ const REID_CANCEL_MSG = 'REID_CANCEL'
 export const SSE_DESTORY_MSG = 'SSE_DESTROY'
 
 const getAllProgressPercent = (data: ProgressDataType[]) => {
-    return data.reduce((pre, cur) => pre + getConditionPercent(cur.times), 0) / data.length
+    return Math.floor(data.reduce((pre, cur) => pre + getConditionPercent(cur.times), 0) / data.length)
 }
 
 const getConditionPercent = (data: ProgressDataType['times']) => {
-    return data.reduce((pre, cur) => pre + Number(getTimeGroupPercent(cur)), 0) / data.length
+    return Math.floor(data.reduce((pre, cur) => pre + Number(getTimeGroupPercent(cur)), 0) / data.length)
 }
 
 const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
@@ -785,6 +785,7 @@ const CCTVProgressDataTitleContainer = styled.div`
     white-space: nowrap;
     text-overflow: ellipsis;
     flex: 0 0 calc(90% - 16px)%;
+    font-weight: 300;
 `
 
 const CCTVProgressDataLabelContainer = styled.div`

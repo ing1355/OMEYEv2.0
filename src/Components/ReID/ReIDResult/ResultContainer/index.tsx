@@ -11,10 +11,11 @@ import LazyVideo from "../LazyVideo"
 import { ReIDObjectTypeKeys, ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes"
 import { contextMenuVisible } from "../../../../Model/ContextMenuModel"
 import ForLog from "../../../Constants/ForLog"
-import { PROGRESS_STATUS, ProgressStatus } from "../../../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressStatus } from "../../../../Model/ProgressModel"
 import { ObjectTypes } from "../../ConstantsValues"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
+import Progress from "../../../Layout/Progress"
 
 type ResultcontainerProps = {
     reidId: number
@@ -24,6 +25,15 @@ type ResultcontainerProps = {
 type ResultImageViewProps = {
     data: ReIDResultDataResultListDataType
     type: ReIDObjectTypeKeys
+}
+
+const getConditionPercent = (data: ProgressDataType['times']) => {
+    return Math.floor(data.reduce((pre, cur) => pre + Number(getTimeGroupPercent(cur)), 0) / data.length)
+}
+
+const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
+    const cctvIds = Object.keys(data.data)
+    return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
 }
 
 const ResultImageView = ({ data, type }: ResultImageViewProps) => {
@@ -51,6 +61,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reidId))
     const selectedView = useRecoilValue(ReIDResultSelectedView)
     const progressStatus = useRecoilValue(ProgressStatus)
+    const progressData = useRecoilValue(ProgressData)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
 
     // useEffect(() => {
@@ -87,18 +98,18 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                 }
             </TargetsContainer>
             <ResultListGroupContainer>
+                {globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && <ProgressContainer>
+                    <ProgressItem percent={Math.floor(getConditionPercent(progressData[selectedCondition].times))} color={ContentsActivateColor}/>
+                </ProgressContainer>}
                 <ResultDescriptionContainer>
                     <DescriptionReIdIdTextContainer>
                         분석번호 : {data.reIdId}
                     </DescriptionReIdIdTextContainer>
-                    <DescriptionTimeTextContainer>
-                        {/* 분석 요청 시간 : {_.} */}
-                    </DescriptionTimeTextContainer>
                     <DescriptionEtcTextContainer>
-                        {_.etc}
+                        {_.etc || '설명 없음'}
                     </DescriptionEtcTextContainer>
                 </ResultDescriptionContainer>
-                <ResultListItemsContainer>
+                <ResultListItemsContainer isProgress={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']}>
                     {!_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.some(__ => Array.from(__.results).some(([key, val]) => val.length > 0)) && <NoDataContainer>
                         {
                             (globalCurrentReIdId === reidId && progressStatus.status === PROGRESS_STATUS['RUNNING']) ? <>
@@ -190,7 +201,7 @@ const ResultListContainer = styled.div<{ visible: boolean }>`
 `
 
 const TargetsContainer = styled.div`
-    flex: 0 0 260px;
+    width: 260px;
     height: 100%;
     overflow: auto;
     background-color: ${SectionBackgroundColor};
@@ -199,7 +210,7 @@ const TargetsContainer = styled.div`
 `
 
 const ResultListGroupContainer = styled.div`
-    flex: 1;
+    width: calc(100% - 268px);
     height: 100%;
     background-color: ${SectionBackgroundColor};
     padding: 12px;
@@ -244,8 +255,8 @@ const TargetSelectBtn = styled(Button)`
     height: 32px;
 `
 
-const ResultListItemsContainer = styled.div`
-    height: calc(100% - ${etcDescriptionHeight + 8}px);
+const ResultListItemsContainer = styled.div<{isProgress: boolean}>`
+    height: calc(100% - ${({isProgress}) => isProgress ? (etcDescriptionHeight + 8 + 40) : (etcDescriptionHeight + 8)}px);
     overflow: auto;
     border: 1px solid ${ContentsBorderColor};
     border-radius: 12px;
@@ -357,6 +368,11 @@ const DescriptionReIdIdTextContainer = styled.div`
     flex: 0 0 150px;
 `
 
-const DescriptionTimeTextContainer = styled.div`
-    flex: 0 0 300px;
+const ProgressContainer = styled.div`
+    height: 40px;
+    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start'})}
+`
+
+const ProgressItem = styled(Progress)`
+    width: 100%;
 `

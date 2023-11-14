@@ -4,7 +4,7 @@ import { convertFullTimeStringToHumanTimeFormat, getMethodNameByKey } from "../.
 import { ObjectTypes } from "../../ConstantsValues"
 import CCTVNameById from "../../../Constants/CCTVNameById"
 import { descriptionItemLabels, descriptionItemLabelsKeyType } from "../TargetSelect/PersonDescription/DescriptionItems"
-import { DescriptionCategories, DescriptionCategoryKeyType, descriptionDataSingleType, descriptionSubDataKeys } from "../TargetSelect/PersonDescription/DescriptionType"
+import { DescriptionCategories, DescriptionCategoryKeyType, descriptionColorType, descriptionDataSingleType, descriptionSubDataKeys } from "../TargetSelect/PersonDescription/DescriptionType"
 
 type TargetDescriptionByTypeProps = {
     data: CaptureResultListItemType
@@ -17,9 +17,21 @@ type DescriptionGeneralRowProps<T extends DescriptionCategoryKeyType> = {
 
 const DescriptionGeneralRow = <T extends DescriptionCategoryKeyType>({ data, type }: DescriptionGeneralRowProps<T>) => {
     return <>
-        <ItemDescriptionContentText>
-            {DescriptionCategories.find(_ => _.key === type)?.title} : {(Object.keys(data) as descriptionSubDataKeys<T>[]).map(_ => descriptionItemLabels[data[_] as descriptionItemLabelsKeyType]).join(',')}
-        </ItemDescriptionContentText>
+        {Object.keys(data).some((_) => {
+            const item = data[_ as descriptionSubDataKeys<T>]
+            if (Array.isArray(item)) return item.length > 0
+            else return item
+        }) && <ItemDescriptionContentText>
+                {DescriptionCategories.find(_ => _.key === type)?.title} : {(Object.keys(data) as descriptionSubDataKeys<T>[]).map(_ => {
+                    const item = data[_] as descriptionItemLabelsKeyType
+                    if (typeof (item) === 'string') return descriptionItemLabels[item]
+                    else if (Array.isArray(item)) {
+                        const _item = item as descriptionColorType[]
+                        if (_item.length > 0) return _item.map(_ => descriptionItemLabels[_]).join(',')
+                        else return null
+                    }
+                }).filter(_ => _).join(',')}
+            </ItemDescriptionContentText>}
     </>
 }
 
@@ -35,22 +47,22 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
         {
             description && <>
                 {
-                    description.general && <DescriptionGeneralRow<'general'> data={description.general} type="general"/>
+                    description.general && <DescriptionGeneralRow<'general'> data={description.general} type="general" />
                 }
                 {
-                    description.outer && <DescriptionGeneralRow<'outer'> data={description.outer} type="outer"/>
+                    description.outer && <DescriptionGeneralRow<'outer'> data={description.outer} type="outer" />
                 }
                 {
-                    description.shoes && <DescriptionGeneralRow<'inner'> data={description.inner} type="inner"/>
+                    description.shoes && <DescriptionGeneralRow<'inner'> data={description.inner} type="inner" />
                 }
                 {
-                    description.shoes && <DescriptionGeneralRow<'bottom'> data={description.bottom} type="bottom"/>
+                    description.shoes && <DescriptionGeneralRow<'bottom'> data={description.bottom} type="bottom" />
                 }
                 {
-                    description.shoes && <DescriptionGeneralRow<'shoes'> data={description.shoes} type="shoes"/>
+                    description.shoes && <DescriptionGeneralRow<'shoes'> data={description.shoes} type="shoes" />
                 }
                 {
-                    description.etc && <DescriptionGeneralRow<'etc'> data={description.etc} type="etc"/>
+                    description.etc && <DescriptionGeneralRow<'etc'> data={description.etc} type="etc" />
                 }
             </>
         }

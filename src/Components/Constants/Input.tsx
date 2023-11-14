@@ -78,7 +78,9 @@ const _Input = (props?: InputProps) => {
         }}
         {...attributes}
     />
-    else return <input
+    else return <>
+    {props?.type === 'password' && <input type="password" hidden/>}
+    <input
         onChange={(e) => {
             if (props?.onChange) {
                 props.onChange(e.currentTarget.value)
@@ -110,6 +112,7 @@ const _Input = (props?: InputProps) => {
         }}
         {...inputAttributes}
     />
+    </>
 }
 
 const Input = styled(_Input)`

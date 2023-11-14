@@ -13,9 +13,9 @@ type ProgressProps = {
 
 const Progress = ({ percent, color, className, noString = false, outString, icon }: ProgressProps) => {
     return <Container className={className}>
-        <IconContainer>
+        {icon && <IconContainer>
             <Icon src={icon}/>
-        </IconContainer>
+        </IconContainer>}
         <ProgressContainer>
             <ProgressInner percent={percent} color={percent === -1 ? 'red' : color} />
             {(!noString && !outString) ? <ProgressText>

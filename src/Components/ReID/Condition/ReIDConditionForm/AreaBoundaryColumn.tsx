@@ -40,16 +40,23 @@ const AreaBoundaryColumn = () => {
             allSelectAction={allSelectAction}
             allSelected={areaData.every(_ => _.selected)}>
             {
-                areaData.map((_, ind) => <AreaDataItem key={ind} selected={_.selected || false}>
+                areaData.map((_, ind) => <AreaDataItem key={ind} selected={_.selected || false} onClick={() => {
+                    setAreaData(areaData.map((__, _ind) => ind === _ind ? {
+                        ...__,
+                        selected: !__.selected
+                    } : __))
+                }}>
                     <AreaDataItemTitle>
                         <div>
                             그룹 {ind + 1}
                         </div>
                         <HeaderBtnsContainer>
-                            <IconBtn type="edit" onClick={() => {
+                            <IconBtn type="edit" onClick={(e) => {
+                                e.stopPropagation()
                                 modifyAction(ind)
                             }} />
-                            <IconBtn type="delete" onClick={() => {
+                            <IconBtn type="delete" onClick={(e) => {
+                                e.stopPropagation()
                                 deleteAction(ind)
                             }} />
                         </HeaderBtnsContainer>
@@ -58,12 +65,7 @@ const AreaBoundaryColumn = () => {
                         {_.cctvList.length}대
                     </AreaDataItemContents>
                     <BtnsContainer>
-                        <Btn activate={_.selected} onClick={() => {
-                            setAreaData(areaData.map((__, _ind) => ind === _ind ? {
-                                ...__,
-                                selected: !__.selected
-                            } : __))
-                        }}>
+                        <Btn activate={_.selected}>
                             {_.selected ? '해제' : '선택'}
                         </Btn>
                     </BtnsContainer>
@@ -85,6 +87,7 @@ const AreaDataItem = styled.div<{ selected: boolean }>`
     flex: 0 0 130px;
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex({ gap: '8px', justifyContent: 'space-between' })}
+    cursor: pointer;
 `
 
 const AreaDataItemTitle = styled.div`

@@ -16,6 +16,7 @@ type TreeAndMapComponentProps = {
     setSelectedCCTVs: setStateType<CameraDataType['cameraId'][]>
     validFunc?: () => boolean
     singleSelect?: boolean
+    visible?: boolean
 }
 
 let isThrottled = false;
@@ -33,11 +34,16 @@ function throttle(func: Function, delay: number) {
     };
 }
 
-const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: TreeAndMapComponentProps) => {
+const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs, singleSelect, visible }: TreeAndMapComponentProps) => {
     const [isTreeView, setIsTreeView] = useState(true)
-    const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId']|undefined>(undefined)
+    const [searchCCTV, setSearchCCTV] = useState<CameraDataType['cameraId'] | undefined>(undefined)
+    const [initEvent, setInitEvent] = useState(false)
     const _setSelectedCCTVs = throttle(setSelectedCCTVs, 10)
     const message = useMessage()
+
+    useEffect(() => {
+        if (initEvent) setInitEvent(false)
+    }, [initEvent])
 
     return <CCTVSelectContainer>
         <ToggleBtn hover onClick={() => {
@@ -45,24 +51,34 @@ const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs , singleSelect}: 
         }}>
             <ToggleIcon src={isTreeView ? MapIcon : TreeIcon} />
         </ToggleBtn>
-        <ClearBtn hover onClick={() => {
-            if(selectedCCTVs.length === 0) return message.error({title: "입력값 에러", msg:"선택한 CCTV 목록이 존재하지 않습니다."})
-            setSelectedCCTVs([])
-            message.success({title: "초기화", msg:"선택한 CCTV 목록이 초기화되었습니다."})
+        <ClearBtn hover disabled={selectedCCTVs.length === 0} onClick={() => {
+            if (selectedCCTVs.length === 0) return message.error({ title: "입력값 에러", msg: "선택한 CCTV 목록이 존재하지 않습니다." })
+            message.success({ title: "초기화", msg: "선택한 CCTV 목록이 초기화되었습니다." })
+            setInitEvent(true)
         }}>
             <ToggleIcon src={clearIcon} />
         </ClearBtn>
         <CCTVSelectInnerContainer isView={isTreeView}>
             <TreeContainer>
-                <CCTVTree selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} singleTarget={singleSelect} searchCCTVId={searchCCTV ? searchCCTV : undefined}/>
+                <CCTVTree
+                    selectedCCTVs={selectedCCTVs}
+                    selectedChange={_setSelectedCCTVs}
+                    singleTarget={singleSelect}
+                    searchCCTVId={searchCCTV ? searchCCTV : undefined}
+                    visible={isTreeView && (visible || false)}
+                    initEvent={initEvent} />
             </TreeContainer>
         </CCTVSelectInnerContainer>
         <CCTVSelectInnerContainer isView={!isTreeView}>
-            <MapComponent selectedCCTVs={selectedCCTVs} selectedChange={_setSelectedCCTVs} forSingleCamera={singleSelect} idForViewChange={searchCCTV ? searchCCTV : undefined}/>
+            <MapComponent
+                selectedCCTVs={selectedCCTVs}
+                selectedChange={_setSelectedCCTVs}
+                forSingleCamera={singleSelect}
+                idForViewChange={searchCCTV ? searchCCTV : undefined} />
         </CCTVSelectInnerContainer>
         <CCTVDropdownSearch onChange={(target) => {
             setSearchCCTV(target.cameraId)
-        }}/>
+        }} />
     </CCTVSelectContainer>
 }
 

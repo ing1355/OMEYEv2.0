@@ -50,16 +50,23 @@ const TimeBoundaryColumn = () => {
                 allSelectAction={allSelectAction}
                 allSelected={timeData.every(_ => _.selected)}>
                 {
-                    timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false}>
+                    timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false} onClick={() => {
+                        setTimeData(timeData.map((__, _ind) => ind === _ind ? {
+                            ...__,
+                            selected: !__.selected
+                        } : __))
+                    }}>
                         <TimeDataItemTitle>
                             <div>
                                 그룹 {ind + 1}
                             </div>
                             <HeaderBtnsContainer>
-                                <IconBtn disabled={isRealTime} type="edit" onClick={() => {
+                                <IconBtn disabled={isRealTime} type="edit" onClick={(e) => {
+                                    e.stopPropagation()
                                     modifyAction(ind)
                                 }} />
-                                <IconBtn disabled={isRealTime} type="delete" onClick={() => {
+                                <IconBtn disabled={isRealTime} type="delete" onClick={(e) => {
+                                    e.stopPropagation()
                                     deleteAction(ind)
                                 }} />
                             </HeaderBtnsContainer>
@@ -68,12 +75,7 @@ const TimeBoundaryColumn = () => {
                             {convertFullTimeStringToHumanTimeFormat(_.time[0])}&nbsp;~&nbsp;{convertFullTimeStringToHumanTimeFormat(_.time[1])}
                         </ContentsContainer>
                         <BtnsContainer>
-                            <Btn disabled={isRealTime} activate={_.selected} onClick={() => {
-                                setTimeData(timeData.map((__, _ind) => ind === _ind ? {
-                                    ...__,
-                                    selected: !__.selected
-                                } : __))
-                            }}>
+                            <Btn disabled={isRealTime} activate={_.selected}>
                                 {_.selected ? '해제' : '선택'}
                             </Btn>
                         </BtnsContainer>
@@ -98,6 +100,7 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex()}
     position: relative;
+    cursor: pointer;
 `
 
 const ContentsContainer = styled.div`

@@ -7,6 +7,7 @@ import TreeAndMapComponent from "../../../Constants/TreeAndMapComponent"
 import { CameraDataType, setStateType } from "../../../../Constants/GlobalTypes"
 import useMessage from "../../../../Hooks/useMessage"
 import { useEffect, useRef } from "react"
+import { menuState } from "../../../../Model/MenuModel"
 
 const SelectMonitoringCCTVs = ({index}: {
     index: number
@@ -38,7 +39,7 @@ const SelectMonitoringCCTVs = ({index}: {
                 <TreeAndMapComponent selectedCCTVs={selectedCCTVs as CameraDataType['cameraId'][]} setSelectedCCTVs={(cctvs) => {
                     if((layoutNumRef.current as number) < cctvs.length) message.error({title: "입력값 에러", msg: "화면 수보다 많은 수를 선택하였습니다."})
                     else (setSelectedCCTVs as setStateType<CameraDataType['cameraId'][]>)(cctvs)
-                }} />
+                }} visible={visible === 'CCTVs'}/>
             </InnerContainer>
         </ListContainer>
     </>

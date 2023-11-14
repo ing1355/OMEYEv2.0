@@ -66,7 +66,7 @@ const ReIDConditionForm = () => {
                 }}>
                     내보내기
                 </TopButton>
-                <TopButton hover icon={exportIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({...datas, selected: _.selected, id: _.id}))} onClick={() => {
+                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({...datas, selected: _.selected, id: _.id}))} onClick={() => {
                     if(!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({title: "입력값 에러", msg:"조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다."})
                     let tempConditionData = { ...datas }
                     tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)

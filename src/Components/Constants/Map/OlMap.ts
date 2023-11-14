@@ -127,7 +127,7 @@ function markerStyle(features: FeatureLike) {
             const cctvName = feature.get("name");
             let offset = 0;
             let imgByType = ''
-            switch(type) {
+            switch (type) {
                 case 1:
                     imgByType = cctvIcon
                     break;
@@ -144,7 +144,7 @@ function markerStyle(features: FeatureLike) {
             }
 
             return new Style({
-                zIndex: 1,
+                zIndex: type === 4 ? 3 : (type === 3 ? 2 : 1), // 작동안함ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ
                 image: new Icon({
                     crossOrigin: "anonymous",
                     anchor: [0.5, 0.57],
@@ -179,11 +179,11 @@ function markerStyle(features: FeatureLike) {
 
 const clsuterDistanceByZoomLv = (lv: number) => {
     // return (22 - lv) * 10
-    if(lv > 20) {
+    if (lv > 20) {
         return 10
-    } else if(lv > 18) {
+    } else if (lv > 18) {
         return 40
-    } else if(lv > 16) {
+    } else if (lv > 16) {
         return 80
     } else {
         return (22 - lv) * 20
@@ -360,7 +360,7 @@ export class OlMap extends CustomMap<Map> {
         this.map.set(mapStateKey, mapState['NORMAL'])
         this.map.getView().on('change:resolution', () => {
             this.CL.setDistance(clsuterDistanceByZoomLv(this.map.getView().getZoom() as number))
-            
+
         })
         if (forAddTraffic) {
             const addTrafficOverlay = new Overlay({
@@ -386,11 +386,11 @@ export class OlMap extends CustomMap<Map> {
         // 사이트데이터 기반으로 피쳐 생성 후 좌표 이동
         this.registerMouseMoveHandler();
         this.registerSingleClickHandler();
-        if(!this.noSelect) this.registerBoxEndHandler();
+        if (!this.noSelect) this.registerBoxEndHandler();
     }
 
     fitWithPaddingByExtent(ext: Extent): void {
-        let padding: number = 100
+        let padding: number = 500
         const currentZoomLv = this.map.getView().getZoom()
         // if(currentZoomLv) {
         //     if(currentZoomLv > 20) {
@@ -403,16 +403,16 @@ export class OlMap extends CustomMap<Map> {
         //         padding = 1000
         //     }
         // }
-        this.map.getView().fit(ext.map((_,ind) => ind < 2 ? _ - padding : _ + padding))
+        this.map.getView().fit(ext.map((_, ind) => ind < 2 ? _ - padding : _ + padding))
     }
 
     registerMouseMoveHandler(): void {
         this.map.on("pointermove", (evt) => {
             if (this.singleCameraId) return;
             if (this.hoverId) {
-                if(this.pathVS.getFeatureById(this.hoverId)) {
+                if (this.pathVS.getFeatureById(this.hoverId)) {
                     this.pathVS.getFeatureById(this.hoverId)?.set('mode', 1)
-                } else if(this.VS.getFeatureById(this.hoverId)){
+                } else if (this.VS.getFeatureById(this.hoverId)) {
                     this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
                 }
                 this.hoverId = undefined
@@ -427,7 +427,7 @@ export class OlMap extends CustomMap<Map> {
                     this.hoverId = features[0].getId()
                     features[0].set('mode', 2)
                     this.map.getTargetElement().style.cursor = "pointer";
-                } else if(feature.getId()) {
+                } else if (feature.getId()) {
                     this.hoverId = feature.getId()
                     feature.set('mode', 2)
                     this.map.getTargetElement().style.cursor = "pointer";
@@ -478,7 +478,7 @@ export class OlMap extends CustomMap<Map> {
     registerContextMenuHandler(): void {
         this.map.getTargetElement().addEventListener('contextmenu', (e) => {
             e.preventDefault()
-            if(!this.noSelect) {
+            if (!this.noSelect) {
                 const geom = new Point(this.map.getEventCoordinate(e))
                 this.trafficInputOverlay?.setPosition((geom as Point).getCoordinates())
                 this.circleSelectOverlay?.setPosition((geom as Point).getCoordinates())
@@ -593,14 +593,14 @@ export class OlMap extends CustomMap<Map> {
             })
             this.fitWithPaddingByExtent(this.arrowVS.getExtent())
         }
-        if(cctvIds.length > 0) {
+        if (cctvIds.length > 0) {
             const startFeature = this.VS.getFeatureById(cctvIds[0])
             const endFeature = this.VS.getFeatureById(cctvIds[cctvIds.length - 1])
-            if(endFeature) {
+            if (endFeature) {
                 this.pathVS.addFeature(endFeature)
                 this.pathVS.getFeatureById(endFeature.getId()!)?.set("type", 4)
             }
-            if(cctvIds.length > 1 && startFeature) {
+            if (cctvIds.length > 1 && startFeature) {
                 this.pathVS.addFeature(startFeature!)
                 this.pathVS.getFeatureById(startFeature.getId()!)?.set("type", 3)
             }
@@ -610,7 +610,7 @@ export class OlMap extends CustomMap<Map> {
     }
 
     clearPathLines(): void {
-        if(this.pathVS) {
+        if (this.pathVS) {
             this.pathVS.forEachFeature(_ => {
                 _.set("type", 1)
             })
@@ -623,8 +623,8 @@ export class OlMap extends CustomMap<Map> {
 
     viewChangeById(cctvId: number): void {
         const target = this.VS.getFeatureById(cctvId)
-        if(this.viewId) {
-            this.VS.getFeatureById(this.viewId)?.set('mode',1)
+        if (this.viewId) {
+            this.VS.getFeatureById(this.viewId)?.set('mode', 1)
         }
         this.viewId = cctvId
         target?.set('mode', 2)
@@ -727,12 +727,29 @@ export class OlMap extends CustomMap<Map> {
         this.map.dispatchEvent(selectedMarkerDataChange)
     }
 
-    changeViewToSelectedCCTVs = () => {
-        const selectedFeatuerIds = this.map.get(selectedMarkerDataKey)
-        if(selectedFeatuerIds.length > 0) {
-            const temp = new VectorSource({features: []})
-            temp.addFeatures(selectedFeatuerIds.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)))
-            this.fitWithPaddingByExtent(temp.getExtent())
+    changeViewToSelectedCCTVs = (cameras?: CameraDataType['cameraId'][]) => {
+        if (cameras) {
+            if (cameras.length > 0) {
+                const temp = new VectorSource({ features: [] })
+                temp.addFeatures(cameras.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)!))
+                this.fitWithPaddingByExtent(temp.getExtent())
+            }
+        } else {
+            const selectedFeatuerIds = this.map.get(selectedMarkerDataKey)
+            if (selectedFeatuerIds.length > 0) {
+                const temp = new VectorSource({ features: [] })
+                temp.addFeatures(selectedFeatuerIds.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)))
+                this.fitWithPaddingByExtent(temp.getExtent())
+            }
         }
+    }
+
+    changeViewForPathCamera = (camera: CameraDataType['cameraId']) => {
+        this.fitWithPaddingByExtent(this.arrowVS.getExtent())
+        const feature = this.VS.getFeatureById(camera)
+        // this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
+        if(this.hoverId) this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
+        this.hoverId = feature?.getId()
+        feature?.set('mode', 2)
     }
 }

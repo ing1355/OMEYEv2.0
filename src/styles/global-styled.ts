@@ -7,6 +7,8 @@ export const ButtonDisabledBackgroundColor = 'rgba(0,170,113,.5)';
 export const ButtonBackgroundColor = '#302f35';
 export const ButtonBorderColor = '#45454c';
 export const ButtonActiveBackgroundColor = '#00aa71';
+export const ButtonActivateHoverColor = '#1EC682';
+export const ButtonDefaultHoverColor = '#1EC682';
 export const ButtonInActiveBackgroundColor = '#467061';
 export const TextActivateColor = '#14c9aa';
 export const InputBackgroundColor = '#151619';
@@ -15,6 +17,7 @@ export const StopBackgroundColor = '#EF7070'
 export const StopBorderColor = '#C62222'
 export const ContentsBorderColor = ButtonBorderColor
 export const ContentsActivateColor = ButtonActiveBackgroundColor
+export const ContentsDisableColor = 'rgba(128,128,128,.5)'
 export const loadingVideoDownloadColor = ContentsActivateColor
 export const loadingAIAnalysisColor = ButtonActiveBackgroundColor
 

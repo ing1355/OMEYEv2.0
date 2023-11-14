@@ -38,7 +38,7 @@ export const ReIDConditionTargetSelectImageRoute: ConditionRouteType = {
 }
 export const ReIDConditionTargetSelectPersonDescriptionRoute: ConditionRouteType = {
     key: 'REIDCONDITIONTARGETSELECTPERSONDESCRIPTIONROUTE',
-    title: "인상착의로 선택",
+    title: "대상 추가",
     Component: <PersonDescription/>,
     pageNum: 3
 }

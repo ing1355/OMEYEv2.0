@@ -70,7 +70,6 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
 
     useEffect(() => {
         dataRef.current = data
-        console.debug("test : ", data)
     }, [data])
 
     useEffect(() => {

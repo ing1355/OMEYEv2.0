@@ -2,13 +2,14 @@ import styled from "styled-components"
 import { GlobalBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import useConditionRoutes from "./Hooks/useConditionRoutes"
 import Button from "../../Constants/Button"
-import { ConditionRouteInfo, ConditionRouteType, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
+import { ConditionRouteInfo, ConditionRouteType, ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { conditionRoute } from "../../../Model/ConditionRouteModel"
 import { addConditionSingleTimeData, conditionAreaDatas, conditionData, conditionTargetDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, conditionTimeDatas, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import backIcon from '../../../assets/img/backIcon.png'
+import homeIcon from '../../../assets/img/homeIcon.png'
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { descriptionData } from "../../../Model/DescriptionDataModel"
 import { hasValuePersonDescription } from "./TargetSelect/PersonDescription/Functions"
@@ -52,7 +53,7 @@ const ContentsWrapper = () => {
         if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
         return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
     },[_conditionData])
-
+    
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])
@@ -207,12 +208,12 @@ const ContentsWrapper = () => {
             <Header noHeader={routeInfo.length < 2}>
                 <HeaderSubContainer>
                     <BackButton onClick={() => {
-                        routePop()
-                    }} icon={backIcon} />
+                        routeJump(ObjectTypeSelectRoute.key)
+                    }} icon={homeIcon} />
                     <HeaderHistories>
                         {
                             getAllRoutes().map((_, ind, arr) => <Fragment key={ind}>
-                                {ind !== 0 ? '/' : ''}
+                                {ind !== 0 ? '>' : ''}
                                 <HeaderHistoryItem onClick={() => {
                                     if (ind !== arr.length - 1) routeJump(_)
                                 }}>
@@ -223,7 +224,7 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton disabled={targets.length === 0 && cctv.length === 0 && time.length === 0} onClick={() => {
+                    {routeInfo.length === 2 && <CompleteButton hover disabled={targets.length === 0 && cctv.length === 0 && time.length === 0} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,
@@ -331,7 +332,6 @@ const HeaderHistoryItem = styled.div`
     font-size: 1rem;
     cursor: pointer;
     &:last-child {
-        text-decoration: underline;
         cursor: default;
         font-size: 1.3rem;
     }

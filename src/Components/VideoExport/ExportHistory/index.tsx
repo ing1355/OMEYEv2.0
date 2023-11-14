@@ -50,7 +50,7 @@ const ExportHistory = ({visible}: {
                     <ListContainer>
                         {logs.results.map((_, ind) => <HistoryItem item={_} key={ind}/>)}
                     </ListContainer>
-                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs}/>
+                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs} dataPerPage={12}/>
                 </> : <NoDataTitle>
                     반출 영상 이력이 존재하지 않습니다.
                 </NoDataTitle>

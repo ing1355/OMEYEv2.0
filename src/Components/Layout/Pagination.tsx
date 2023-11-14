@@ -10,15 +10,16 @@ type PaginationProps = {
     currentPage: number
     setCurrentPage: setStateType<number>
     datas: BasicLogDataType<unknown>
+    dataPerPage: number
 }
 
-const Pagination = ({ currentPage, setCurrentPage, datas }: PaginationProps) => {
+const Pagination = ({ currentPage, setCurrentPage, datas, dataPerPage }: PaginationProps) => {
     const paginationInputRef = useRef<HTMLInputElement>()
     const pageNums = useMemo(() => {
-        const _ = Array.from({ length: 5 }).map((_, ind) => currentPage + 1 + (ind - 2)).filter(_ => _ > 0 && (Math.ceil((datas.totalCount / 10)) >= _))
+        const _ = Array.from({ length: 5 }).map((_, ind) => currentPage + 1 + (ind - 2)).filter(_ => _ > 0 && (Math.ceil((datas.totalCount / dataPerPage)) >= _))
         return _.length === 0 ? [1] : _
     }, [datas.totalCount, currentPage])
-
+    
     return <PaginationContainer>
         <PaginationNumbersContainer>
             <LeftDoubleArrow disabled={currentPage <= 0} onClick={() => {
@@ -39,18 +40,18 @@ const Pagination = ({ currentPage, setCurrentPage, datas }: PaginationProps) => 
                 }
             </PaginationNumbersInnerContainer>
             <RightArrow onClick={() => {
-                if (currentPage < Math.floor(datas.totalCount / 10) - 1) setCurrentPage(currentPage + 1)
-            }} disabled={!(currentPage < Math.floor(datas.totalCount / 10))} />
+                if (currentPage <= Math.floor(datas.totalCount / dataPerPage) - 1) setCurrentPage(currentPage + 1)
+            }} disabled={!(currentPage <= Math.floor(datas.totalCount / dataPerPage) - 1)} />
             <RightDoubleArrow onClick={() => {
-                if (currentPage < Math.floor(datas.totalCount / 10)) setCurrentPage(Math.floor(datas.totalCount / 10))
-            }} disabled={!(currentPage < Math.floor(datas.totalCount / 10))} />
+                if (currentPage <= Math.floor(datas.totalCount / dataPerPage)) setCurrentPage(Math.floor(datas.totalCount / dataPerPage))
+            }} disabled={!(currentPage <= Math.floor(datas.totalCount / dataPerPage) - 1)} />
         </PaginationNumbersContainer>
         <PaginationInputContainer>
             <Form style={{
                 height: '100%'
             }} onSubmit={(e) => {
                 const result = Number((e.currentTarget.elements[0] as HTMLInputElement).value)
-                const lastPage = datas.totalCount / 10
+                const lastPage = datas.totalCount / dataPerPage
                 const _ = result <= 0 ? 0 : (result > lastPage ? (lastPage < 1 ? 0 : Math.floor(lastPage)) : result - 1)
                 setCurrentPage(_)
                 if (paginationInputRef.current) paginationInputRef.current.value = (_ + 1).toString()

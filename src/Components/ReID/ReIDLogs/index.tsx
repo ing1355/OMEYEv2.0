@@ -127,7 +127,7 @@ const ReIDLogs = () => {
                                         }}>
                                             조건 목록에 전부 추가
                                         </ContentsItemTitleBtn> */}
-                                        <ContentsItemTitleBtn hover onClick={async (e) => {
+                                        {_.requestGroups && _.requestGroups.length > 0 && _.requestGroups[0].timeGroups.length > 0 && _.requestGroups[0].timeGroups[0].startTime !== 'live' && <ContentsItemTitleBtn hover onClick={async (e) => {
                                             e.stopPropagation()
                                             const temp = await GetReIDResultById(_.reidId)
                                             const newData: ReIDResultType = {...temp, data: temp.data.map(d => ({
@@ -135,7 +135,6 @@ const ReIDLogs = () => {
                                                 resultList: d.resultList.map(r => ({
                                                     ...r,
                                                     timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
-                                                        console.log(t)
                                                         return {
                                                             ...t,
                                                             results: Object.entries(t.results) as any
@@ -143,7 +142,6 @@ const ReIDLogs = () => {
                                                     })
                                                 }))
                                             }))}
-                                            console.log(temp, newData)
                                             if (reidResults.some(r => r.reIdId === _.reidId)) {
                                                 console.log('some?????????', reidResults, _.reidId)
                                                 setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
@@ -156,7 +154,7 @@ const ReIDLogs = () => {
                                             setMenu(ReIDMenuKeys['REIDRESULT'])
                                         }}>
                                             결과 바로보기
-                                        </ContentsItemTitleBtn>
+                                        </ContentsItemTitleBtn>}
                                         <Arrow opened={opened === _.reidId} />
                                     </ContentsItemTitleBtnsContainer>
                                 </ContentsItemTitleContainer>
@@ -276,7 +274,7 @@ const ReIDLogs = () => {
                             </ContentsItemContainer>)
                         }
                     </ContentsContainer>
-                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs}/>
+                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs} dataPerPage={10}/>
                 </> : <NoDataContentsContainer>
                     서버에 저장된 분석 결과가 존재하지 않습니다.
                 </NoDataContentsContainer>
@@ -459,8 +457,6 @@ const ContentsItemInnerTargetImageBoxContainer = styled.div`
 `
 
 const ContentsItemInnerHeadItemImageBox = styled(ImageView)`
-    flex: 0 0 36px;
-    height: 36px;
 `
 
 const ContentsItemInnerColContentWrapper = styled.div`

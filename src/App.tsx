@@ -89,4 +89,5 @@ const MainContainer = styled.div`
   height: 100%;
   ${globalStyles.flex({})}
   padding: 0 8px 8px;
+  overflow: hidden;
 `

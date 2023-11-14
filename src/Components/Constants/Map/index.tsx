@@ -34,9 +34,11 @@ type MapComponentProps = PropsWithChildren & {
     onlyMap?: boolean
     noSelect?: boolean
     isDebug?: boolean
+    initEvent?: boolean
+    viewChangeForPath?: CameraDataType['cameraId']
 }
 
-const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, isDebug }: MapComponentProps) => {
+const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
     const [r, setR] = useState('1')
@@ -137,6 +139,12 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [idForViewChange])
 
     useEffect(() => {
+        if (viewChangeForPath) {
+            map.current?.changeViewForPathCamera(viewChangeForPath)
+        }
+    }, [viewChangeForPath])
+
+    useEffect(() => {
         if (!trafficOverlayView || !circleSelectOverlayView) {
             valueInit()
         }
@@ -174,13 +182,20 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         valueInit()
     }, [trafficOverlayView])
 
+    useEffect(() => {
+        if(initEvent && selectedChange) selectedChange([])
+    },[initEvent])
+
     return <>
         <MapContainer ref={mapElement}>
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if(map.current) map.current.viewChangeById(target.cameraId)
             }} />}
             <SelectedViewBtn hover onClick={() => {
-                if (map.current) map.current?.changeViewToSelectedCCTVs()
+                if (map.current) {
+                    if(forAddtraffic) map.current?.changeViewToSelectedCCTVs(pathCameras)
+                    else map.current?.changeViewToSelectedCCTVs()
+                }
             }}>
                 <img src={selectedMarkerLocationIcon} style={{
                     width: '100%',
@@ -305,11 +320,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                             반경
                         </AddReIDInputLabel>
                         <AddReIDInputContentContainer>
-                            <AddReIDInputContent maxLength={6} onInput={e => {
-                                if (e.currentTarget.value.length === 0 || e.currentTarget.value === '0') e.currentTarget.value = '1'
-                                else if (e.currentTarget.value.slice(0, 1) === '0') e.currentTarget.value = e.currentTarget.value.slice(1,)
-                                else e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '')
-                            }} value={r} onChange={val => {
+                            <AddReIDInputContent onlyNumber maxLength={5} value={r} onChange={val => {
                                 setR(val)
                             }} style={{
                                 paddingRight: '60px'
@@ -346,6 +357,8 @@ export default memo(MapComponent, (prev, next) => {
     if (JSON.stringify(prev.cameras) !== JSON.stringify(next.cameras)) return false
     if (JSON.stringify(prev.pathCameras) !== JSON.stringify(next.pathCameras)) return false
     if (prev.idForViewChange !== next.idForViewChange) return false
+    if (prev.viewChangeForPath !== next.viewChangeForPath) return false
+    if (prev.initEvent !== next.initEvent) return false
     return true
 })
 

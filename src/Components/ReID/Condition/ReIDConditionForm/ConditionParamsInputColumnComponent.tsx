@@ -1,6 +1,6 @@
 import { PropsWithChildren, useState } from 'react'
 import styled from 'styled-components';
-import { SectionBackgroundColor, globalStyles } from '../../../../styles/global-styled';
+import { SectionBackgroundColor, globalStyles, ContentsDisableColor } from '../../../../styles/global-styled';
 import Button from '../../../Constants/Button';
 import { conditionIsRealTimeData } from '../../../../Model/ConditionDataModel';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -111,7 +111,7 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                 }} disabled={(realtimeBtn || false) && isRealTime}>
                     <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
                 </DataExistAndAddComponent>}
-                {!disableAllSelect && <AllSelectBtn onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
+                {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
                     전체 선택 {allSelected && '해제'}
                 </AllSelectBtn>}
                 {children}
@@ -139,7 +139,7 @@ const DataContainer = styled.div<{ isDataExist: boolean, isRealTime?: boolean }>
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '12px' })}
     background-color: ${SectionBackgroundColor};
     ${({ isRealTime }) => isRealTime && `
-        background-color: rgba(128,128,128,.5);
+        background-color: ${ContentsDisableColor};
     `}
 `
 

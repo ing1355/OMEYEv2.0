@@ -37,7 +37,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         close()
     }}>
         <Container>
-            <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} singleSelect={singleSelect}/>
+            <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} singleSelect={singleSelect} visible={visible}/>
         </Container>
     </ModalWrapper>
 }

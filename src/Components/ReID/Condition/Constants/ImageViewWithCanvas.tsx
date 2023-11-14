@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType, ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ImageView from "./ImageView"
 import { ObjectTypes } from "../../ConstantsValues"
@@ -84,7 +84,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const mouseX = useRef(0)
     const mouseY = useRef(0)
     const currentObjectType = useRecoilValue(selectedConditionObjectType)
-    const globalDiv = useRef<HTMLDivElement>()
+    const isMoved = useRef(false)
+    const [imgSize, setImgSize] = useState<number[]>([])
 
     useEffect(() => {
         if (rectCanvasRef.current) {
@@ -136,6 +137,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             const img_temp = new Image();
             img_temp.src = src;
             img_temp.onload = (e) => {
+                setImgSize([img_temp.width, img_temp.height])
                 const userCanvas = userCanvasRef.current!
                 const autoCanvas = rectCanvasRef.current!
                 userCanvas.width = img_temp.width
@@ -156,9 +158,10 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             ctx.clearRect(0, 0, userCanvasRef.current.width, userCanvasRef.current.height);
         }
         isClicked.current = false
+        isMoved.current = false
     }, [captureType])
-
-    return <Container style={containerStyle}>
+    
+    return <Container style={{...containerStyle, aspectRatio: `${imgSize[0]}/${imgSize[1]}`}}>
         <ImageView src={src} style={{ ...style }} ref={imgRef} />
         <CanvasContainer style={{
             zIndex: captureType === 'auto' ? (captureResult.length > 0 ? 1002 : 1000) : 1002,
@@ -170,7 +173,15 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             />
             <canvas
                 ref={userCanvasRef}
-                style={{ position: 'absolute', zIndex: '1', pointerEvents: captureType === 'auto' ? 'none' : 'auto', cursor: 'crosshair', width: '100%', height: '100%', visibility: (userCaptureOn && captureType === 'user') ? 'visible' : 'hidden' }}
+                style={{ 
+                    position: 'absolute', 
+                    zIndex: '1', 
+                    pointerEvents: captureType === 'auto' ? 'none' : 'auto', 
+                    cursor: 'crosshair', 
+                    width: '100%', 
+                    height: '100%', 
+                    visibility: (userCaptureOn && captureType === 'user') ? 'visible' : 'hidden' 
+                }}
                 onMouseDown={(e) => {
                     if (userCaptureOn) {
                         const canvas = e.currentTarget
@@ -188,6 +199,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                         div.style.top = '0'
                         div.style.left = '0'
                         div.onmousemove = (_e) => {
+                            isMoved.current = true
                             const _x = _e.clientX - canvasRect.left
                             const _y = _e.clientY - canvasRect.top 
                             mouseX.current = (_x < 0 ? 0 : (_x > canvasRect.width ? canvasRect.width : _x)) * res_x;
@@ -205,14 +217,18 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                             ctx.stroke();
                         }
                         div.onmouseup = () => {
-                            if (captureCallback) {
+                            console.debug("test : " ,mouseX.current, downMouseX.current, mouseY.current, downMouseY.current)
+                            const _x = mouseX.current > downMouseX.current ? (mouseX.current - downMouseX.current) : (downMouseX.current - mouseX.current)
+                            const _y = mouseY.current > downMouseY.current ? (mouseY.current - downMouseY.current) : (downMouseY.current - mouseY.current)
+                            if (isMoved.current && captureCallback) {
                                 captureCallback([{
                                     type: currentObjectType!,
                                     mask: false,
                                     id: getLastTargetListId(),
-                                    src: getImageByCanvas(mouseX.current - downMouseX.current, mouseY.current - downMouseY.current, imgRef.current!, downMouseX.current, downMouseY.current)
+                                    src: getImageByCanvas(_x, _y, imgRef.current!, mouseX.current > downMouseX.current ? downMouseX.current : mouseX.current, mouseY.current > downMouseY.current ? downMouseY.current : mouseY.current)
                                 }])
                             }
+                            isMoved.current = false
                             div.remove()
                         }
                         document.body.appendChild(div)

@@ -19,6 +19,7 @@ export const isLogin = selector<string|null>({
                 localStorage.removeItem(AuthorizationKey)
                 // window.location.reload()
                 set(conditionRoute, [])
+                set(menuState, null)
             } else {
                 localStorage.setItem(AuthorizationKey, newValue)
             }

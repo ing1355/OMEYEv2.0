@@ -62,7 +62,8 @@ const TargetSelectColumn = () => {
                         <ItemImage src={_.src} />
                         <ItemDescription>
                             <ItemDescriptionHeader>
-                                <IconBtn type="delete" onClick={() => {
+                                <IconBtn type="delete" onClick={(e) => {
+                                    e.stopPropagation()
                                     setDatas(datas.filter(__ => _.objectId !== __.objectId))
                                 }} />
                             </ItemDescriptionHeader>

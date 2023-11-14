@@ -37,6 +37,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     useEffect(() => {
         console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
     },[selectedData, selectedCondition, selectedTarget])
+    
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
     
@@ -63,12 +64,18 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
         setDetailResult(null)
     }, [opened])
 
+    useEffect(() => {
+        if(detailResult) {
+            
+        }
+    },[detailResult])
+
     return <>
         <Container opened={opened}>
             <MapContainer>
                 <MapComponent
                     pathCameras={filteredPathCameras}
-                    idForViewChange={detailResult ? detailResult[0].cctvId! : undefined}
+                    viewChangeForPath={detailResult ? detailResult[0].cctvId! : undefined}
                     forAddtraffic
                     reIdId={reIdId}
                     onlyMap>

@@ -52,6 +52,8 @@ export const TimeInput = ({value, label, onChange, maxLength, inputRef, isHour}:
     return <TimeInputContainer ref={containerRef}>
         <SingleTimeInput value={value} onlyNumber onChange={onChange} maxLength={maxLength} inputRef={inputRef} onFocus={() => {
             setFocus(true)
+        }} onKeyDown={(e) => {
+            if(e.key === 'Tab') setFocus(false)
         }}/>{label}
         <TimeSelect visible={focus} isHour={isHour} defaultValue={Number(value)} onChange={(val) => {
             setFocus(false)

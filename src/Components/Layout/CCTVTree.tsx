@@ -18,6 +18,8 @@ type CCTVTreeProps = {
     singleTarget?: boolean
     openedInit?: boolean
     searchCCTVId?: CameraDataType['cameraId']
+    visible: boolean
+    initEvent?: boolean
 }
 
 const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] => {
@@ -30,7 +32,7 @@ const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] =>
     }
 }
 
-const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId }: CCTVTreeProps) => {
+const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId, initEvent }: CCTVTreeProps) => {
     const [opened, setOpened] = useState<SiteDataType['fullName'][]>([])
     const sitesData = useRecoilValue(SitesDataForTreeView)
     const lastClickedCCTV = useRef<CameraDataType['cameraId']>(0)
@@ -67,6 +69,13 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
         if (openedInit) setOpened([])
     }, [openedInit])
 
+    useEffect(() => {
+        if(initEvent) {
+            setOpened([])
+            selectedChange([])
+        }
+    },[initEvent])
+
     const getSiteNodeHeight = (data: SiteDataType): number => {
         return nodeHeight + ((data.cameras && (data.cameras.length > 0)) ? (data.cameras.length * nodeHeight) : 0) + (data.sites && data.sites.length > 0 ? data.sites.reduce((pre, cur) => pre + getSiteNodeHeight(cur), 0) : 0)
     }
@@ -78,8 +87,6 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                     Array.from({ length: depth }).map((_, ind) => <DepthLine key={ind} bottom={hasBrother || (ind !== depth - 1)} right={(ind + 1) === depth} />)
                 }
                 <NodeItemContainer isSelected={selectedCCTVs.includes(data.cameraId)} onMouseDown={e => {
-                    e.stopPropagation()
-                }} onClick={(e) => {
                     e.stopPropagation()
                     if (singleTarget) {
                         selectedChange([data.cameraId])
@@ -102,6 +109,8 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                         }
                         lastClickedCCTV.current = data.cameraId
                     }
+                }} onClick={(e) => {
+                    e.stopPropagation()
                 }} style={{
                     maxWidth: `calc(100% - ${depth * depthPadding}px)`
                 }}>
@@ -123,12 +132,12 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                 }
                 <NodeItemContainer isSelected={allCameraIds.length > 0 && allCameraIds.every(_ => selectedCCTVs.includes(_))} onMouseDown={e => {
                     e.stopPropagation()
-                }} onClick={(e) => {
-                    e.stopPropagation()
                     if(allCameraIds.length > 0) {
                         if (opened.includes(data.fullName)) setOpened(opened.filter(_ => !_?.includes(data.fullName!)))
                         else setOpened(opened.concat(data.fullName))
                     }
+                }} onClick={(e) => {
+                    e.stopPropagation()
                 }} style={{
                     paddingLeft: nodeHeight + 'px',
                     paddingRight: !singleTarget ? '32px' : '0px'
@@ -155,8 +164,8 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                     </AllSelectBtn>}
                 </NodeItemContainer>
             </NodeContentsContainer>
-            {data.sites && data.sites.length > 0 && data.sites.map(_ => createSiteNode(_, depth + 1, data.cameras && data.cameras.length > 0))}
-            {data.cameras && data.cameras.length > 0 && data.cameras.map((_, cameraInd, arr) => createCameraNode(_, depth + 1, cameraInd !== arr.length - 1, data))}
+            {data.sites && data.sites.length > 0 && opened.includes(data.fullName) && data.sites.map(_ => createSiteNode(_, depth + 1, data.cameras && data.cameras.length > 0))}
+            {data.cameras && data.cameras.length > 0 && opened.includes(data.fullName) && data.cameras.map((_, cameraInd, arr) => createCameraNode(_, depth + 1, cameraInd !== arr.length - 1, data))}
         </NodeContainer>
     }
 
