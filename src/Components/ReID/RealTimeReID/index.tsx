@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, InputBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
-import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
 import { useRecoilState, useRecoilValue } from "recoil"
@@ -19,13 +19,15 @@ import { PROGRESS_STATUS, SSEResponseStatusType } from "../../../Model/ProgressM
 import { ObjectTypes } from "../ConstantsValues"
 
 const imageBoxHeight = 200
+const maxItemNum = 50
 
-const ImageComponent = ({ data, y, className, selected, setSelected }: {
+const ImageComponent = ({ data, y, className, selected, setSelected, onClickCallback }: {
     data: RealTimeDataType
     y: number
     className?: string
     selected: RealTimeDataType | null
     setSelected: setStateType<RealTimeDataType | null>
+    onClickCallback: () => void
 }) => {
 
     return <div style={{
@@ -37,6 +39,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected }: {
         cursor: 'pointer',
         border: (selected && data && JSON.stringify(selected.imageURL) === JSON.stringify(data.imageURL)) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
     }} className={className} onClick={() => {
+        onClickCallback()
         if (data) setSelected(data)
     }}>
         <div style={{
@@ -110,6 +113,31 @@ const RealTimeReID = () => {
         statusRef.current = rtStatus
     }, [rtStatus])
 
+    const intervalCallback = useCallback(() => {
+        if (imagesRef.current.length > maxItemNum - 1) {
+            if(selectedRef.current) {
+                const _ = imagesRef.current.findIndex(_ => JSON.stringify(selectedRef.current) === JSON.stringify(_))!
+                if(_ < maxItemNum) {
+                    imagesRef.current.splice(maxItemNum, imagesRef.current.length - maxItemNum).forEach(_ => {
+                        URL.revokeObjectURL(_.imageURL)
+                    })
+                } else {
+                    imagesRef.current[maxItemNum-1] = {...selectedRef.current}
+                    imagesRef.current.splice(maxItemNum, imagesRef.current.length - maxItemNum).forEach(_ => {
+                        if(selectedRef.current?.imageURL !== _.imageURL) URL.revokeObjectURL(_.imageURL)
+                    })
+                    
+                }
+            } else {
+                imagesRef.current.splice(maxItemNum, imagesRef.current.length - maxItemNum).forEach(_ => {
+                    console.debug("revoke2 : ", _.imageURL, selectedRef.current)
+                    URL.revokeObjectURL(_.imageURL)
+                })
+            }                
+        }
+        setImages([...imagesRef.current])
+    }, [])
+
     useEffect(() => {
         console.debug("RealTime Status Change : ", rtStatus)
         if (rtStatus === PROGRESS_STATUS['RUNNING']) {
@@ -131,7 +159,7 @@ const RealTimeReID = () => {
             window.removeEventListener("unload", cancelFunc);
         }
     }, [rtStatus])
-
+    
     const RealTimeSseSetting = () => {
         console.debug("RealTime Sse Setting")
         sseRef.current = CustomEventSource(SseStartApi);
@@ -143,18 +171,17 @@ const RealTimeReID = () => {
                 threshHold: accuracy,
             })
             if (res) {
-                timerId = setInterval(() => {
-                    if (imagesRef.current.length > 49) {
-                        (selectedRef.current ?
-                            imagesRef.current.splice(49, imagesRef.current.length - 49, imagesRef.current.find(_ => JSON.stringify(selectedRef.current) === JSON.stringify(_))!) :
-                            imagesRef.current.splice(49, imagesRef.current.length - 49)).forEach(_ => {
-                                URL.revokeObjectURL(_.imageURL)
-                            })
-                    }
-                    setImages([...imagesRef.current])
-                }, 1000)
+                setImages([])
+                setSelected(null)
+                timerId = setInterval(intervalCallback, 500)
+                imagesRef.current.forEach(_ => {
+                    URL.revokeObjectURL(_.imageURL)
+                })
+                imagesRef.current = []
             } else {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
+                sseRef.current?.close()
+                sseRef.current = undefined
             }
         };
         sseRef.current.onmessage = (res: MessageEvent) => {
@@ -191,13 +218,6 @@ const RealTimeReID = () => {
                 }
                 if (status === 'SSE_DESTROY') {
                     console.debug('realtime sse end')
-                    if (imagesRef.current.length > 49) {
-                        (selectedRef.current ?
-                            imagesRef.current.splice(49, imagesRef.current.length - 49, imagesRef.current.find(_ => JSON.stringify(selectedRef.current) === JSON.stringify(_))!) :
-                            imagesRef.current.splice(49, imagesRef.current.length - 49)).forEach(_ => {
-                                URL.revokeObjectURL(_.imageURL)
-                            })
-                    }
                     setRtStatus(PROGRESS_STATUS['IDLE'])
                     clearInterval(timerId)
                     sseRef.current!.close();
@@ -242,7 +262,19 @@ const RealTimeReID = () => {
             <ResultDetailsContainer>
                 <ResultImagesContainer>
                     <ResultImagesScrollContainer>
-                        {images.map((_, ind) => <ResultImageBox data={_} y={ind} key={JSON.stringify(_)} selected={selected} setSelected={setSelected} />)}
+                        {images.map((_, ind) => <ResultImageBox
+                            onClickCallback={() => {
+                                if(JSON.stringify(selectedRef.current) === JSON.stringify(_)) {
+                                    if(timerId) clearInterval(timerId)
+                                    if(rtStatus === PROGRESS_STATUS['RUNNING']) timerId = setInterval(intervalCallback, 500)
+                                }
+                            }}
+                            data={_}
+                            y={ind}
+                            key={JSON.stringify(_)}
+                            selected={selected}
+                            setSelected={setSelected}
+                        />)}
                     </ResultImagesScrollContainer>
                 </ResultImagesContainer>
                 <ResultDetailContainer>

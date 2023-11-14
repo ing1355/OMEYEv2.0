@@ -118,8 +118,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }
 
     useEffect(() => {
-        if (map.current && selectedCCTVs) {
-            map.current.selectedMarkerChangeCallback(selectedCCTVs)
+        if(map.current) {
+            map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
         }
     }, [selectedCCTVs])
 
