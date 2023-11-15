@@ -7,7 +7,7 @@ import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { conditionTargetDatasListByObjectType, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
-import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import filterIcon from '../../../assets/img/filterIcon.png'
 
@@ -17,6 +17,7 @@ const ConditionList = () => {
     const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const progressStatus = useRecoilValue(ProgressStatus)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     
     useEffect(() => {
         if(currentObjectType) setSelectedTab(currentObjectType)
@@ -37,6 +38,7 @@ const ConditionList = () => {
                 }
             </TypeTabs>
             <CompleteBtn icon={reidReqIcon} disabled={progressStatus.status === PROGRESS_STATUS['RUNNING'] || !conditionList.find(_ => _.selected)} concept="activate" onClick={() => {
+                setRequestFlag(true)
                 setProgressRequestParams({
                     type: 'REID',
                     params: conditionList.filter(_ => _.selected).map(_ => ({

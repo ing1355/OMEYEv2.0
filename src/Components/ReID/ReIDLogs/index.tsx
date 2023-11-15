@@ -51,7 +51,7 @@ const ReIDLogs = () => {
     const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
     const logs = useReIDLogDatas(params.current)
     const refresh = useRecoilRefresher_UNSTABLE(SearchReIDLogDatas(params.current))
-console.log('currentPage',currentPage)
+
     useEffect(() => {
         refresh()
         params.current = { ...params.current, page: currentPage + 1 }
@@ -299,7 +299,8 @@ const SearchContainer = styled.div`
 const Wrapper = styled.div`
     padding: 24px 64px 0 64px;
     width: 100%;
-    flex: 1;
+    height: 100%;
+    overflow: hidden;
     border-radius: 8px;
     background-color: ${SectionBackgroundColor};
     ${globalStyles.flex({ justifyContent: 'flex-start' })}

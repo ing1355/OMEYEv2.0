@@ -76,7 +76,7 @@ const VideosContainer = styled.div`
 `
 
 const VideoCardContainer = styled.div<{layoutNum: number}>`
-    flex: 0 0 ${({layoutNum}) => 100 / Math.sqrt(layoutNum)}%;
+    width: ${({layoutNum}) => 100 / Math.sqrt(layoutNum)}%;
     height: ${({layoutNum}) => 100 / Math.sqrt(layoutNum)}%;
     border: 1px solid ${ContentsBorderColor};
 `
@@ -84,8 +84,13 @@ const VideoCardContainer = styled.div<{layoutNum: number}>`
 const VideoTitle = styled.div`
     height: 24px;
     background-color: ${SectionBackgroundColor};
-    ${globalStyles.flex()}
+    line-height: 24px;
+    text-align: center;
     padding: 0 4px;
+    padding-right: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     position: relative;
 `
 

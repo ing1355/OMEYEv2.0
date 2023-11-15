@@ -139,15 +139,16 @@ export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string =>
 }
 
 export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
+    const isRealTime = data.timeGroups[0].startTime === 'live'
     let _: ConditionDataSingleType = {
-        name: data.title,
-        etc: data.etc,
-        rank: data.rank,
+        name: isRealTime ? '' : data.title,
+        etc: isRealTime ? '' : data.etc,
+        rank: isRealTime ? 10 : data.rank,
         cctv: data.cameraGroups.map(_ => ({
             selected: false,
             cctvList: _
         })),
-        time: data.timeGroups.map(_ => ({
+        time: isRealTime ? [] : data.timeGroups.map(_ => ({
             selected: false,
             time: [_.startTime, _.endTime]
         })),
@@ -159,7 +160,7 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
             method: 'JSONUPLOAD',
             ocr: _.ocr
         })),
-        isRealTime: false
+        isRealTime: isRealTime
     }
     DownloadSingleConditionJsonData(_)
 }
@@ -270,6 +271,8 @@ export function getTimeDifference(startTime: string, endTime: string): string {
     if (minutes) _ += `${minutes}분 `
     if (seconds) _ += `${seconds}초`
 
+    if(!hours && !minutes && !seconds) _ += '0초'
+
     return _;
 }
 
@@ -314,7 +317,9 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
     const aTag = document.createElement("a");
     aTag.target = "_self"
     aTag.href = url
+    fileName = "/Users/hozzi/Desktop/test"
     aTag.download = fileName || "";
+    console.log(url, fileName)
     document.body.appendChild(aTag);
     aTag.click();
     aTag.remove();

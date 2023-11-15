@@ -75,7 +75,7 @@ export default DataSelectModal
 
 const Background = styled.div<{ visible: boolean, half: boolean }>`
     position: absolute;
-    width: 100%;
+    width: ${({visible}) => visible ? '100%' : '0%'};
     height: 100%;
     top: 0;
     background-color: transparent;
@@ -84,7 +84,6 @@ const Background = styled.div<{ visible: boolean, half: boolean }>`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
     ${({ visible, half }) => ({
         right: visible ? (half ? 24 : 0) : '-100%',
-        visibility: visible ? 'visible' : 'hidden',
     })}
     overflow: hidden;
 `

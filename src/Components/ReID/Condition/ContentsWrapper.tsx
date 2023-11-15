@@ -115,9 +115,6 @@ const ContentsWrapper = () => {
                     if (targets.filter(_ => _.selected).length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
-                    if (rank < 1) {
-                        return message.error({ title: '입력값 에러', msg: '분석 결과 후보 수는 최소 1개 이상이어야 합니다.' })
-                    }
                     if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
                         setRealTimeData({
                             type: currentObjectType,
@@ -229,7 +226,7 @@ const ContentsWrapper = () => {
                     <HeaderHistories>
                         {
                             getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>
-                                {ind !== 0 ? '>' : ''}
+                                {'>'}
                                 <HeaderHistoryItem onClick={() => {
                                     if (ind !== arr.length - 1) routeJump(_)
                                 }}>
@@ -240,7 +237,7 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton hover disabled={targets.length === 0 && cctv.length === 0 && time.length === 0} onClick={() => {
+                    {routeInfo.length === 2 && <CompleteButton hover disabled={isRealTime || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,

@@ -8,7 +8,7 @@ type ProgressDataParamsType = {
   cctvId: CameraDataType['cameraId']
 }
 
-export type SSEResponseStatusType = 'SSE_CONNECTION' | 'SSE_DESTROY' | 'REID_START' | 'REID_COMPLETE' | 'REID_CANCEL' | 'UPDATE_THRESHOLD' | 'ADMIN_REID_KILL' | 'EXPORT_CANCEL' | 'BACKEND_BAD_REQUEST' | 'PYTHON_SERVER_ERROR'
+export type SSEResponseStatusType = 'SSE_CONNECTION' | 'SSE_DESTROY' | 'REID_START' | 'REID_COMPLETE' | 'REID_CANCEL' | 'UPDATE_THRESHOLD' | 'ADMIN_REID_KILL' | 'EXPORT_CANCEL' | 'BACKEND_BAD_REQUEST' | 'PYTHON_SERVER_ERROR' | 'COMPLETE' | 'DONE'
 export const SSEResponseErrorMsg: SSEResponseStatusType[] = ['PYTHON_SERVER_ERROR', 'BACKEND_BAD_REQUEST', 'EXPORT_CANCEL', 'ADMIN_REID_KILL']
 
 export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataParamsType & {

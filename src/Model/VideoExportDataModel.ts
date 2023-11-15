@@ -5,7 +5,7 @@ import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeMo
 import { GetVideoHistoryApi } from "../Constants/ApiRoutes";
 import { ProgressDataPercentType, SSEResponseStatusType } from "./ProgressModel";
 
-export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait' | 'cancel'
+export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait' | 'cancel' | 'downloadComplete'
 
 export type VideoExportCategoryType = "영역 비식별화" | "얼굴 비식별화" | "번호판 비식별화"
 
@@ -72,7 +72,7 @@ export const VideoExportHistories = selectorFamily({
         //     totalCount: testLogs.length
         // }
         return await Axios("GET", GetVideoHistoryApi, {
-            size: 12,
+            size: 9,
             ...params
         })
     },
