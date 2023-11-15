@@ -1,13 +1,29 @@
 import styled from "styled-components"
 import Input from "../../../Constants/Input"
+import { useRecoilState } from "recoil";
+import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo } from "../../../../Model/OmeyeSettingsDataModel";
+import { Axios } from "../../../../Functions/NetworkFunctions";
+import { getSettingsInfoApi } from "../../../../Constants/ApiRoutes";
+import { useEffect } from "react";
 
 const OMEYESidebar = () => {
+  const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
+
+  const GetOMEYESettingsInfo = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
+    if (res) setOmeyeSettingsInfo(res);
+  }
+
+  useEffect(() => {
+    GetOMEYESettingsInfo();
+  },[]);
+
   return (
     <div>
       {/* FPS 설정 */}
-      <div>
+      <div style={{marginBottom: '30px'}}>
         {/* FPS 헤더 */}
-        <div style={{display: 'flex', flexDirection: 'row'}}>
+        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
           <div style={{width: '25%'}}>
             FPS 설정
           </div>
@@ -20,49 +36,80 @@ const OMEYESidebar = () => {
         {/* FPS 내부 */}
         <div>
           {/* 사람 */}
-          <div style={{display: 'flex', flexDirection: 'row'}}>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>사람</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput />
-              <div>프로그래스</div>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.personFrame} />
+              {/* <div>프로그래스</div> */}
             </div>
           </div>
 
           {/* 얼굴 */}
-          <div style={{display: 'flex', flexDirection: 'row'}}>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>얼굴</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput />
-              <div>프로그래스</div>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.faceFrame}/>
+              {/* <div>프로그래스</div> */}
             </div>
           </div>
 
           {/* 번호판 */}
-          <div style={{display: 'flex', flexDirection: 'row'}}>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>번호판</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput />
-              <div>프로그래스</div>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.carFrame}/>
+              {/* <div>프로그래스</div> */}
+            </div>
+          </div>
+
+          {/* 인상착의 */}
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>인상착의</div>
+            <div style={{width: '75%'}}>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.attributionFrame}/>
+              {/* <div>프로그래스</div> */}
             </div>
           </div>
         </div>
       </div>
 
       {/* 최대 선택 가능 CCTV 수 */}
-      <div style={{display: 'flex', flexDirection: 'row'}}>
-        <div style={{width: '25%'}}>최대 선택 가능 CCTV 수(과거영상용과 실시간용 나누기)</div>
-        <div style={{width: '75%'}}>
-          <OMEYESettingsSideBarInput />
-          <div>프로그래스</div>
+      <div style={{marginBottom: '30px'}}>
+        <div>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+            <div style={{width: '25%'}}>
+              최대 선택 가능 CCTV 수
+            </div>
+          </div>
+        </div>
+
+        <div>
+          {/* 최대 선택 가능 CCTV 수 (과거 영상) */}
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>과거영상</div>
+            <div style={{width: '75%'}}>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxAnalyzeCount}/> 대
+              {/* <div>프로그래스</div> */}
+            </div>
+          </div>
+
+          {/* 최대 선택 가능 CCTV 수 (실시간) */}
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '30px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>실시간</div>
+            <div style={{width: '75%'}}>
+              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxLiveAnalyzeCount}/> 대
+              {/* <div>프로그래스</div> */}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* 최대 허용 분석 영상 시간 */}
-      <div style={{display: 'flex', flexDirection: 'row'}}>
+      <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
         <div style={{width: '25%'}}>최대 허용 분석 영상 시간</div>
         <div style={{width: '75%'}}>
-          <OMEYESettingsSideBarInput />
-          <div>프로그래스</div>
+          <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxAnalyzeDuration}/> 분
+          {/* <div>프로그래스</div> */}
         </div>
       </div>
       

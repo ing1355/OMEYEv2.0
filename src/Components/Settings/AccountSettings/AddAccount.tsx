@@ -94,6 +94,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </div>
         <AccountInput 
           value={newAccountPassword}
+          type="password"
           onChange={(e) => {
             setNewAccountPassword(e);
           }}
@@ -106,6 +107,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </div>
         <AccountInput 
           value={newAccountPasswordConfirm}
+          type="password"
           onChange={(e) => {
             setNewAccountPasswordConfirm(e);
           }}

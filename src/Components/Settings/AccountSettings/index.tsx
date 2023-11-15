@@ -80,6 +80,7 @@ type ResType = {
 }
 
 type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' ;
+type RoleValues = 'USER' | 'username' | 'name' | 'email' | 'phoneNumber' ;
 
 const AccountSettings = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
@@ -91,6 +92,7 @@ const AccountSettings = () => {
   const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember);
   const [searchValue, setSearchValue] = useState<AccountSearchValues>('username');
   const [searchInputValue, setSearchInputValue] = useState<string>('');
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
 
 console.log('searchInputValue',searchInputValue)
 
@@ -99,7 +101,7 @@ console.log('searchInputValue',searchInputValue)
       size: 10,
       page: currentPage,
       username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
-      role: searchValue === 'role' ? searchInputValue === '' ? null : searchInputValue : null,
+      role: searchValue === 'role' ? searchRoleValue : null,
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
       email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
       phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
@@ -145,19 +147,21 @@ console.log('searchInputValue',searchInputValue)
       {/* top */}
       <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px'}}>
         <div style={{display: 'flex'}}>
-          <TopDropdown 
-            itemList={AccountSearchDropdownList} 
-            bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
-            onChange={val => {
-              setSearchValue(val.value as AccountSearchValues);
-            }}
-          />
-          {/* {searchValue === 'role' ?
+          <div style={{marginRight: '15px'}}>
             <TopDropdown 
-              itemList={RoleSearchDropdownList} 
+              itemList={AccountSearchDropdownList} 
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
               onChange={val => {
                 setSearchValue(val.value as AccountSearchValues);
+              }}
+            />
+          </div>
+          {searchValue === 'role' ?
+            <RoleDropdown 
+              itemList={RoleSearchDropdownList} 
+              bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
+              onChange={val => {
+                setSearchRoleValue(val.value as RoleValues);
               }}
             />
           :
@@ -165,11 +169,11 @@ console.log('searchInputValue',searchInputValue)
               setSearchInputValue(value);
             }} 
             />
-          } */}
-          <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
+          }
+          {/* <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
             setSearchInputValue(value);
           }} 
-          />
+          /> */}
           <div
             style={{ cursor: 'pointer' }}
             onClick={() => {
@@ -344,6 +348,11 @@ const TopDropdown = styled(Dropdown)`
   width: 120px;
 `
 
+const RoleDropdown = styled(Dropdown)`
+  height: ${TopContainerHeight-20}px;
+  width: 150px;
+`
+
 const SearchInput = styled(Input)`
   height: 40px;
   border-radius: 10px;
@@ -354,7 +363,6 @@ const SearchInput = styled(Input)`
   text-align: center;
   flex: 0 0 480px;
   color: white;
-  margin-left: 15px;
 `
 
 const TopButton = styled(Button)`

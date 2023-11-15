@@ -3,70 +3,127 @@ import Dropdown from "../../Layout/Dropdown"
 import { GlobalBackgroundColor } from "../../../styles/global-styled";
 import Input from "../../Constants/Input";
 import Button from "../../Constants/Button";
-
-const DayDropdownItemList = [
-  {
-    key: 1,
-    value: 1,
-    label: 1
-  }, 
-  {
-    key: 2,
-    value: 2,
-    label: 2
-  }, 
-  {
-    key: 3,
-    value: 3,
-    label: 3
-  }, 
-  {
-    key: 4,
-    value: 4,
-    label: 4
-  },  
-];
+import { useEffect, useState } from "react";
+import { getSettingsInfoApi, maxDurationApi } from "../../../Constants/ApiRoutes";
+import { Axios } from "../../../Functions/NetworkFunctions";
+import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
+import { useRecoilState } from "recoil";
 
 const OMEYESettings = () => {
+  const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
+
+console.log('omeyeSettingsInfo', omeyeSettingsInfo)
+console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
+
+  const GetOMEYESettingsInfo = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
+    if (res) setOmeyeSettingsInfo(res);
+  }
+
+  useEffect(() => {
+    GetOMEYESettingsInfo();
+  },[]);
+
+  const ChangeMaxDurationFun = async (e: number) => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxDurationApi(e))
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
+  const SaveDataFun = () => {
+    ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
+    setTimeout(()=>{
+      GetOMEYESettingsInfo();
+    },1000)
+
+  }
+
+  const SelectMapTypeFun = (mapType: string) => {
+    setOmeyeSettingsInfo((pre) => ({
+      ...pre,
+      mapType
+    }))
+  }
+
   return (
     <div>
+      <div style={{display: 'flex', justifyContent: 'flex-end'}}>
+        <OMEYEButton
+          onClick={SaveDataFun}
+        >
+          저장
+        </OMEYEButton>
+      </div>
+      
       {/* 과거영상 저장 기간 */}
-      <div style={{display: 'flex', flexDirection: 'row'}}>
+      <div style={{display: 'flex', flexDirection: 'row', marginBottom: '30px'}}>
         <div style={{width: '25%'}}>
           과거영상 저장 기간
         </div>
-        <div style={{width: '90px', display: 'flex', flexDirection: 'row'}}>
-          <DayDropdown itemList={DayDropdownItemList} bodyStyle={{backgroundColor: GlobalBackgroundColor, zIndex: 1}}/>
+        <div style={{display: 'flex', flexDirection: 'row'}}>
+          <DayInput 
+            value={omeyeSettingsInfo.maxResultDuration} 
+            onChange={(e) => {
+              setOmeyeSettingsInfo((pre) => ({
+                ...pre,
+                maxResultDuration: parseInt(e)
+              }))
+            }}
+          />
           <div style={{lineHeight: '30px'}}>일</div>
         </div>
       </div>
 
       {/* 지도 설정 */}
       <div>
-        <div style={{width: '25%'}}>지도 설정</div>
+        <div style={{width: '25%', marginBottom: '10px'}}>지도 설정</div>
         {/* 지도 설정 내부 타이틀 */}
         <div>
           {/* 타입 */}
-          <div style={{display: 'flex', flexDirection: 'row'}}>
-            <div style={{width: '25%'}}>타입</div>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>타입</div>
             <div style={{display: 'flex', flexDirection: 'row'}}>
-              <div style={{display: 'flex', flexDirection: 'row'}}>
-                <input type="checkbox"/>
+              <label style={{display: 'flex', flexDirection: 'row'}}>
+                <input 
+                  type="radio" 
+                  name="map" 
+                  checked={omeyeSettingsInfo?.mapType === 'KAKAO'}
+                  onChange={() => {
+                    SelectMapTypeFun('KAKAO');
+                  }}
+                />
                 <div>카카오맵</div>
-              </div>
-              <div style={{display: 'flex', flexDirection: 'row'}}>
-                <input type="checkbox"/>
+              </label>
+              <label style={{display: 'flex', flexDirection: 'row'}}>
+                <input 
+                  type="radio" 
+                  name="map" 
+                  checked={omeyeSettingsInfo?.mapType === 'DEFAULT'}
+                  onChange={() => {
+                    SelectMapTypeFun('DEFAULT');
+                  }}
+                />
                 <div>openstreet</div>
-              </div>  
-              <div style={{display: 'flex', flexDirection: 'row'}}>
-                <input type="checkbox"/>
+              </label>  
+              <label style={{display: 'flex', flexDirection: 'row'}}>
+                <input 
+                  type="radio" 
+                  name="map" 
+                  checked={omeyeSettingsInfo?.mapType === 'NAVER'}
+                  onChange={() => {
+                    SelectMapTypeFun('NAVER');
+                  }}        
+                />
                 <div>네이버맵</div>
-              </div>             
+              </label>             
             </div>
           </div>
           {/* 지도 커스텀 타일 */}
-          <div style={{display: 'flex', flexDirection: 'row'}}>
-            <div style={{width: '25%'}}>지도 커스텀 타일</div>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>지도 커스텀 타일</div>
             <MapInput placeholder={'URL'} value={''} onChange={value => {
                 // setTitle(value)
             }} 
@@ -76,24 +133,25 @@ const OMEYESettings = () => {
           </div>
 
           {/* 지도 파일 업로드 */}
-          <div style={{display: 'flex'}}>
-            <div>지도 파일 업로드</div>
+          <div style={{display: 'flex', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>지도 파일 업로드</div>
             <div style={{display: 'flex'}}>
-              <div>아이콘</div>
-              <div>클릭하여 파일 선택</div>
+              <OMEYEButton>업로드</OMEYEButton>
               <OMEYEButton>새로고침</OMEYEButton>
             </div>
           </div>
 
           {/* 줌 범위 */}
-          <div style={{display: 'flex'}}>
-            <div>줌 범위</div>
-            <div>프로그래스</div>
+          <div style={{display: 'flex', marginBottom: '10px'}}>
+            <div style={{width: '25%', paddingLeft: '10px'}}>줌 범위</div>
+            <div>
+              최소: <DayInput value={omeyeSettingsInfo?.minZoom}/> 최대: <DayInput value={omeyeSettingsInfo?.maxZoom}/>
+            </div>
           </div>
 
           {/* CCTV 아이콘 설정 */}
           <div style={{display: 'flex'}}>
-            <div>CCTV 아이콘 설정</div>
+            <div style={{width: '25%', paddingLeft: '10px'}}>CCTV 아이콘 설정</div>
             <div style={{display: 'flex', flexDirection: 'column'}}>
               <div>
                 <OMEYEButton>기본값</OMEYEButton>
@@ -101,9 +159,9 @@ const OMEYESettings = () => {
                 <OMEYEButton>출발</OMEYEButton>
                 <OMEYEButton>도착</OMEYEButton>
               </div>
-              <div>
+              {/* <div>
                 아이콘 이미지
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -114,10 +172,16 @@ const OMEYESettings = () => {
 
 export default OMEYESettings
 
-const DayDropdown = styled(Dropdown)`
+const DayInput = styled(Input)`
   height: 30px;
-  width: 90px;
-  position: relative;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  border-radius: 10px
+  font-size: 2.3rem;
+  text-align: center;
+  flex: 0 0 100px;
+  color: white;
 `
 
 const MapInput = styled(Input)`
@@ -128,10 +192,11 @@ const MapInput = styled(Input)`
   border-radius: 10px
   font-size: 2.3rem;
   text-align: center;
-  flex: 0 0 480px;
+  flex: 0 0 300px;
   color: white;
 `
 
 const OMEYEButton = styled(Button)`
   height: 30px;
+  margin-right: 10px;
 `

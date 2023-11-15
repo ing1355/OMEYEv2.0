@@ -54,5 +54,8 @@ export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
 // VMS 설정
 
 // OMEYE 설정
+export const getSettingsInfoApi = '/api/v2/settings'
+export const maxDurationApi = (duration: number) => `/api/v2/settings/storage/max-duration/${duration}`
+export const mapTypeApi = '/api/v2/settings/map/type'
 
 // 서버 관리

@@ -7,6 +7,7 @@ import { IsModifyMember, ModifySelectMember, modifySelectMemberInit } from "../.
 import { useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
+import useMessage from "../../../Hooks/useMessage"
 
 type ModifyAccountType = {
   visible: boolean
@@ -19,9 +20,10 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember);
   const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('');
   const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('');
-  const [modifyAccountName, setModifyAccountName] = useState<string>('');
-  const [modifyAccountEmail, setModifyAccountEmail] = useState<string>('');
-  const [modifyAccountPhoneNumber, setModifyAccountPhoneNumber] = useState<string>('');
+  const [modifyAccountName, setModifyAccountName] = useState<string>(modifySelectMember.name);
+  const [modifyAccountEmail, setModifyAccountEmail] = useState<string>(modifySelectMember.email);
+  const [modifyAccountPhoneNumber, setModifyAccountPhoneNumber] = useState<string>(modifySelectMember.phoneNumber);
+  const message = useMessage()
 
   const putUsersAccount = async () => {
     const res = await Axios("PUT", UserAccountApi, {
@@ -63,6 +65,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         </div>
         <AccountInput 
           value={modifyAccountPassword}
+          type="password"
           onChange={(e) => {
             setModifyAccountPassword(e);
           }}
@@ -74,6 +77,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         </div>
         <AccountInput 
           value={modifyAccountPasswordConfirm}
+          type="password"
           onChange={(e) => {
             setModifyAccountPasswordConfirm(e);
           }}
@@ -114,7 +118,17 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
       </div>
       <div style={{ textAlign: 'center' }}>
         <AccountButton hover
-          onClick={putUsersAccount}
+          onClick={() => {
+            if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber)) {
+              message.error({ title: '계정 수정 에러', msg: '모든 항목을 입력해주세요.' })
+            } else {
+              if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
+                message.error({ title: '계정 수정 에러', msg: '비밀번호가 일치하지 않습니다.' })
+              } else {
+                putUsersAccount();
+              }
+            }
+          }}
         >수정하기</AccountButton>
       </div>
     </Modal>

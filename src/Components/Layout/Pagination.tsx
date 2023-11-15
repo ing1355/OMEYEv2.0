@@ -51,7 +51,7 @@ const Pagination = ({ currentPage, setCurrentPage, datas }: PaginationProps) => 
             }} onSubmit={(e) => {
                 const result = Number((e.currentTarget.elements[0] as HTMLInputElement).value)
                 const lastPage = datas.totalCount / 10
-                const _ = result <= 0 ? 0 : (result > lastPage ? (lastPage < 1 ? 0 : (Math.floor(lastPage) - 1)) : result - 1)
+                const _ = result <= 0 ? 0 : (result > lastPage ? (lastPage < 1 ? 0 : (Math.floor(lastPage))) : result - 1)
                 setCurrentPage(_)
                 if (paginationInputRef.current) paginationInputRef.current.value = (_ + 1).toString()
             }}>
