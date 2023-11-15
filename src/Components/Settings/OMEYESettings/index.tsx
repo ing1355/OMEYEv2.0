@@ -4,16 +4,17 @@ import { GlobalBackgroundColor } from "../../../styles/global-styled";
 import Input from "../../Constants/Input";
 import Button from "../../Constants/Button";
 import { useEffect, useState } from "react";
-import { getSettingsInfoApi, maxDurationApi } from "../../../Constants/ApiRoutes";
+import { getSettingsInfoApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
 import { useRecoilState } from "recoil";
+import useMessage from "../../../Hooks/useMessage";
 
 const OMEYESettings = () => {
   const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
+  const message = useMessage();
 
 console.log('omeyeSettingsInfo', omeyeSettingsInfo)
-console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
 
   const GetOMEYESettingsInfo = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
@@ -24,8 +25,29 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
     GetOMEYESettingsInfo();
   },[]);
 
-  const ChangeMaxDurationFun = async (e: number) => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxDurationApi(e))
+  const ChangeMaxDurationFun = async (duration: number) => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxDurationApi(duration))
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
+  const ChangeMapTypeFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', mapTypeApi, {mapType: omeyeSettingsInfo.mapType})
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
+  const ChangeZoomLevelFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', zoomLevelApi, {
+      minZoom: omeyeSettingsInfo.minZoom,
+      maxZoom: omeyeSettingsInfo.maxZoom
+    })
     
     if(res === undefined) {
       console.log('에러');
@@ -35,10 +57,12 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
 
   const SaveDataFun = () => {
     ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
+    ChangeMapTypeFun();
+    ChangeZoomLevelFun();
     setTimeout(()=>{
+      message.success({title: '', msg: '저장 완료'});
       GetOMEYESettingsInfo();
-    },1000)
-
+    },2000)
   }
 
   const SelectMapTypeFun = (mapType: string) => {
@@ -52,6 +76,7 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
     <div>
       <div style={{display: 'flex', justifyContent: 'flex-end'}}>
         <OMEYEButton
+          hover
           onClick={SaveDataFun}
         >
           저장
@@ -90,7 +115,7 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
                 <input 
                   type="radio" 
                   name="map" 
-                  checked={omeyeSettingsInfo?.mapType === 'KAKAO'}
+                  checked={omeyeSettingsInfo.mapType === 'KAKAO'}
                   onChange={() => {
                     SelectMapTypeFun('KAKAO');
                   }}
@@ -101,7 +126,7 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
                 <input 
                   type="radio" 
                   name="map" 
-                  checked={omeyeSettingsInfo?.mapType === 'DEFAULT'}
+                  checked={omeyeSettingsInfo.mapType === 'DEFAULT'}
                   onChange={() => {
                     SelectMapTypeFun('DEFAULT');
                   }}
@@ -112,7 +137,7 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
                 <input 
                   type="radio" 
                   name="map" 
-                  checked={omeyeSettingsInfo?.mapType === 'NAVER'}
+                  checked={omeyeSettingsInfo.mapType === 'NAVER'}
                   onChange={() => {
                     SelectMapTypeFun('NAVER');
                   }}        
@@ -124,10 +149,15 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
           {/* 지도 커스텀 타일 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>지도 커스텀 타일</div>
-            <MapInput placeholder={'URL'} value={''} onChange={value => {
-                // setTitle(value)
-            }} 
-            // disabled={} maxLength={20}
+            <MapInput 
+              placeholder={'URL'} 
+              value={omeyeSettingsInfo.customMapTile} 
+              onChange={(e) => {
+                setOmeyeSettingsInfo((pre) => ({
+                  ...pre,
+                  customMapTile: e
+                }))
+              }}
             />
             <OMEYEButton>새로고침</OMEYEButton>
           </div>
@@ -145,7 +175,26 @@ console.log('omeyeSettingsInfo.mrd', omeyeSettingsInfo.maxResultDuration)
           <div style={{display: 'flex', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>줌 범위</div>
             <div>
-              최소: <DayInput value={omeyeSettingsInfo?.minZoom}/> 최대: <DayInput value={omeyeSettingsInfo?.maxZoom}/>
+              최소: 
+              <DayInput 
+                value={omeyeSettingsInfo?.minZoom}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    minZoom: parseInt(e)
+                  }))
+                }}
+              /> 
+              최대: 
+              <DayInput 
+                value={omeyeSettingsInfo?.maxZoom}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    maxZoom: parseInt(e)
+                  }))
+                }}
+              />
             </div>
           </div>
 

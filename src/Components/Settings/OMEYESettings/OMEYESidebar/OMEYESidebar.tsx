@@ -3,15 +3,51 @@ import Input from "../../../Constants/Input"
 import { useRecoilState } from "recoil";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo } from "../../../../Model/OmeyeSettingsDataModel";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { getSettingsInfoApi } from "../../../../Constants/ApiRoutes";
+import { fpsSettingApi, getSettingsInfoApi, maxAnalyzeDurationApi } from "../../../../Constants/ApiRoutes";
 import { useEffect } from "react";
+import Button from "../../../Constants/Button";
+import useMessage from "../../../../Hooks/useMessage";
 
 const OMEYESidebar = () => {
   const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
+  const message = useMessage();
 
   const GetOMEYESettingsInfo = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
     if (res) setOmeyeSettingsInfo(res);
+  }
+
+  const ChangeMapTypeFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', fpsSettingApi, {
+      personFrame: omeyeSettingsInfo.personFrame,
+      faceFrame: omeyeSettingsInfo.faceFrame,
+      carFrame: omeyeSettingsInfo.carFrame,
+      attributionFrame: omeyeSettingsInfo.attributionFrame
+    })
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
+  const ChangeMaxAnalyzeDurationFun = async (duration: number) => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxAnalyzeDurationApi(duration))
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
+  const SaveDataFun = () => {
+    ChangeMapTypeFun();
+    ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
+
+    setTimeout(()=>{
+      message.success({title: '', msg: '저장 완료'});
+      GetOMEYESettingsInfo();
+    },2000)
   }
 
   useEffect(() => {
@@ -20,6 +56,14 @@ const OMEYESidebar = () => {
 
   return (
     <div>
+      <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '15px'}}>
+        <OMEYEButton
+          hover
+          onClick={SaveDataFun}
+        >
+          저장
+        </OMEYEButton>
+      </div>
       {/* FPS 설정 */}
       <div style={{marginBottom: '30px'}}>
         {/* FPS 헤더 */}
@@ -39,7 +83,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>사람</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.personFrame} />
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.personFrame}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    personFrame: parseInt(e)
+                  }))
+                }}
+              />
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -48,7 +100,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>얼굴</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.faceFrame}/>
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.faceFrame}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    faceFrame: parseInt(e)
+                  }))
+                }}
+              />
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -57,7 +117,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>번호판</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.carFrame}/>
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.carFrame}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    carFrame: parseInt(e)
+                  }))
+                }}
+              />
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -66,7 +134,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>인상착의</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.attributionFrame}/>
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.attributionFrame}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    attributionFrame: parseInt(e)
+                  }))
+                }}
+              />
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -88,7 +164,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>과거영상</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxAnalyzeCount}/> 대
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.maxAnalyzeCount}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    maxAnalyzeCount: parseInt(e)
+                  }))
+                }}
+              /> 대
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -97,7 +181,15 @@ const OMEYESidebar = () => {
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '30px'}}>
             <div style={{width: '25%', paddingLeft: '10px'}}>실시간</div>
             <div style={{width: '75%'}}>
-              <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxLiveAnalyzeCount}/> 대
+              <OMEYESettingsSideBarInput 
+                value={omeyeSettingsInfo.maxLiveAnalyzeCount}
+                onChange={(e) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    maxLiveAnalyzeCount: parseInt(e)
+                  }))
+                }}
+              /> 대
               {/* <div>프로그래스</div> */}
             </div>
           </div>
@@ -108,7 +200,15 @@ const OMEYESidebar = () => {
       <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
         <div style={{width: '25%'}}>최대 허용 분석 영상 시간</div>
         <div style={{width: '75%'}}>
-          <OMEYESettingsSideBarInput value={omeyeSettingsInfo.maxAnalyzeDuration}/> 분
+          <OMEYESettingsSideBarInput 
+            value={omeyeSettingsInfo.maxAnalyzeDuration}
+            onChange={(e) => {
+              setOmeyeSettingsInfo((pre) => ({
+                ...pre,
+                maxAnalyzeDuration: parseInt(e)
+              }))
+            }}
+          /> 분
           {/* <div>프로그래스</div> */}
         </div>
       </div>
@@ -130,4 +230,9 @@ const OMEYESettingsSideBarInput = styled(Input)`
   text-align: center;
   flex: 0 0 480px;
   color: white;
+`
+
+const OMEYEButton = styled(Button)`
+  height: 30px;
+  margin-right: 10px;
 `

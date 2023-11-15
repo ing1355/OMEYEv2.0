@@ -32,7 +32,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [newAccountPhoneNumber, setNewAccountPhoneNumber] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
-  const message = useMessage()
+  const message = useMessage();
 
   const newAccountSaveFun = async () => {
     const res = await Axios("POST", UserAccountApi, {

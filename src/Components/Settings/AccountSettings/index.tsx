@@ -291,6 +291,7 @@ console.log('searchInputValue',searchInputValue)
         visible={isAddMember} 
         close={() => {
           setIsAddMember(false);
+          setSearchInputValue('');
         }}
         noComplete={true}
       />
@@ -299,6 +300,7 @@ console.log('searchInputValue',searchInputValue)
         close={() => {
           setIsModifyMember(false);
           setModifySelectMember(modifySelectMemberInit);
+          setSearchInputValue('');
         }}
         noComplete={true}
       />
@@ -306,6 +308,7 @@ console.log('searchInputValue',searchInputValue)
         visible={isDeleteMember}
         close={() => {
           setIsDeleteMember(false);
+          setSearchInputValue('');
         }}
         title="멤버 삭제"
         noComplete={true}
