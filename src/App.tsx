@@ -38,6 +38,18 @@ const App = () => {
   const [handlerComplete, setHandlerComplete] = useState(false)
   const _message = useMessage()
 
+  useEffect(() => {
+    if(loginState) {
+      window.addEventListener('beforeunload', e => {
+        e.preventDefault()
+        e.returnValue = ''
+      })
+    }
+    return () => {
+      
+    }
+  },[loginState])
+
   useLayoutEffect(() => {
     axios.interceptors.response.use(res => {
       return res;
@@ -77,4 +89,5 @@ const MainContainer = styled.div`
   height: 100%;
   ${globalStyles.flex({})}
   padding: 0 8px 8px;
+  overflow: hidden;
 `

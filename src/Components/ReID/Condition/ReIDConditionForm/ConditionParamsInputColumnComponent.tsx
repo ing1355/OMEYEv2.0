@@ -1,6 +1,6 @@
 import { PropsWithChildren, useState } from 'react'
 import styled from 'styled-components';
-import { SectionBackgroundColor, globalStyles } from '../../../../styles/global-styled';
+import { SectionBackgroundColor, globalStyles, ContentsDisableColor } from '../../../../styles/global-styled';
 import Button from '../../../Constants/Button';
 import { conditionIsRealTimeData } from '../../../../Model/ConditionDataModel';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -23,6 +23,8 @@ type ConditionParamsInputColumnComponentProps = PropsWithChildren<{
     realtimeBtn?: boolean
     dataAddDelete?: boolean
     disableAllSelect?: boolean
+    titleIcon?: string
+    isTarget?: boolean
 }>
 
 const NoDataComponent = ({ txt, hover, isTime }: {
@@ -46,7 +48,7 @@ const NoDataComponent = ({ txt, hover, isTime }: {
     </NoDataContainer>
 }
 
-const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected, disableAllSelect }: ConditionParamsInputColumnComponentProps) => {
+const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected, disableAllSelect, titleIcon, isTarget }: ConditionParamsInputColumnComponentProps) => {
     const [isRealTime, setIsRealTime] = useRecoilState(conditionIsRealTimeData)
     const [clearHover, setClearHover] = useState(false)
     const [isHover, setIsHover] = useState(false)
@@ -55,9 +57,14 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
     
     return <>
         <TitleContainer>
-            <Title>
+            <TitleInnerContainer>
+                {titleIcon && <TitleIconContainer isTarget={isTarget || false}>
+                    <TitleIcon src={titleIcon}/>
+                </TitleIconContainer>}
+                <TitleText>
                 {title}
-            </Title>
+                </TitleText>
+            </TitleInnerContainer>
             <ButtonsContainer>
                 {realtimeBtn && <OptionButton concept="icon" $isRealTime={isRealTime} onClick={() => {
                     setIsRealTime(!isRealTime)
@@ -104,7 +111,7 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                 }} disabled={(realtimeBtn || false) && isRealTime}>
                     <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
                 </DataExistAndAddComponent>}
-                {!disableAllSelect && <AllSelectBtn onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
+                {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
                     전체 선택 {allSelected && '해제'}
                 </AllSelectBtn>}
                 {children}
@@ -132,7 +139,7 @@ const DataContainer = styled.div<{ isDataExist: boolean, isRealTime?: boolean }>
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '12px' })}
     background-color: ${SectionBackgroundColor};
     ${({ isRealTime }) => isRealTime && `
-        background-color: rgba(128,128,128,.5);
+        background-color: ${ContentsDisableColor};
     `}
 `
 
@@ -153,7 +160,24 @@ const TitleContainer = styled.div`
     width: 100%;
 `
 
-const Title = styled.div`
+const TitleInnerContainer = styled.div`
+    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start'})}
+    flex: 1;
+`
+
+const TitleIconContainer = styled.div<{isTarget: boolean}>`
+    flex: 0 0 ${({isTarget}) => isTarget ? 40 : 20}px;
+    margin-right: 6px;
+    height: 100%;
+    ${globalStyles.flex()}
+`
+
+const TitleIcon = styled.img`
+    width: 100%;
+    height: 100%;
+`
+
+const TitleText = styled.div`
     font-size: 1.3rem;
     color: white;
 `

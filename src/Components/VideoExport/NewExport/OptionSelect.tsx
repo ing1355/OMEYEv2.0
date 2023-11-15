@@ -2,14 +2,16 @@ import styled from "styled-components"
 import Modal from "../../Layout/Modal"
 import Button from "../../Constants/Button"
 import { PropsWithChildren, useEffect, useRef, useState } from "react"
-import { ContentsBorderColor, globalStyles } from "../../../styles/global-styled"
+import { ContentsBorderColor, InputBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import { VideoExportMaskingType, VideoExportRowDataType } from "../../../Model/VideoExportDataModel"
 import Input from "../../Constants/Input"
 import InfoIcon from '../../../assets/img/infoIcon.png'
-import testPng from '../../../assets/test1.png'
+import leftClickIcon from '../../../assets/img/leftClickIcon.png'
+import rightClickIcon from '../../../assets/img/rightClickIcon.png'
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { GetThumbnailImageApi } from "../../../Constants/ApiRoutes"
 import { CameraDataType, TimeDataType } from "../../../Constants/GlobalTypes"
+import useMessage from "../../../Hooks/useMessage"
 
 type OptionSelectProps = {
     defaultValue?: VideoExportRowDataType
@@ -22,71 +24,6 @@ type OptionContentsContainerProps = PropsWithChildren & {
     className?: string
 }
 
-type minMaxCoordType = {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-};
-
-type XYCoordsType = [number, number];
-type CanvasCoordsType = Array<XYCoordsType>;
-
-let currentAreaCoord: CanvasCoordsType = [
-    [0, 0],
-    [0, 0],
-    [0, 0],
-    [0, 0],
-];
-
-const targetCornerDistance = 15;
-var isMovable = false;
-var isMoveClicked = false;
-var isResizeClicked = false;
-var isResizePoint = 0;
-var tempX = 0;
-var tempY = 0;
-
-const checkCrossPoint = (
-    AP1: XYCoordsType,
-    AP2: XYCoordsType,
-    BP1: XYCoordsType,
-    BP2: XYCoordsType
-) => {
-    // 두 선의 교점 찾기 true일 시 교점 존재 false일 시 교점 없음
-    const under =
-        (BP2[1] - BP1[1]) * (AP2[0] - AP1[0]) -
-        (BP2[0] - BP1[0]) * (AP2[1] - AP1[1]);
-    if (under === 0) return false; // 평행
-    const _t =
-        (BP2[0] - BP1[0]) * (AP1[1] - BP1[1]) -
-        (BP2[1] - BP1[1]) * (AP1[0] - BP1[0]);
-    const _s =
-        (AP2[0] - AP1[0]) * (AP1[1] - BP1[1]) -
-        (AP2[1] - AP1[1]) * (AP1[0] - BP1[0]);
-    const t = _t / under;
-    const s = _s / under;
-    if (t < 0 || t > 1 || s < 0 || s > 1) {
-        return false; // 교점 없음
-    }
-    return true; // 교점 있음
-};
-
-const getDistanceTwoPoint = (p1: XYCoordsType, p2: XYCoordsType) => {
-    const result = Math.sqrt(
-        Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2)
-    );
-    return result;
-};
-
-const getFourPointsByCurrentAreaCoord = () => {
-    const left = currentAreaCoord[0][0]
-    const top = currentAreaCoord[0][1]
-    const right = currentAreaCoord[1][0]
-    const bottom = currentAreaCoord[2][1]
-    return { left, top, right, bottom }
-}
-
 const OptionContentsContainer = ({ className, children }: OptionContentsContainerProps) => {
     return <ContentsContainer className={className}>
         {children}
@@ -95,39 +32,9 @@ const OptionContentsContainer = ({ className, children }: OptionContentsContaine
 
 const defaultOptions: VideoExportRowDataType['options'] = {
     masking: [],
-    points: undefined,
-    password: ''
-}
-
-const centerBoxDistance = 100
-
-const drawRectToCavnasByWidthHeight = (canvas: HTMLCanvasElement, left: number, top: number, width: number, height: number) => {
-    currentAreaCoord = [[left, top], [left + width, top], [left + width, top + height], [left, top + height]]
-    const ctx = canvas.getContext('2d')!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath()
-    ctx.strokeStyle = "red"
-    ctx.rect(left, top, width, height)
-    ctx.stroke();
-}
-
-const drawRectToCanvasByPoints = (canvas: HTMLCanvasElement, points: CanvasCoordsType) => {
-    currentAreaCoord = points
-    const ctx = canvas.getContext('2d')!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath()
-    ctx.strokeStyle = "red"
-    points.forEach((coord, ind, arr) => {
-        if (ind === 0) {
-            ctx.moveTo(coord[0], coord[1]);
-        } else if (ind === arr.length - 1) {
-            ctx.lineTo(coord[0], coord[1]);
-            ctx.lineTo(arr[0][0], arr[0][1]);
-        } else {
-            ctx.lineTo(coord[0], coord[1]);
-        }
-    });
-    ctx.stroke();
+    points: [],
+    password: '',
+    description: ''
 }
 
 const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectProps) => {
@@ -138,8 +45,12 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
         width: number
         height: number
     }>(null)
+    const [submitPoints, setSubmitPoints] = useState<number[][][]>([])
+    const [clickPoints, setClickPoints] = useState<number[][]>([])
     const imgRef = useRef<HTMLImageElement>(null)
     const rectCanvasRef = useRef<HTMLCanvasElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
+    const message = useMessage()
 
     const { masking, points } = options!
 
@@ -168,74 +79,90 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                     height: naturalHeight
                 })
                 if (imgRef.current && rectCanvasRef.current) {
-                    rectCanvasRef.current.width = width
-                    rectCanvasRef.current.height = height
-                    const center_x = width / 2
-                    const center_y = height / 2
-                    const initWidthHeight = centerBoxDistance / 2
-                    drawRectToCavnasByWidthHeight(rectCanvasRef.current, center_x - initWidthHeight, center_y - initWidthHeight, centerBoxDistance, centerBoxDistance)
+                    rectCanvasRef.current.width = naturalWidth
+                    rectCanvasRef.current.height = naturalHeight
                 }
             }
         }
     }, [thumbnailSrc])
 
     useEffect(() => {
+        console.debug("Option Select Defaultvalue : ", defaultValue)
         if (visible) {
             if (defaultValue) {
-                getThumbnailImage(defaultValue.cctvId!, defaultValue.time!.startTime)
+                if(defaultValue.cctvId && defaultValue.time) getThumbnailImage(defaultValue.cctvId!, defaultValue.time!.startTime)
                 if (defaultValue.options) {
                     setOptions(defaultValue.options)
                     if (defaultValue.options.password) setPasswordSet(true)
+                    if (defaultValue.options.points) setSubmitPoints(defaultValue.options.points)
                 }
             }
         } else {
+            setClickPoints([])
+            setSubmitPoints([])
+            setPasswordSet(false)
             setOptions(defaultOptions)
         }
     }, [visible, defaultValue])
-
-    const onMouseOutEventCallback = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (isResizeClicked) {
-            let temp = [...currentAreaCoord];
-            let result_temp: CanvasCoordsType = [];
-            temp.sort((a, b) => a[1] - b[1]);
-            if (temp[0][0] < temp[1][0]) {
-                result_temp.push(temp[0]);
-                result_temp.push(temp[1]);
-            } else {
-                result_temp.push(temp[1]);
-                result_temp.push(temp[0]);
-            }
-            if (temp[2][0] < temp[3][0]) {
-                result_temp.push(temp[3]);
-                result_temp.push(temp[2]);
-            } else {
-                result_temp.push(temp[2]);
-                result_temp.push(temp[3]);
-            }
-            drawRectToCanvasByPoints(rectCanvasRef.current!, [...result_temp]);
-        }
-        isMoveClicked = false;
-        isResizeClicked = false;
-        e.currentTarget.style.cursor = "default";
-        isMovable = false;
-    };
 
     const maskingOptionChange = (type: VideoExportMaskingType) => {
         if (masking.includes(type)) setOptions({ ...options, masking: masking.filter(_ => _ !== type) })
         else setOptions({ ...options, masking: masking.concat(type) })
     }
 
+    useEffect(() => {
+        if (rectCanvasRef.current) {
+            const canvas = rectCanvasRef.current
+            const ctx = canvas.getContext('2d')!;
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            if (clickPoints.length > 0) {
+                ctx.beginPath()
+                ctx.strokeStyle = "black"
+                clickPoints.forEach(_ => {
+                    ctx.arc(_[0], _[1], 5, 0, 2 * Math.PI, true)
+                })
+                ctx.stroke()
+                ctx.closePath()
+            }
+            if (submitPoints.length > 0) {
+                ctx.beginPath()
+                ctx.fillStyle = "black"
+                submitPoints.forEach(_ => {
+                    _.forEach((__, ind) => {
+                        console.debug("submitPoint : ", __)
+                        if (ind === 0) {
+                            ctx.moveTo(__[0], __[1])
+                        } else {
+                            ctx.lineTo(__[0], __[1])
+                        }
+                    })
+                })
+                ctx.fill()
+                ctx.closePath()
+            }
+        }
+    }, [clickPoints, submitPoints])
+    
     return <Modal complete={() => {
-        let temp = { ...options! }
-        if (!passwordSet) temp['password'] = undefined
+        if(options.masking.includes('area') && submitPoints.length === 0) {
+            message.error({title: "입력값 에러", msg:"비식별화 할 영역이 선택되지 않았습니다.\n영역을 지정하거나 영역 비식별화를 해제해주세요."})
+            return true
+        }
+        let temp = { ...options }
+        if (!passwordSet) temp['password'] = ""
         if (masking.includes('area')) {
-            const { width, height } = thumbnailInfo!
-            const resolution_x = width / rectCanvasRef.current!.width
-            const resolution_y = height / rectCanvasRef.current!.height
-            // temp['points'] = currentAreaCoord.flatMap(_ => [_[0] * resolution_x > width ? width : (_[0] * resolution_x < 0 ? 0 : _[0] * resolution_x), _[1] * resolution_y > height ? height : (_[1] * resolution_y < 0 ? 0 : _[1] * resolution_y)])
+            temp['points'] = submitPoints
+            // temp['points'] = submitPoints.map(_ => _.flatMap(__ => __.map((___, ind) => {
+            //     if(ind === 0) {
+            //         const x = ___
+            //         return x > width ? width : (x < 0 ? 0 : x)
+            //     } else {
+            //         const y = ___
+            //         return y > height ? height : (y < 0 ? 0 : y)
+            //     }
+            // })))
         }
         // else if (temp['points']) delete temp['points']
-        console.debug("video export option select : ", temp)
         complete(temp)
     }} visible={visible} close={close} title="옵션 선택">
         <OptionsModalContainer>
@@ -245,149 +172,61 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             </OptionsTitle>
             <OptionContentsContainer>
                 <MaskingBtnContainer>
-                    <MaskingBtn activate={masking.includes("area")} onClick={() => {
+                    <MaskingBtn hover disabled={!defaultValue?.cctvId && !defaultValue?.time} activate={masking.includes("area")} onClick={() => {
                         maskingOptionChange("area")
                     }}>
                         영역 비식별화
                     </MaskingBtn>
-                    <MaskingBtn activate={masking.includes("head")} onClick={() => {
+                    <MaskingBtn hover activate={masking.includes("head")} onClick={() => {
                         maskingOptionChange("head")
                     }}>
                         얼굴 비식별화
                     </MaskingBtn>
-                    <MaskingBtn activate={masking?.includes("carplate")} onClick={() => {
+                    <MaskingBtn hover activate={masking?.includes("carplate")} onClick={() => {
                         maskingOptionChange("carplate")
                     }}>
                         번호판 비식별화
                     </MaskingBtn>
                 </MaskingBtnContainer>
                 <AreaMaskingImgContainer visible={options?.masking.includes('area') || false}>
-                    <RectCanvas ref={rectCanvasRef}
-                        onMouseDown={e => {
-                            let canvasRect = e.currentTarget.getBoundingClientRect();
-                            tempX = e.clientX - canvasRect.left;
-                            tempY = e.clientY - canvasRect.top;
-                            if (e.currentTarget.style.cursor.includes("resize")) {
-                                isResizeClicked = true;
-                            } else if (isMovable) {
-                                isMoveClicked = true;
-                            }
-                        }}
-                        onMouseUp={onMouseOutEventCallback}
-                        onMouseLeave={onMouseOutEventCallback}
-                        onMouseMove={e => {
-                            const canvas = e.currentTarget;
-                            let canvasRect = canvas.getBoundingClientRect();
-                            const mouseX = e.clientX - canvasRect.left;
-                            const mouseY = e.clientY - canvasRect.top;
-                            const mousePoint: XYCoordsType = [mouseX, mouseY];
-                            const { width, height } = canvasRect;
-                            if (mouseX > width || mouseX < 0) return onMouseOutEventCallback;
-                            if (isMoveClicked) {
-                                let changeTempX = mouseX - tempX;
-                                let changeTempY = mouseY - tempY;
-                                tempX = mouseX;
-                                tempY = mouseY;
-                                let { left, top, right, bottom } = getFourPointsByCurrentAreaCoord()
-                                left = left + changeTempX < 0 ? 0 : left + changeTempX
-                                top = top + changeTempY < 0 ? 0 : top + changeTempY
-                                right = right + changeTempX > width ? width : right + changeTempX
-                                bottom = bottom + changeTempY > height ? height : bottom + changeTempY
-                                drawRectToCavnasByWidthHeight(canvas, left, top, right - left, bottom - top);
-                            } else if (isResizeClicked) {
-                                const _x = mouseX - tempX
-                                const _y = mouseY - tempY
-                                tempX = mouseX;
-                                tempY = mouseY;
-                                drawRectToCanvasByPoints(canvas, currentAreaCoord.map((_, ind) => ind === isResizePoint ? [
-                                    _[0] + _x < 0 ? 0 : (_[0] + _x > width ? width : _[0] + _x),
-                                    _[1] + _y < 0 ? 0 : (_[1] + _y > height ? height : _[1] + _y),
-                                ] : _))
-                            }
-                            if (!isMoveClicked) {
-                                if (
-                                    getDistanceTwoPoint(mousePoint, currentAreaCoord[0]) <
-                                    targetCornerDistance
-                                ) {
-                                    canvas.style.cursor = "nw-resize";
-                                    isResizePoint = 0;
-                                } else if (
-                                    getDistanceTwoPoint(mousePoint, currentAreaCoord[1]) <
-                                    targetCornerDistance
-                                ) {
-                                    canvas.style.cursor = "ne-resize";
-                                    isResizePoint = 1;
-                                } else if (
-                                    getDistanceTwoPoint(mousePoint, currentAreaCoord[2]) <
-                                    targetCornerDistance
-                                ) {
-                                    canvas.style.cursor = "se-resize";
-                                    isResizePoint = 2;
-                                } else if (
-                                    getDistanceTwoPoint(mousePoint, currentAreaCoord[3]) <
-                                    targetCornerDistance
-                                ) {
-                                    canvas.style.cursor = "sw-resize";
-                                    isResizePoint = 3;
-                                } else {
-                                    const { minX, minY, maxX, maxY } =
-                                        currentAreaCoord.reduce(
-                                            (pre: minMaxCoordType, cur: XYCoordsType) => {
-                                                const result: minMaxCoordType = {
-                                                    minX: 0,
-                                                    minY: 0,
-                                                    maxX: 0,
-                                                    maxY: 0,
-                                                };
-                                                result.minX =
-                                                    pre.minX < cur[0] ? pre.minX : cur[0];
-                                                result.maxX =
-                                                    pre.maxX > cur[0] ? pre.maxX : cur[0];
-                                                result.minY =
-                                                    pre.minY < cur[1] ? pre.minY : cur[1];
-                                                result.maxY =
-                                                    pre.maxY > cur[1] ? pre.maxY : cur[1];
-                                                return result;
-                                            },
-                                            { minX: 9999, maxX: 0, minY: 9999, maxY: 0 }
-                                        );
-                                    if (
-                                        mouseX < maxX &&
-                                        mouseX > minX &&
-                                        mouseY < maxY &&
-                                        mouseY > minY
-                                    ) {
-                                        const tempLine: CanvasCoordsType = [
-                                            [mouseX, mouseY],
-                                            [canvasRect.right, mouseY],
-                                        ];
-                                        const result = checkCrossPoint(
-                                            currentAreaCoord[0],
-                                            currentAreaCoord[3],
-                                            tempLine[0],
-                                            tempLine[1]
-                                        ); // 왼쪽선
-                                        const result2 = checkCrossPoint(
-                                            currentAreaCoord[1],
-                                            currentAreaCoord[2],
-                                            tempLine[0],
-                                            tempLine[1]
-                                        ); // 오른쪽선
-                                        if (!result && result2) {
-                                            canvas.style.cursor = "move";
-                                            if (!isMovable) isMovable = true;
-                                        } else {
-                                            canvas.style.cursor = "default";
-                                            isMovable = false;
-                                        }
-                                    } else {
-                                        canvas.style.cursor = "default";
-                                        isMovable = false;
-                                    }
-                                }
-                            }
-                        }} />
-                    {thumbnailSrc && <img ref={imgRef} src={"data:image/jpeg;base64," + thumbnailSrc} width="100%" height="100%" />}
+                    <ImgContainer>
+                    <RectCanvas ref={rectCanvasRef} onClick={(e) => {
+                        const {left, top, width, height} = e.currentTarget.getBoundingClientRect()
+                        const mouseX = e.clientX - left
+                        const mouseY = e.clientY - top
+                        const resolution_x = rectCanvasRef.current!.width / width
+                        const resolution_y = rectCanvasRef.current!.height / height
+                        setClickPoints(clickPoints.concat([[mouseX * resolution_x, mouseY * resolution_y]]))
+                    }} onContextMenu={e => {
+                        e.preventDefault()
+                        if(clickPoints.length < 3) return message.error({title: "입력값 에러", msg:"3개 이상의 영역 지정이 필요합니다."})
+                        setSubmitPoints(submitPoints.concat([clickPoints]))
+                        setClickPoints([])
+                    }} />
+                    {thumbnailSrc && <img ref={imgRef} src={"data:image/jpeg;base64," + thumbnailSrc} width="100%" height="100%" style={{
+                        aspectRatio: '16/9',
+                    }}/>}
+                    </ImgContainer>
+                    <AreaMaskingETCContainer>
+                        <MouseImgContainer>
+                            <img src={leftClickIcon} />
+                            <MouseImgLabel>
+                                : 영역 지정
+                            </MouseImgLabel>
+                        </MouseImgContainer>
+                        <MouseImgContainer>
+                            <img src={rightClickIcon} />
+                            <MouseImgLabel>
+                                : 영역 결정
+                            </MouseImgLabel>
+                        </MouseImgContainer>
+                        <ClearBtn hover onClick={() => {
+                            setClickPoints([])
+                            setSubmitPoints([])
+                        }}>
+                            초기화
+                        </ClearBtn>
+                    </AreaMaskingETCContainer>
                 </AreaMaskingImgContainer>
             </OptionContentsContainer>
             <OptionsTitle>
@@ -395,15 +234,26 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             </OptionsTitle>
             <EncryptContentsContainer>
                 비밀번호 :
-                <EncryptInput value={options?.password || ''} maxLength={24} onChange={val => {
+                <EncryptInput value={options.password} maxLength={20} onChange={val => {
                     setOptions({ ...options!, password: val })
                 }} type="password" disabled={passwordSet} />
                 <EncryptBtn activate={!passwordSet} onClick={() => {
+                    if(!options.password) return message.error({title: "입력값 에러", msg:"비밀번호를 입력해주세요."})
                     setPasswordSet(!passwordSet)
                 }}>
                     {passwordSet ? "해제" : "적용"}
                 </EncryptBtn>
             </EncryptContentsContainer>
+            <OptionsTitle>
+                비고
+            </OptionsTitle>
+            <DescriptionContainer onClick={() => {
+                if(inputRef.current) inputRef.current.focus()
+            }}>
+                <DescriptionInput value={options.description} maxLength={100} onChange={val => {
+                    setOptions({ ...options!, description: val })
+                }} type="textarea" placeholder="설명을 입력해주세요. (100자 이내)" inputRef={inputRef}/>
+            </DescriptionContainer>
         </OptionsModalContainer>
     </Modal>
 }
@@ -412,7 +262,7 @@ export default OptionSelect
 
 const OptionsModalContainer = styled.div`
     width: 600px;
-    height: 540px;
+    height: 740px;
     overflow-y: auto;
 `
 
@@ -429,7 +279,7 @@ const ContentsContainer = styled.div`
 `
 
 const MaskingBtnContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 
 const MaskingBtn = styled(Button)`
@@ -451,6 +301,23 @@ const EncryptBtn = styled(Button)`
     flex: 0 0 80px;
 `
 
+const DescriptionContainer = styled.div`
+    width: 100%;
+    max-height: 140px;
+    height: 140px;
+    background-color: ${InputBackgroundColor};
+    border-radius: 12px;
+    ${globalStyles.flex({flexDirection:'row'})}
+    margin-top: 8px;
+    cursor: pointer;
+`
+
+const DescriptionInput = styled(Input)`
+    height: 100%;
+    flex: 1;
+    pointer-events: none;
+`
+
 const MaskingInfoIcon = styled.img`
     height: 80%;
     cursor: pointer;
@@ -458,16 +325,51 @@ const MaskingInfoIcon = styled.img`
 
 const AreaMaskingImgContainer = styled.div<{ visible: boolean }>`
     transition: height .25s ease-out;
-    height: ${({ visible }) => visible ? 330 : 0}px;
+    height: ${({ visible }) => visible ? 363 : 0}px;
     margin-top: 8px;
-    & > img {
-        height: 330px;
-    }
     overflow: hidden;
     position: relative;
     ${globalStyles.flex()}
 `
 
+const ImgContainer = styled.div`
+    position: relative;
+    height: 330px;
+`
+
 const RectCanvas = styled.canvas`
     position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    aspectRatio: 16/9
+`
+
+const AreaMaskingETCContainer = styled.div`
+    height: 36px;
+    margin-top: 8px;
+    width: 100%;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
+`
+
+const ClearBtn = styled(Button)`
+    width: 100%;
+    flex: 1;
+`
+
+const MouseImgContainer = styled.div`
+    height: 100%;
+    flex: 0 0 100px;
+    padding: 2px;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+    & > img {
+        flex: 1;
+        height: 100%;
+    }
+`
+
+const MouseImgLabel = styled.div`
+    flex: 0 0 72px;
+    font-size: 0.9rem;
 `

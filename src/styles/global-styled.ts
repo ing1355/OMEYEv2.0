@@ -1,5 +1,8 @@
 import { CSSProperties, createGlobalStyle, keyframes, css } from 'styled-components'
 import { HeaderHeight } from '../Constants/CSSValues';
+import NanumGothicBold from '../assets/fonts/NanumFont/NanumGothicBold.otf'
+import NanumGothic from '../assets/fonts/NanumFont/NanumGothic.otf'
+import NanumGothicLight from '../assets/fonts/NanumFont/NanumGothicLight.otf'
 
 export const GlobalBackgroundColor = '#0f0e11';
 export const SectionBackgroundColor = '#201f25';
@@ -7,6 +10,8 @@ export const ButtonDisabledBackgroundColor = 'rgba(0,170,113,.5)';
 export const ButtonBackgroundColor = '#302f35';
 export const ButtonBorderColor = '#45454c';
 export const ButtonActiveBackgroundColor = '#00aa71';
+export const ButtonActivateHoverColor = '#1EC682';
+export const ButtonDefaultHoverColor = '#1EC682';
 export const ButtonInActiveBackgroundColor = '#467061';
 export const TextActivateColor = '#14c9aa';
 export const InputBackgroundColor = '#151619';
@@ -15,6 +20,7 @@ export const StopBackgroundColor = '#EF7070'
 export const StopBorderColor = '#C62222'
 export const ContentsBorderColor = ButtonBorderColor
 export const ContentsActivateColor = ButtonActiveBackgroundColor
+export const ContentsDisableColor = 'rgba(128,128,128,.5)'
 export const loadingVideoDownloadColor = ContentsActivateColor
 export const loadingAIAnalysisColor = ButtonActiveBackgroundColor
 
@@ -95,6 +101,24 @@ export const globalStyles = {
 }
 
 const GlobalStyle = createGlobalStyle`
+@font-face {
+  font-family: 'NanumGothicBold';
+  src: local('NanumGothicBold'), local('NanumGothicBold');
+  font-style: normal;
+  src: url(${NanumGothicBold}) format('opentype');
+}
+@font-face {
+  font-family: 'NanumGothic';
+  src: local('NanumGothic'), local('NanumGothic');
+  font-style: normal;
+  src: url(${NanumGothic}) format('opentype');
+}
+@font-face {
+  font-family: 'NanumGothicLight';
+  src: local('NanumGothicLight'), local('NanumGothicLight');
+  font-style: normal;
+  src: url(${NanumGothicLight}) format('opentype');
+}
    button {
      padding: 4px 12px;
      border-radius: 6px;
@@ -139,6 +163,7 @@ const GlobalStyle = createGlobalStyle`
       box-sizing: border-box;
       user-select: none;
       font-size: .9rem;
+      font-family: NanumGothic;
    }
 `
 

@@ -9,7 +9,7 @@ export type ReIDRequestGroupDataType = {
     rank: number
     requestEndTime: string
     requestStartTime: string
-    status: 'IN_PROGRESS' | 'SUCCESS' | 'CANCEL'
+    status: 'IN_PROGRESS' | 'SUCCESS' | 'CANCEL' | 'EMPTY'
     targetObjects: {
         id: number
         imgUrl: string
@@ -26,8 +26,8 @@ export type ReIDLogDataType = {
     createdTime: string
     closedTime: string
     requestGroups: ReIDRequestGroupDataType[]
+    userId: string
     // status: string
-    // userId: string
     // object: {
     //     id: number
     //     imgPath: string

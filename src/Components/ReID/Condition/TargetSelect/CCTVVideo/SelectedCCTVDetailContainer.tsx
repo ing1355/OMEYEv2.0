@@ -3,7 +3,7 @@ import { SectionBackgroundColor, globalStyles } from "../../../../../styles/glob
 import CaptureImageContainer from "../../Constants/CaptureImageContainer"
 import Button from "../../../../Constants/Button"
 import { useEffect, useState } from "react"
-import { useRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import { conditionTargetDatasCCTVTemp } from "../../../../../Model/ConditionDataModel"
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, setStateType } from "../../../../../Constants/GlobalTypes"
 import maskIcon from "../../../../../assets/img/maskIcon.png"
@@ -11,11 +11,13 @@ import modalCloseIcon from "../../../../../assets/img/modalCloseIcon.png"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Constants/Params"
 import Video from "../../../../Constants/Video"
 import ImageView from "../../Constants/ImageView"
-import { convertFullTimeStringToHumanTimeFormat } from "../../../../../Functions/GlobalFunctions"
+import { convertFullTimeString, convertFullTimeStringToHumanTimeFormat, convertFullTimeStringToHumanTimeFormatByDate } from "../../../../../Functions/GlobalFunctions"
 import { ObjectTypes } from "../../../ConstantsValues"
 import { TimeModalDataType } from "../../Constants/TimeModal"
 import ResetIcon from '../../../../../assets/img/resetIcon.png'
 import useMessage from "../../../../../Hooks/useMessage"
+import ForLog from "../../../../Constants/ForLog"
+import { conditionRoute } from "../../../../../Model/ConditionRouteModel"
 
 type SelectedCCTVDetailContainerProps = {
     selected: CameraDataType | null
@@ -26,7 +28,9 @@ type SelectedCCTVDetailContainerProps = {
 
 const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened, timeValue }: SelectedCCTVDetailContainerProps) => {
     const [captureSrc, setCaptureSrc] = useState<string | undefined>(undefined)
+    const [captureTime, setCaptureTime] = useState<string>('')
     const [targetList, setTargetList] = useRecoilState(conditionTargetDatasCCTVTemp)
+    const routeInfo = useRecoilValue(conditionRoute)
     const message = useMessage()
 
     const captureCallback = (resultList: CaptureResultListItemType[]) => {
@@ -34,13 +38,23 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
             ..._,
             method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['CCTV']],
             cctvName: selected?.name,
-            selected: false
+            selected: false,
+            time: captureTime
         }))))
     }
 
     useEffect(() => {
-        if(!selected) setCaptureSrc(undefined)
-    },[selected])
+        if (!selected) setCaptureSrc(undefined)
+    }, [selected])
+
+    useEffect(() => {
+        if(targetList.length > 0) {
+            setTargetList(targetList.map(_ => ({
+                ..._,
+                selected: false
+            })))
+        }
+    },[routeInfo])
 
     return <>
         <Container visible={selected !== null}>
@@ -103,6 +117,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                         let ctx = canvas.getContext("2d")!;
                         ctx.drawImage(target, 0, 0, target.videoWidth, target.videoHeight);
                         setCaptureSrc(canvas.toDataURL())
+                        setCaptureTime(convertFullTimeString(new Date()))
                     }}>
                         캡처
                     </VideoCaptureBtn>
@@ -135,6 +150,9 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                         let ctx = canvas.getContext("2d")!;
                         ctx.drawImage(target, 0, 0, target.videoWidth, target.videoHeight);
                         setCaptureSrc(canvas.toDataURL())
+                        const tempTime = new Date(convertFullTimeStringToHumanTimeFormat(timeValue!.startTime))
+                        tempTime.setSeconds(tempTime.getSeconds() + Math.floor(target.currentTime))
+                        setCaptureTime(convertFullTimeString(tempTime))
                     }}>
                         캡처
                     </VideoCaptureBtn>
@@ -153,7 +171,12 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                 {
                     targetList.map(_ => <CaptureResultListItemBox key={_.id} selected={_.selected!}>
                         <CaptureResultListItemImageContainer>
-                            <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} />
+                            <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} style={{
+                                height: _.time ? 'calc(100% - 24px)' : '100%'
+                            }} />
+                            {_.time && <CaptureResultListItemTimeText>
+                                {convertFullTimeStringToHumanTimeFormat(_.time)}
+                            </CaptureResultListItemTimeText>}
                         </CaptureResultListItemImageContainer>
                         <CaptureResultListItemFaceSelectContainer>
                             {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hover activate={_.mask || false} onClick={() => {
@@ -238,8 +261,12 @@ const CaptureResultListItemImageContainer = styled.div`
 `
 
 const CaptureResultListItemImage = styled(ImageView) <{ isFace: boolean }>`
-    width: 100%;
-    height: 100%;
+    
+`
+
+const CaptureResultListItemTimeText = styled.div`
+    ${globalStyles.flex()}
+    height: 24px;
 `
 
 const MaskSelect = styled(Button)`

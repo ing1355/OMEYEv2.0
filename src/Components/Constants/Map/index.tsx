@@ -12,13 +12,14 @@ import { GlobalBackgroundColor, InputBackgroundColor, InputTextColor, TextActiva
 import Button from "../Button";
 import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
-import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel";
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel";
 import useMessage from "../../../Hooks/useMessage";
 import { AdditionalReIDTimeValue, ReIDResultData, SingleReIDSelectedData } from "../../../Model/ReIdResultModel";
 import AdditionalReIDContainer from "./AdditionalReIDContainer";
 import { menuState } from "../../../Model/MenuModel";
 import { conditionMenu } from "../../../Model/ConditionMenuModel";
 import CCTVDropdownSearch from "../CCTVDropdownSearch";
+import selectedMarkerLocationIcon from '../../../assets/img/selectedMarkerLocationIcon.png'
 
 type MapComponentProps = PropsWithChildren & {
     selectedCCTVs?: CameraDataType['cameraId'][]
@@ -27,15 +28,17 @@ type MapComponentProps = PropsWithChildren & {
     singleCamera?: CameraDataType['cameraId']
     forSingleCamera?: boolean
     pathCameras?: CameraDataType['cameraId'][]
-    idForViewChange?: CameraDataType['cameraId'][]
+    idForViewChange?: CameraDataType['cameraId']
     forAddtraffic?: boolean
-    reidId?: number
+    reIdId?: number
     onlyMap?: boolean
     noSelect?: boolean
     isDebug?: boolean
+    initEvent?: boolean
+    viewChangeForPath?: CameraDataType['cameraId'][]
 }
 
-const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reidId, onlyMap, noSelect, isDebug }: MapComponentProps) => {
+const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
     const [r, setR] = useState('1')
@@ -56,12 +59,13 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         id: number,
         type: ReIDObjectTypeKeys
     }[]>([])
-    const targetReidresult = useRecoilValue(ReIDResultData(reidId!))
+    const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
     const progressStatus = useRecoilValue(ProgressStatus)
-    const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reidId!))
+    const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
     const globalMenuState = useRecoilValue(menuState)
     const conditionMenuState = useRecoilValue(conditionMenu)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const message = useMessage()
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
 
@@ -76,7 +80,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 map.current = new OlMap(mapElement.current!, forAddtraffic, forAddtraffic ? addTrafficInputContainer.current! : circleSelectContainer.current!, forSingleCamera, noSelect)
                 break;
         }
-
         map.current.init()
         if (!cameras && !(singleCamera && forSingleCamera)) map.current.createMarkersBySites(sitesData)
         if (forAddtraffic) {
@@ -104,6 +107,9 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         })
         map.current.registerContextMenuHandler()
         if (selectedChange) map.current.addSelectedMarkerChangeEventCallback(selectedChange)
+        map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
+            console.log(cctvs)
+        })
     }, [])
 
     const valueInit = () => {
@@ -116,26 +122,31 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }
 
     useEffect(() => {
-        if (map.current && selectedCCTVs) {
-            map.current.selectedMarkerChangeCallback(selectedCCTVs)
+        if (map.current) {
+            map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
         }
     }, [selectedCCTVs])
 
     useEffect(() => {
-        console.debug("pathCameras : ", pathCameras)
         if (forAddtraffic && pathCameras && pathCameras.length > 0) {
             map.current?.clearPathLines()
             map.current?.createPathLines(pathCameras, TextActivateColor)
-        } else if(pathCameras && pathCameras.length === 0) {
+        } else if (pathCameras && pathCameras.length === 0) {
             map.current?.clearPathLines()
         }
     }, [forAddtraffic, pathCameras])
 
     useEffect(() => {
         if (idForViewChange) {
-            map.current?.viewChangeById(idForViewChange[0])
+            map.current?.viewChangeById(idForViewChange)
         }
     }, [idForViewChange])
+
+    useEffect(() => {
+        if (viewChangeForPath && viewChangeForPath.length > 0) {
+            map.current?.changeViewForPathCamera(viewChangeForPath[0])
+        }
+    }, [viewChangeForPath])
 
     useEffect(() => {
         if (!trafficOverlayView || !circleSelectOverlayView) {
@@ -175,15 +186,25 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         valueInit()
     }, [trafficOverlayView])
 
+    useEffect(() => {
+        if (initEvent && selectedChange) selectedChange([])
+    }, [initEvent])
+
     return <>
         <MapContainer ref={mapElement}>
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
-                if(map.current) map.current.viewChangeById(target.cameraId)
+                if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}
             <SelectedViewBtn hover onClick={() => {
-                if (map.current) map.current?.changeViewToSelectedCCTVs()
+                if (map.current) {
+                    if (forAddtraffic) map.current?.changeViewToSelectedCCTVs(pathCameras)
+                    else map.current?.changeViewToSelectedCCTVs()
+                }
             }}>
-                위치
+                <img src={selectedMarkerLocationIcon} style={{
+                    width: '100%',
+                    height: '100%'
+                }} />
             </SelectedViewBtn>
             {children || <></>}
             {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
@@ -273,10 +294,11 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
                         if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
                         closeOverlayWrapper()
+                        setRequestFlag(true)
                         setProgressRequestParams({
                             type: 'ADDITIONALREID',
                             params: {
-                                reidId,
+                                reIdId,
                                 title: titleInput,
                                 etc: etcInput,
                                 rank: rankInput,
@@ -303,11 +325,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                             반경
                         </AddReIDInputLabel>
                         <AddReIDInputContentContainer>
-                            <AddReIDInputContent maxLength={6} onInput={e => {
-                                if (e.currentTarget.value.length === 0 || e.currentTarget.value === '0') e.currentTarget.value = '1'
-                                else if (e.currentTarget.value.slice(0, 1) === '0') e.currentTarget.value = e.currentTarget.value.slice(1,)
-                                else e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '')
-                            }} value={r} onChange={val => {
+                            <AddReIDInputContent onlyNumber maxLength={5} value={r} onChange={val => {
                                 setR(val)
                             }} style={{
                                 paddingRight: '60px'
@@ -344,6 +362,8 @@ export default memo(MapComponent, (prev, next) => {
     if (JSON.stringify(prev.cameras) !== JSON.stringify(next.cameras)) return false
     if (JSON.stringify(prev.pathCameras) !== JSON.stringify(next.pathCameras)) return false
     if (prev.idForViewChange !== next.idForViewChange) return false
+    if (prev.viewChangeForPath !== next.viewChangeForPath) return false
+    if (prev.initEvent !== next.initEvent) return false
     return true
 })
 
@@ -442,4 +462,5 @@ const SelectedViewBtn = styled(Button)`
     height: 42px;
     z-index: 1005;
     border: none;
+    padding: 8px;
 `

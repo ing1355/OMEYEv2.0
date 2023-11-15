@@ -1,4 +1,4 @@
-import { DefaultValue, RecoilValueReadOnly, atom, selectorFamily } from "recoil";
+import { DefaultValue, RecoilValueReadOnly, atom, selector, selectorFamily } from "recoil";
 import { CameraDataType } from "../Constants/GlobalTypes";
 import { Axios, streamingAllStopRequest } from "../Functions/NetworkFunctions";
 import { StopAllVMSVideoApi } from "../Constants/ApiRoutes";
@@ -18,6 +18,16 @@ const _MonitoringCCTVsData = atom<{
         cctvs: [],
         status: "IDLE",
         layoutNum: 1
+    }
+})
+
+export const MonitoringAllData = selector({
+    key: "MonitoringCCTVsAllData/selector",
+    get: ({get}) => {
+        return get(_MonitoringCCTVsData)
+    },
+    set: ({set}, newValue) => {
+        return set(_MonitoringCCTVsData, newValue)
     }
 })
 

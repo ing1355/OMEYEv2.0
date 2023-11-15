@@ -80,13 +80,16 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
                         <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} />
                     </CaptureResultListItemImageContainer>
                     <CaptureResultListItemFaceSelectContainer>
-                        {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hover activate={_.mask || false} onClick={() => {
+                        {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hoverBorder activate={_.mask || false} onClick={() => {
                                 setTargetList(targetList.map(__ => __.id === _.id ? ({
                                     ...__,
                                     mask: !__.mask
                                 }) : __))
                             }}>
-                                <img src={maskIcon} />
+                                <img src={maskIcon} style={{
+                                    width: '100%',
+                                    height: '100%'
+                                }}/>
                             </MaskSelect>}
                         <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
                             setTargetList(targetList.map(__ => __.id === _.id ? {
@@ -140,9 +143,9 @@ const CaptureResultListItemsContainer = styled.div`
 `
 
 const CaptureResultListItemBox = styled.div<{ selected: boolean }>`
-    flex: 0 0 200px;
     height: 200px;
-    ${globalStyles.flex()}
+    width: 200px;
+    ${globalStyles.flex({gap: '6px'})}
 `
 
 const CaptureResultListItemImageContainer = styled.div`
@@ -162,7 +165,7 @@ const MaskSelectIcon = styled.img`
 `
 
 const CaptureResultListItemFaceSelectContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '6px' })}
     width: 100%;
     height: 40px;
 `
@@ -170,7 +173,7 @@ const CaptureResultListItemFaceSelectContainer = styled.div`
 const CaptureResultListItemSelectButton = styled(Button) <{ selected: boolean, isMask: boolean }>`
     ${({ isMask }) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
     height: 100%;
-    border-radius: 12px;
+    border-radius: 6px;
 `
 
 const ResetBtn = styled(Button)`
@@ -181,4 +184,8 @@ const ResetBtn = styled(Button)`
 `
 
 const MaskSelect = styled(Button)`
+    height: 100%;
+    width: 120px;
+    padding: 4px;
+    ${globalStyles.flex()}
 `

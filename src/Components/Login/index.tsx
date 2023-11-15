@@ -26,6 +26,7 @@ const Login = () => {
                     </LogoTextImgContainer>
                 </LogoContainer>
                 <LoginForm onSubmit={async e => {
+                    console.log('submit')
                     const { userId, password } = e.currentTarget.elements as any;
                     const res = await Axios("POST", LoginApi, {
                         username: userId.value,
@@ -62,6 +63,9 @@ const Login = () => {
                         로그인
                     </LoginCompleteButton>
                 </LoginForm>
+                <VersionText>
+                    v{process.env.REACT_APP_VERSION}
+                </VersionText>
             </WithLogoContainer>
             <InnerImageContainer>
                 <InnerImg alt="test" src={loginSideBackgroundImg} />
@@ -97,6 +101,7 @@ const WithLogoContainer = styled.div`
     width: 500px;
     height: 100%;
     padding: 20px 48px;
+    position: relative;
     ${globalStyles.flex({ justifyContent: 'flex-start', alignItems: 'flex-start', gap: '16px' })}
 `
 
@@ -158,4 +163,10 @@ const CopyRight = styled.div`
     color: white;
     margin-top: 36px;
     letter-spacing: -1px;
+`
+
+const VersionText = styled.div`
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
 `

@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { InputBackgroundColor, InputTextColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { ContentsDisableColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { conditionETCData, conditionIsRealTimeData, conditionRankData } from "../../../../Model/ConditionDataModel"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -10,14 +10,15 @@ import conditionDataAddIcon from '../../../../assets/img/conditionDataAddIcon.pn
 import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHoverIcon.png'
 import conditionDataMinusIcon from '../../../../assets/img/conditionDataMinusIcon.png'
 import conditionDataMinusHoverIcon from '../../../../assets/img/conditionDataMinusHoverIcon.png'
+import rankIcon from '../../../../assets/img/rankIcon.png'
 
-const RankBtn = ({callback, hoverIcon, icon}: {
+const RankBtn = ({ callback, hoverIcon, icon }: {
     callback: () => void
     hoverIcon: string
     icon: string
 }) => {
     const [isHover, setIsHover] = useState(false)
-
+    const isRealTime = useRecoilValue(conditionIsRealTimeData)
     const timer1 = useRef<NodeJS.Timeout>()
     const timer2 = useRef<NodeJS.Timer>()
 
@@ -39,15 +40,22 @@ const RankBtn = ({callback, hoverIcon, icon}: {
     }, [])
 
     return <RankInputButton
+        disabled={isRealTime}
         onMouseDown={(e) => {
-            callback()
-            onLongClickProgress(400, callback)
+            if(!isRealTime) {
+                callback()
+                onLongClickProgress(400, callback)
+            }
         }}
         onMouseEnter={() => {
-            setIsHover(true)
+            if(!isRealTime) {
+                setIsHover(true)
+            }
         }}
         onMouseLeave={() => {
-            setIsHover(false)
+            if(!isRealTime) {
+                setIsHover(false)
+            }
         }}
         icon={isHover ? hoverIcon : icon}
     />
@@ -55,6 +63,7 @@ const RankBtn = ({callback, hoverIcon, icon}: {
 
 const RankComponent = () => {
     const [rank, setRank] = useRecoilState(conditionRankData)
+    const isRealTime = useRecoilValue(conditionIsRealTimeData)
 
     const rankUpCallback = useCallback(() => {
         setRank(_ => _ === 99 ? _ : _ + 1)
@@ -65,24 +74,29 @@ const RankComponent = () => {
 
     return <RankContainer>
         <TitleContainer>
-            <Title>
-                분석 결과 후보 수
-            </Title>
+            <TitleInnerContainer>
+                <TitleIconContainer>
+                    <TitleIcon src={rankIcon} />
+                </TitleIconContainer>
+                <TitleText>
+                    분석 결과 후보 수
+                </TitleText>
+            </TitleInnerContainer>
         </TitleContainer>
-        <RankInputContainer>
+        <RankInputContainer disabled={isRealTime}>
             <RankInputInnerContainer>
-                <RankInput maxLength={3} onlyNumber maxNumber={100} value={rank.toString()} onChange={value => {
+                <RankInput isRealTime={isRealTime} maxLength={3} onlyNumber maxNumber={100} value={rank.toString()} onChange={value => {
                     if (!value) {
                         return setRank(0)
                     }
                     setRank(parseInt(value))
                 }} onBlur={e => {
                     if (rank === 0) setRank(10)
-                }} autoComplete="off"/>
+                }} />
             </RankInputInnerContainer>
             <RankInputButtonsContainer>
-                <RankBtn icon={conditionDataAddIcon} hoverIcon={conditionDataAddHoverIcon} callback={rankUpCallback}/>
-                <RankBtn icon={conditionDataMinusIcon} hoverIcon={conditionDataMinusHoverIcon} callback={rankDownCallback}/>
+                <RankBtn icon={conditionDataAddIcon} hoverIcon={conditionDataAddHoverIcon} callback={rankUpCallback} />
+                <RankBtn icon={conditionDataMinusIcon} hoverIcon={conditionDataMinusHoverIcon} callback={rankDownCallback} />
             </RankInputButtonsContainer>
         </RankInputContainer>
     </RankContainer>
@@ -95,11 +109,11 @@ const ReIDDescriptionComponent = () => {
 
     return <DescriptionContainer>
         <TitleContainer>
-            <Title>
+            <TitleText>
                 비고
-            </Title>
+            </TitleText>
         </TitleContainer>
-        <DescriptionInputContainer onClick={() => {
+        <DescriptionInputContainer disabled={isRealTime} onClick={() => {
             if (inputRef.current && !isRealTime) inputRef.current.focus()
         }}>
             <DescriptionInput type="textarea" inputRef={inputRef} value={description} onChange={str => {
@@ -132,13 +146,13 @@ const RankContainer = styled.div`
     ${globalStyles.flex({ gap: '2px' })}
 `
 
-const RankInputContainer = styled.div`
+const RankInputContainer = styled.div<{disabled: boolean}>`
     width: 100%;
     flex: 1 1 auto;
     border: 1px solid black;
     padding: 12px 36px;
     border-radius: 10px;
-    background-color: ${SectionBackgroundColor};
+    background-color: ${({disabled}) => disabled ? ContentsDisableColor : SectionBackgroundColor};
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '4px' })}
 `
 
@@ -157,7 +171,7 @@ const RankInputInnerContainer = styled.div`
     }
 `
 
-const RankInput = styled(Input)`
+const RankInput = styled(Input)<{isRealTime: boolean}>`
     outline: none;
     border: none;
     border-radius: 10px;
@@ -166,6 +180,8 @@ const RankInput = styled(Input)`
     font-size: 1.5rem;
     color: white;
     height: 100%;
+    background-color: ${({isRealTime}) => isRealTime ? 'transparent' : InputBackgroundColor};
+    pointer-events: ${({isRealTime}) => isRealTime ? 'none' : 'all'};
 `
 
 const RankInputButtonsContainer = styled.div`
@@ -189,12 +205,14 @@ const DescriptionContainer = styled.div`
     ${globalStyles.flex({ gap: '2px' })}
 `
 
-const DescriptionInputContainer = styled.div`
+const DescriptionInputContainer = styled.div<{disabled: boolean}>`
     width: 100%;
     flex: 1 1 auto;
     padding: 12px 36px;
     cursor: pointer;
-    background-color: ${SectionBackgroundColor};
+    border-radius: 6px;
+    pointer-events: ${({disabled}) => disabled ? 'none' : 'all'};
+    background-color: ${({disabled}) => disabled ? ContentsDisableColor : SectionBackgroundColor};
 
 `
 
@@ -218,7 +236,24 @@ const TitleContainer = styled.div`
     margin-bottom: 8px;
 `
 
-const Title = styled.div`
+const TitleInnerContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
+    flex: 1;
+`
+
+const TitleIconContainer = styled.div`
+    flex: 0 0 26px;
+    margin-right: 6px;
+    height: 100%;
+    ${globalStyles.flex()}
+`
+
+const TitleIcon = styled.img`
+    width: 100%;
+    height: 100%;
+`
+
+const TitleText = styled.div`
+    font-size: 1.3rem;
     color: white;
-    font-size: 1.5rem;
 `

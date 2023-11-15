@@ -2,11 +2,12 @@ import { useRecoilState, useSetRecoilState } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
 import { conditionIsRealTimeData, conditionTimeDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import { TimeSelectIndex, TimeSelectVisible } from "../../../../Model/ConditionParamsModalModel"
 import Button from "../../../Constants/Button"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import IconBtn from "../../../Constants/IconBtn"
+import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 
 const TimeBoundaryColumn = () => {
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
@@ -40,6 +41,7 @@ const TimeBoundaryColumn = () => {
         <Container>
             <ConditionParamsInputColumnComponent
                 title={`시간(${timeData.length})`}
+                titleIcon={timeIcon}
                 isDataExist={timeData.length > 0}
                 initAction={initAction}
                 dataAddAction={addAction}
@@ -48,16 +50,23 @@ const TimeBoundaryColumn = () => {
                 allSelectAction={allSelectAction}
                 allSelected={timeData.every(_ => _.selected)}>
                 {
-                    timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false}>
+                    timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false} onClick={() => {
+                        setTimeData(timeData.map((__, _ind) => ind === _ind ? {
+                            ...__,
+                            selected: !__.selected
+                        } : __))
+                    }}>
                         <TimeDataItemTitle>
                             <div>
-                                시간 {ind + 1}
+                                그룹 {ind + 1}
                             </div>
                             <HeaderBtnsContainer>
-                                <IconBtn disabled={isRealTime} type="edit" onClick={() => {
+                                <IconBtn disabled={isRealTime} type="edit" onClick={(e) => {
+                                    e.stopPropagation()
                                     modifyAction(ind)
                                 }} />
-                                <IconBtn disabled={isRealTime} type="delete" onClick={() => {
+                                <IconBtn disabled={isRealTime} type="delete" onClick={(e) => {
+                                    e.stopPropagation()
                                     deleteAction(ind)
                                 }} />
                             </HeaderBtnsContainer>
@@ -66,12 +75,7 @@ const TimeBoundaryColumn = () => {
                             {convertFullTimeStringToHumanTimeFormat(_.time[0])}&nbsp;~&nbsp;{convertFullTimeStringToHumanTimeFormat(_.time[1])}
                         </ContentsContainer>
                         <BtnsContainer>
-                            <Btn disabled={isRealTime} activate={_.selected} onClick={() => {
-                                setTimeData(timeData.map((__, _ind) => ind === _ind ? {
-                                    ...__,
-                                    selected: !__.selected
-                                } : __))
-                            }}>
+                            <Btn disabled={isRealTime} activate={_.selected}>
                                 {_.selected ? '해제' : '선택'}
                             </Btn>
                         </BtnsContainer>
@@ -96,6 +100,7 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex()}
     position: relative;
+    cursor: pointer;
 `
 
 const ContentsContainer = styled.div`

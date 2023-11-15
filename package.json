@@ -1,6 +1,6 @@
 {
   "name": "omeye_renewal",
-  "version": "2.0(8)",
+  "version": "2.0(22)",
   "private": true,
   "proxy": "https://192.168.182.54:8082",
   "dependencies": {
@@ -15,7 +15,7 @@
     "buffer": "^6.0.3",
     "crypto-js": "^4.1.1",
     "event-source-polyfill": "^1.0.31",
-    "html2canvas": "^1.4.1",
+    "html-to-image": "^1.11.11",
     "http-proxy-middleware": "^2.0.6",
     "jwt-decode": "^3.1.2",
     "ol": "^7.4.0",

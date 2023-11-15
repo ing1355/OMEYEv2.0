@@ -3,7 +3,7 @@ import Menus from "../Menus";
 import { SitesData } from "../../Model/SiteDataModel";
 import styled from "styled-components";
 import { globalStyles } from "../../styles/global-styled";
-import { maxStoredDay } from "../../Model/GlobalSettingsModel";
+import { globalSettings } from "../../Model/GlobalSettingsModel";
 import { useEffect, useRef, useState } from "react";
 
 const LoadingComponent = () => {
@@ -21,11 +21,11 @@ const LoadingComponent = () => {
 
 const Main = () => {
     const sitesState = useRecoilValueLoadable(SitesData)
-    const vmsStoredTime = useRecoilValueLoadable(maxStoredDay)
+    const vmsStoredTime = useRecoilValueLoadable(globalSettings)
     
     if (sitesState.state === 'loading') return <LoadingComponent />
     if (vmsStoredTime.state === 'loading') return <LoadingComponent />
-
+    
     return <Menus />
 }
 

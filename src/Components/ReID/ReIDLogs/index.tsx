@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { ReIDLogDataType, ReIDSearchParamsType, SearchReIDLogDatas, useReIDLogDatas } from "../../../Model/ReIDLogModel"
-import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
+import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
 import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
 import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
@@ -14,10 +14,11 @@ import TimeModal, { TimeModalDataType } from "../Condition/Constants/TimeModal"
 import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
-import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
+import clearIcon from '../../../assets/img/rankUpIcon.png'
+import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
-import { Axios } from "../../../Functions/NetworkFunctions"
+import { Axios, GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import { GetReidDataApi } from "../../../Constants/ApiRoutes"
 import Pagination from "../../Layout/Pagination"
 
@@ -43,7 +44,6 @@ const ReIDLogs = () => {
         page: currentPage + 1
     })
 
-    const paginationInputRef = useRef<HTMLInputElement>()
     const titleInputRef = useRef<HTMLInputElement>()
 
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
@@ -55,7 +55,6 @@ console.log('currentPage',currentPage)
     useEffect(() => {
         refresh()
         params.current = { ...params.current, page: currentPage + 1 }
-        if (paginationInputRef.current) paginationInputRef.current.value = (currentPage + 1).toString()
     }, [currentPage])
 
     useEffect(() => {
@@ -100,6 +99,12 @@ console.log('currentPage',currentPage)
                         setTimeVisible(true)
                     }}>
                         {timeValue ? `${convertFullTimeStringToHumanTimeFormat(timeValue.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)}` : '시간을 입력해주세요.'}
+                        {timeValue && <ClearBtnContainer onClick={e => {
+                            e.stopPropagation()
+                            setTimeValue(undefined)
+                        }}>
+                            <ClearBtn src={clearIcon}/>
+                        </ClearBtnContainer>}
                     </DateSearch>
                     <SearchButton hover icon={searchIcon} type="submit">
                         검색
@@ -115,17 +120,28 @@ console.log('currentPage',currentPage)
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
                                 }}>
-                                    {/* <ForLog data={[_.requestGroups, _.reidId]}/> */}
-                                    <ContentsItemTitle>검색 {_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
+                                    <ContentsItemTitle>{_.userId} - No.{_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
                                     <ContentsItemTitleBtnsContainer>
                                         {/* <ContentsItemTitleBtn hover onClick={() => {
 
                                         }}>
                                             조건 목록에 전부 추가
                                         </ContentsItemTitleBtn> */}
-                                        <ContentsItemTitleBtn hover onClick={async (e) => {
+                                        {_.requestGroups && _.requestGroups.length > 0 && _.requestGroups[0].timeGroups.length > 0 && _.requestGroups[0].timeGroups[0].startTime !== 'live' && <ContentsItemTitleBtn hover onClick={async (e) => {
                                             e.stopPropagation()
-                                            const newData = await Axios("GET", GetReidDataApi(_.reidId))
+                                            const temp = await GetReIDResultById(_.reidId)
+                                            const newData: ReIDResultType = {...temp, data: temp.data.map(d => ({
+                                                ...d,
+                                                resultList: d.resultList.map(r => ({
+                                                    ...r,
+                                                    timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                                                        return {
+                                                            ...t,
+                                                            results: Object.entries(t.results) as any
+                                                        }
+                                                    })
+                                                }))
+                                            }))}
                                             if (reidResults.some(r => r.reIdId === _.reidId)) {
                                                 setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
                                             } else {
@@ -136,7 +152,7 @@ console.log('currentPage',currentPage)
                                             setMenu(ReIDMenuKeys['REIDRESULT'])
                                         }}>
                                             결과 바로보기
-                                        </ContentsItemTitleBtn>
+                                        </ContentsItemTitleBtn>}
                                         <Arrow opened={opened === _.reidId} />
                                     </ContentsItemTitleBtnsContainer>
                                 </ContentsItemTitleContainer>
@@ -145,7 +161,7 @@ console.log('currentPage',currentPage)
                                     _.requestGroups.map((__, _ind) => <ContentsItemSubContainer opened={true} key={_ind}>
                                         <ContentsItemSubTitleContainer>
                                             <div />
-                                            {__.title}
+                                            {__.title === 'live' ? '실시간 분석' : __.title}
                                             <SubTitleItemsContainer>
                                                 <ContentsItemTitleBtn hover onClick={async () => {
                                                     // const resultData = await Axios("GET", GetReidDataApi(_.reidId)) as ReIDResultType
@@ -188,7 +204,7 @@ console.log('currentPage',currentPage)
                                                         justifyContent: 'center'
                                                     }}>
                                                         <ContentsItemInnerColContentWrapper>
-                                                            {__.rank}
+                                                            {__.timeGroups[0].startTime === 'live' ? '실시간 분석' : __.rank}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -203,6 +219,7 @@ console.log('currentPage',currentPage)
                                                             {__.status === 'IN_PROGRESS' && "진행중"}
                                                             {__.status === 'SUCCESS' && getTimeDifference(__.requestStartTime, __.requestEndTime)}
                                                             {__.status === 'CANCEL' && "취소된 요청"}
+                                                            {__.status === 'EMPTY' && "강제 종료된 요청(비정상 에러)"}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -214,7 +231,9 @@ console.log('currentPage',currentPage)
                                                     </ContentsItemInnerColTitle>
                                                     <ContentsItemInnerColContents>
                                                         {
-                                                            __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
+                                                            __.timeGroups[0].startTime === 'live' ? <ContentsItemInnerColContentWrapper key={ind}>
+                                                            실시간 분석
+                                                        </ContentsItemInnerColContentWrapper> : __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
                                                                 {convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(time.endTime)}
                                                             </ContentsItemInnerColContentWrapper>)
                                                         }
@@ -242,7 +261,7 @@ console.log('currentPage',currentPage)
                                                         <ContentsItemInnerColContentWrapper style={{
                                                             height: '100%'
                                                         }}>
-                                                            {__.etc}
+                                                            {__.etc === 'live' ? '실시간 분석' : __.etc}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -253,7 +272,7 @@ console.log('currentPage',currentPage)
                             </ContentsItemContainer>)
                         }
                     </ContentsContainer>
-                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs}/>
+                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs} dataPerPage={10}/>
                 </> : <NoDataContentsContainer>
                     서버에 저장된 분석 결과가 존재하지 않습니다.
                 </NoDataContentsContainer>
@@ -317,6 +336,7 @@ const DateSearch = styled.div`
     width: 400px;
     cursor: pointer;
     background-color: ${GlobalBackgroundColor};
+    position: relative;
 `
 
 const SearchButton = styled(Button)`
@@ -414,7 +434,7 @@ const ContentsItemInnerColContainer = styled.div`
 `
 
 const ContentsItemInnerColTitle = styled.div`
-    flex: 0 0 100px;
+    flex: 0 0 120px;
     text-align: end;
 `
 
@@ -435,8 +455,6 @@ const ContentsItemInnerTargetImageBoxContainer = styled.div`
 `
 
 const ContentsItemInnerHeadItemImageBox = styled(ImageView)`
-    flex: 0 0 36px;
-    height: 36px;
 `
 
 const ContentsItemInnerColContentWrapper = styled.div`
@@ -451,4 +469,24 @@ const ContentsItemInnerColContentWrapper = styled.div`
 const Arrow = styled(CollapseArrow)`
     height: 100%;
     padding: 4px;
+`
+
+const ClearBtnContainer = styled.div`
+    position: absolute;
+    top: 50%;
+    width: 36px;
+    height: 36px;
+    right: 0px;
+    padding: 8px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    &:hover {
+        border: 1px solid ${TextActivateColor};
+    }
+`
+
+const ClearBtn = styled.img`
+    width: 100%;
+    height: 100%;
+    transform: rotateZ(45deg);
 `

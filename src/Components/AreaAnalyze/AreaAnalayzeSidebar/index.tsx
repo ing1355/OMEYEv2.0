@@ -9,9 +9,9 @@ const AreaAnalyzeSidebar = () => {
     const [selectedCCTV, setSelectedCCTV] = useState<CameraDataType['cameraId'][]>([])
     return <Sidebar>
         <InnerContainer>
-            <CCTVTree selectedCCTVs={selectedCCTV} selectedChange={cctvs => {
+            {/* <CCTVTree selectedCCTVs={selectedCCTV} selectedChange={cctvs => {
                 setSelectedCCTV(cctvs)
-            }} />
+            }} /> */}
         </InnerContainer>
     </Sidebar>
 }

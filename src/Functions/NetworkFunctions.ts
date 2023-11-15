@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType } from "../Constants/GlobalTypes";
-import { GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi } from "../Constants/ApiRoutes";
+import { GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -92,6 +92,11 @@ export async function SubmitCarVrp(vrpInfo: {
 export const reidCancelFunc = (): void => {
     console.debug("ReIdCancelFunc Request!!")
     navigator.sendBeacon(ReidCancelApi, GetAuthorizationToken());
+}
+
+export const videoExportCancelFunc = (): void => {
+    console.debug("ReIdCancelFunc Request!!")
+    navigator.sendBeacon(VideoExportCancelApi, GetAuthorizationToken());
 }
 
 export const streamingAllStopRequest = () => {

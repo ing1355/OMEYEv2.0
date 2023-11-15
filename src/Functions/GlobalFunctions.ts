@@ -3,7 +3,7 @@ import { SavedJSONType, SiteDataType } from "../Constants/GlobalTypes";
 import { ReIDRequestGroupDataType } from "../Model/ReIDLogModel";
 import { ConditionDataSingleType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 export function ArrayDeduplication<T>(array: Array<T>, func?: (data1: T, data2: T) => boolean) {
     return array.filter((v, i) => (func ? array.findIndex(_ => func(v, _)) : array.indexOf(v)) === i)
@@ -252,6 +252,10 @@ export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorSt
     return `${year}-${month}-${day}${separator}${hour}:${minute}:${second}`
 }
 
+export const convertFullTimeStringToHumanTimeFormatByDate = (date: Date) => {
+    return convertFullTimeStringToHumanTimeFormat(convertFullTimeString(date))
+}
+
 export function getTimeDifference(startTime: string, endTime: string): string {
     const start = new Date(convertFullTimeStringToHumanTimeFormat(startTime));
     const end = new Date(convertFullTimeStringToHumanTimeFormat(endTime));
@@ -317,13 +321,16 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
 }
 
 export const DivToImg = async (div: HTMLDivElement) => {
-    const canvas = await html2canvas(div, {
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: 'transparent',
-        width: 460,
-        height: 572
-    })
-    const result = canvas.toDataURL()
-    return result
+    return toPng(div)
+}
+
+export const getLoadingTimeString = (time: number) => {
+    const hour = Math.floor(time / 3600)
+    const minute = Math.floor(time / 60) % 60
+    const second = time % 60
+    let str = ""
+    if (hour) str += `${hour}시간 `
+    if (minute) str += `${minute}분 `
+    str += `${second}초 경과`
+    return str
 }

@@ -115,9 +115,19 @@ export abstract class CustomMap<MapType> {
     public abstract closeOverlayView(): void;
     
     /**
-     * 현재 선택한 CCTV들 전부 보이게 뷰 전환 메소드
+     * 현재 선택 혹은 넘긴 CCTV들 전부 보이게 뷰 전환 메소드
      */
-    public abstract changeViewToSelectedCCTVs(): void;
+    public abstract changeViewToSelectedCCTVs(cameras?: CameraDataType['cameraId'][]): void;
+
+    /**
+     * 동선 구축 시 전체 동선이 보이며 해당 마커만 강조되게 뷰 전환 메소드
+     */
+    public abstract changeViewForPathCamera(camera: CameraDataType['cameraId']): void;
+
+    /**
+     * 겹친 CCTV 클릭 시 콜백 등록 메소드
+     */
+    public abstract addDuplicatedCCTVsSelectCallback(callback: (cameras: CameraDataType['cameraId'][]) => void): void;
 
     /**
      * @param map 맵 객체 할당

@@ -103,7 +103,6 @@ export type CaptureResultListItemType = {
   objectId?: number
   selected?: boolean
   cctvName?: CameraDataType['name']
-  attributionList?: string[]
   ocr?: string
   description?: descriptionParamType
 }
@@ -122,6 +121,6 @@ export type BasicLogDataType<T> = {
 }
 
 export type TimeDataType = {
-  startTime: string
-  endTime: string
+  startTime: string | 'live'
+  endTime: string | 'live'
 }

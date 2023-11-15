@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../styles/global-styled"
+import { ContentsBorderColor, globalStyles } from "../../../styles/global-styled"
 import Button from "../../Constants/Button"
 import { useEffect, useState } from "react"
 import ConditionListSetByType from "./ConditionListSetByType"
@@ -9,6 +9,7 @@ import { conditionTargetDatasListByObjectType, selectedConditionObjectType } fro
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
+import filterIcon from '../../../assets/img/filterIcon.png'
 
 const ConditionList = () => {
     const [selectedTab, setSelectedTab] = useState<ReIDObjectTypeKeys>(ReIDObjectTypeKeys[ObjectTypes['PERSON']])
@@ -24,9 +25,9 @@ const ConditionList = () => {
     return <Container>
         <Header>
             <TypeTabs>
-                <div>
-                    필터 :
-                </div>
+                <IconContainer>
+                    <Icon src={filterIcon}/>
+                </IconContainer>
                 {
                     ReIDObjectTypes.map((_, ind) => <Tab hover key={ind} activate={selectedTab === _.key} onClick={() => {
                         setSelectedTab(_.key)
@@ -77,7 +78,21 @@ const Header = styled.div`
     padding-bottom: 8px;
 `
 
+const IconContainer = styled.div`
+    flex: 0 0 32px;
+    ${globalStyles.flex()}
+    padding: 4px;
+`
+
+const Icon = styled.img`
+    width: 100%;
+    height: 100%;
+`
+
 const TypeTabs = styled.div`
+    border: 1px solid ${ContentsBorderColor};
+    padding: 4px 2px;
+    border-radius: 12px;
     ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
 `
 

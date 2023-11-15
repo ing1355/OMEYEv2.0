@@ -30,6 +30,7 @@ import cctvEndIcon from '../../../assets/img/CCTVEndIcon.png'
 import { getDistance } from "ol/sphere";
 import { ContentsActivateColor } from "../../../styles/global-styled";
 import { CSSProperties } from "react";
+import { Extent } from "ol/extent";
 
 enum mapState {
     NORMAL,
@@ -39,6 +40,8 @@ enum mapState {
 const selectedMarkerDataKey = 'SELECTEDMARKERDATAKEY' // 선택 마커 데이터 키
 const selectedMarkerTempDataKey = 'SELECTEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
 const selectedMarkerDataChange = 'SELECTEDMARKERDATACHANGE' // 선택 마커 실제 변경할 이벤트 명
+const duplicatedMarkerTempDataKey = 'SELECTEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
+const duplicatedMarkerDataChange = 'SELECTEDMARKERDATACHANGE' // 중복 마커 선택 시 이벤트 명
 const mapStateKey = 'MAPSTATE'
 
 // const greenMarkerSvg = `<svg id="target" xmlns="http://www.w3.org/2000/svg" width="70" height="105" viewBox="0 0 38 56.55"><defs><style>.cls-1{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.3px;}.cls-2{fill:#25af32;stroke:#139926;stroke-miterlimit:10;}</style></defs><g id="_룹_1"><path class="cls-2" d="M19,.5C8.78,.5,.5,8.78,.5,19c0,8.11,11.65,29.26,16.46,35.99,1,1.4,3.08,1.4,4.08,0,4.81-6.73,16.46-27.89,16.46-35.99C37.5,8.78,29.22,.5,19,.5Z"/><path class="cls-1" d="M12.05,15.82c0,.15-.12,.28-.28,.28s-.28-.12-.28-.28,.12-.28,.28-.28,.28,.12,.28,.28Zm2.24-.28c-.15,0-.28,.12-.28,.28s.12,.28,.28,.28,.28-.12,.28-.28-.12-.28-.28-.28Zm17.45-2.6H8.49v10.1h14.34l8.91-10.1Zm-7.4,8.39h7.09v-5.39h-2.34l-4.75,5.39Zm-11.56,8.71h6.61v-7m-10.9,10.95c2.18,0,3.95-1.77,3.95-3.95s-1.77-3.95-3.95-3.95v7.9Z"/></g></svg>`;
@@ -126,7 +129,7 @@ function markerStyle(features: FeatureLike) {
             const cctvName = feature.get("name");
             let offset = 0;
             let imgByType = ''
-            switch(type) {
+            switch (type) {
                 case 1:
                     imgByType = cctvIcon
                     break;
@@ -143,7 +146,7 @@ function markerStyle(features: FeatureLike) {
             }
 
             return new Style({
-                zIndex: 1,
+                zIndex: type === 4 ? 3 : (type === 3 ? 2 : 1), // 작동안함ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ
                 image: new Icon({
                     crossOrigin: "anonymous",
                     anchor: [0.5, 0.57],
@@ -178,12 +181,14 @@ function markerStyle(features: FeatureLike) {
 
 const clsuterDistanceByZoomLv = (lv: number) => {
     // return (22 - lv) * 10
-    if(lv > 20) {
-        return 10
-    } else if(lv > 18) {
-        return 40
-    } else if(lv > 16) {
-        return 80
+    if (lv > 20) {
+        return 1
+    } else if (lv > 19) {
+        return 5
+    } else if (lv > 18) {
+        return 15
+    } else if (lv > 16) {
+        return 60
     } else {
         return (22 - lv) * 20
     }
@@ -359,7 +364,7 @@ export class OlMap extends CustomMap<Map> {
         this.map.set(mapStateKey, mapState['NORMAL'])
         this.map.getView().on('change:resolution', () => {
             this.CL.setDistance(clsuterDistanceByZoomLv(this.map.getView().getZoom() as number))
-            
+
         })
         if (forAddTraffic) {
             const addTrafficOverlay = new Overlay({
@@ -385,16 +390,43 @@ export class OlMap extends CustomMap<Map> {
         // 사이트데이터 기반으로 피쳐 생성 후 좌표 이동
         this.registerMouseMoveHandler();
         this.registerSingleClickHandler();
-        if(!this.noSelect) this.registerBoxEndHandler();
+        if (!this.noSelect && !this.singleSelected) this.registerBoxEndHandler();
+    }
+
+    fitWithPaddingByExtent(ext: Extent): void {
+        this.map.getView().fit(ext, {
+            callback: () => {
+                let padding: number = 500
+                let x_padding = (ext[2] - ext[0]) / 2.5
+                let y_padding = (ext[3] - ext[1]) / 2.5
+                const currentZoomLv = this.map.getView().getZoom()
+                // console.debug("ext : ", ext, currentZoomLv)
+                // if (currentZoomLv) {
+                //     if (currentZoomLv > 20) {
+                //         padding = 100
+                //     } else if (currentZoomLv > 18) {
+                //         padding = 250
+                //     } else if (currentZoomLv > 16) {
+                //         padding = 500
+                //     } else if (currentZoomLv > 14) {
+                //         padding = 1000
+                //     } else {
+                //         padding = 2000
+                //     }
+                // } // 14~15 - 5000
+                // this.map.getView().fit(ext.map((_, ind) => ind < 2 ? _ - padding : _ + padding))
+                this.map.getView().fit([ext[0] - x_padding, ext[1] - y_padding, ext[2] + x_padding, ext[3] + y_padding])
+            }
+        })
     }
 
     registerMouseMoveHandler(): void {
         this.map.on("pointermove", (evt) => {
             if (this.singleCameraId) return;
             if (this.hoverId) {
-                if(this.pathVS.getFeatureById(this.hoverId)) {
+                if (this.pathVS.getFeatureById(this.hoverId)) {
                     this.pathVS.getFeatureById(this.hoverId)?.set('mode', 1)
-                } else if(this.VS.getFeatureById(this.hoverId)){
+                } else if (this.VS.getFeatureById(this.hoverId)) {
                     this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
                 }
                 this.hoverId = undefined
@@ -409,7 +441,7 @@ export class OlMap extends CustomMap<Map> {
                     this.hoverId = features[0].getId()
                     features[0].set('mode', 2)
                     this.map.getTargetElement().style.cursor = "pointer";
-                } else if(feature.getId()) {
+                } else if (feature.getId()) {
                     this.hoverId = feature.getId()
                     feature.set('mode', 2)
                     this.map.getTargetElement().style.cursor = "pointer";
@@ -426,7 +458,10 @@ export class OlMap extends CustomMap<Map> {
             if (feature) {
                 let features: Feature[] = feature.get("features");
                 if (features) {
-                    this.map.getView().fit(new VectorSource({ features: features }).getExtent());
+                    // if(features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
+                    //     this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
+                    // }
+                    this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
                 } else {
                     this.clickId = feature.getId()
                     switch (this.map.get(mapStateKey)) {
@@ -460,7 +495,7 @@ export class OlMap extends CustomMap<Map> {
     registerContextMenuHandler(): void {
         this.map.getTargetElement().addEventListener('contextmenu', (e) => {
             e.preventDefault()
-            if(!this.noSelect) {
+            if (!this.noSelect) {
                 const geom = new Point(this.map.getEventCoordinate(e))
                 this.trafficInputOverlay?.setPosition((geom as Point).getCoordinates())
                 this.circleSelectOverlay?.setPosition((geom as Point).getCoordinates())
@@ -490,7 +525,7 @@ export class OlMap extends CustomMap<Map> {
         })
         if (featureTemp.length) {
             this.VS.addFeatures(featureTemp)
-            this.map.getView().fit(this.VS.getExtent());
+            this.fitWithPaddingByExtent(this.VS.getExtent())
         }
     }
 
@@ -504,7 +539,7 @@ export class OlMap extends CustomMap<Map> {
         })
         if (featureTemp.length) {
             this.VS.addFeatures(featureTemp)
-            this.map.getView().fit(this.VS.getExtent());
+            this.fitWithPaddingByExtent(this.VS.getExtent())
         }
     }
 
@@ -573,16 +608,16 @@ export class OlMap extends CustomMap<Map> {
                     this.arrowVS.addFeature(resultFeature)
                 }
             })
-            this.map.getView().fit(this.arrowVS.getExtent());
+            this.fitWithPaddingByExtent(this.arrowVS.getExtent())
         }
-        if(cctvIds.length > 0) {
+        if (cctvIds.length > 0) {
             const startFeature = this.VS.getFeatureById(cctvIds[0])
             const endFeature = this.VS.getFeatureById(cctvIds[cctvIds.length - 1])
-            if(endFeature) {
+            if (endFeature) {
                 this.pathVS.addFeature(endFeature)
                 this.pathVS.getFeatureById(endFeature.getId()!)?.set("type", 4)
             }
-            if(cctvIds.length > 1 && startFeature) {
+            if (cctvIds.length > 1 && startFeature) {
                 this.pathVS.addFeature(startFeature!)
                 this.pathVS.getFeatureById(startFeature.getId()!)?.set("type", 3)
             }
@@ -592,7 +627,7 @@ export class OlMap extends CustomMap<Map> {
     }
 
     clearPathLines(): void {
-        if(this.pathVS) {
+        if (this.pathVS) {
             this.pathVS.forEachFeature(_ => {
                 _.set("type", 1)
             })
@@ -605,8 +640,8 @@ export class OlMap extends CustomMap<Map> {
 
     viewChangeById(cctvId: number): void {
         const target = this.VS.getFeatureById(cctvId)
-        if(this.viewId) {
-            this.VS.getFeatureById(this.viewId)?.set('mode',1)
+        if (this.viewId) {
+            this.VS.getFeatureById(this.viewId)?.set('mode', 1)
         }
         this.viewId = cctvId
         target?.set('mode', 2)
@@ -709,12 +744,41 @@ export class OlMap extends CustomMap<Map> {
         this.map.dispatchEvent(selectedMarkerDataChange)
     }
 
-    changeViewToSelectedCCTVs = () => {
-        const selectedFeatuerIds = this.map.get(selectedMarkerDataKey)
-        if(selectedFeatuerIds.length > 0) {
-            const temp = new VectorSource({features: []})
-            temp.addFeatures(selectedFeatuerIds.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)))
-            this.map.getView().fit(temp.getExtent())
+    changeViewToSelectedCCTVs = (cameras?: CameraDataType['cameraId'][]) => {
+        if (cameras) {
+            if (cameras.length > 0) {
+                const temp = new VectorSource({ features: [] })
+                temp.addFeatures(cameras.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)!))
+                this.fitWithPaddingByExtent(temp.getExtent())
+            }
+        } else {
+            const selectedFeatuerIds = this.map.get(selectedMarkerDataKey)
+            if (selectedFeatuerIds.length > 0) {
+                const temp = new VectorSource({ features: [] })
+                temp.addFeatures(selectedFeatuerIds.map((_: CameraDataType['cameraId']) => this.VS.getFeatureById(_)))
+                this.fitWithPaddingByExtent(temp.getExtent())
+            }
         }
+    }
+
+    changeViewForPathCamera = (camera: CameraDataType['cameraId']) => {
+        const feature = this.VS.getFeatureById(camera)
+        if(this.arrowVS.getFeatures().length > 0) this.fitWithPaddingByExtent(this.arrowVS.getExtent())
+        else this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
+        // this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
+        if (this.hoverId) this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
+        this.hoverId = feature?.getId()
+        feature?.set('mode', 2)
+    }
+
+    dispatchDuplicatedMarkerChangeEvent = (data: (CameraDataType['cameraId'])[]) => {
+        this.map.set(duplicatedMarkerTempDataKey, data)
+        this.map.dispatchEvent(duplicatedMarkerDataChange)
+    }
+
+    addDuplicatedCCTVsSelectCallback = (callback: (cameras: number[]) => void) => {
+        this.map.addEventListener(duplicatedMarkerDataChange, () => {
+            if (callback) callback(this.map.get(duplicatedMarkerTempDataKey))
+        })
     }
 }

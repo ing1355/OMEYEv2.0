@@ -64,9 +64,9 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
                     }} />
                 </Back>
             </Header>
-            <ContentsContainer className={className}>
+            {visible && <ContentsContainer className={className}>
                 {children}
-            </ContentsContainer>
+            </ContentsContainer>}
         </Container>
     </Background>
 }
@@ -84,8 +84,9 @@ const Background = styled.div<{ visible: boolean, half: boolean }>`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
     ${({ visible, half }) => ({
         right: visible ? (half ? 24 : 0) : '-100%',
-        visibility: visible ? 'visible' : 'hidden'
+        visibility: visible ? 'visible' : 'hidden',
     })}
+    overflow: hidden;
 `
 
 const Rest = styled.div`

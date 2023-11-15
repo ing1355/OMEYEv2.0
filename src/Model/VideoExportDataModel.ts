@@ -3,8 +3,9 @@ import { Axios } from "../Functions/NetworkFunctions";
 import { BasicLogDataType, CameraDataType, TimeDataType } from "../Constants/GlobalTypes";
 import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
 import { GetVideoHistoryApi } from "../Constants/ApiRoutes";
+import { ProgressDataPercentType, SSEResponseStatusType } from "./ProgressModel";
 
-export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait'
+export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait' | 'cancel'
 
 export type VideoExportCategoryType = "영역 비식별화" | "얼굴 비식별화" | "번호판 비식별화"
 
@@ -16,15 +17,19 @@ export type VideoExportSearchParamsType = {
 export type VideoExportMaskingType = "head" | "area" | "carplate"
 
 export type VideoExportRowDataType = {
+    videoUUID?: string
     status?: VideoExportStatusType
     cctvId?: CameraDataType['cameraId']
     time?: TimeModalDataType
     thumnailImage?: string
-    options?: {
+    options: {
         masking: VideoExportMaskingType[]
-        points?: number[][]
-        password?: string
+        points: number[][][]
+        password: string
+        description: string
     }
+    path?: string
+    progress: ProgressDataPercentType
 }
 
 export type VideoExoprtHistoryDataType = {
@@ -45,17 +50,16 @@ export type VideoExportApiParameterType = {
     cameraInfo: TimeDataType & {
         id: CameraDataType['cameraId']
     }
-    options?: {
-        type?: VideoExportRowDataType['options']
+    options: VideoExportRowDataType['options'] & {
+        points: number[][]
     }
 }
 
-export type VideoExportSseResponseType = {
-    cameraId: CameraDataType['cameraId']
-    progress: number
+export type VideoExportSseResponseType = ProgressDataPercentType & {
+    videoUUID: string
     path?: string
     type: 'complete' | 'done'
-    timeGroupId: number
+    status?: SSEResponseStatusType
 }
 
 type VideoExportHistoryApiResponseType = BasicLogDataType<VideoExoprtHistoryDataType[]>

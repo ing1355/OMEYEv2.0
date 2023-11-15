@@ -2,13 +2,14 @@ import styled from "styled-components"
 import { GlobalBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import useConditionRoutes from "./Hooks/useConditionRoutes"
 import Button from "../../Constants/Button"
-import { ConditionRouteInfo, ConditionRouteType, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
+import { ConditionRouteInfo, ConditionRouteType, ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { conditionRoute } from "../../../Model/ConditionRouteModel"
 import { addConditionSingleTimeData, conditionAreaDatas, conditionData, conditionTargetDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, conditionTimeDatas, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import backIcon from '../../../assets/img/backIcon.png'
+import homeIcon from '../../../assets/img/homeIcon.png'
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { descriptionData } from "../../../Model/DescriptionDataModel"
 import { hasValuePersonDescription } from "./TargetSelect/PersonDescription/Functions"
@@ -16,9 +17,9 @@ import { GetObjectIdByImage } from "../../../Functions/NetworkFunctions"
 import { ArrayDeduplication, DivToImg } from "../../../Functions/GlobalFunctions"
 import TimeModal from "./Constants/TimeModal"
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible } from "../../../Model/ConditionParamsModalModel"
-import { Fragment, useEffect, useLayoutEffect, useState } from "react"
-import { realTimeStatus } from "../../../Model/RealTimeDataModel"
-import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
+import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel"
 import AreaSelect from "./Constants/AreaSelect"
 import useMessage from "../../../Hooks/useMessage"
 import { PersonDescriptionResultImageID } from "./Constants/ConstantsValues"
@@ -26,10 +27,7 @@ import { getLastTargetListId } from "./Constants/ImageViewWithCanvas"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 
-let listId = 0
-
 const ContentsWrapper = () => {
-    const [saveDisabled, setSaveDisabled] = useState(false)
     const routeInfo = useRecoilValue(conditionRoute)
     const progressStatus = useRecoilValue(ProgressStatus)
     const personDescriptionData = useRecoilValue(descriptionData)
@@ -39,24 +37,25 @@ const ContentsWrapper = () => {
     const targetDatasCCTVTemp = useRecoilValue(conditionTargetDatasCCTVTemp)
     const targetDatasImageTemp = useRecoilValue(conditionTargetDatasImageTemp)
     const setCurrentMenu = useSetRecoilState(conditionMenu)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const [timeIndex, setTimeIndex] = useRecoilState(TimeSelectIndex)
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
     const [timeVisible, setTimeVisible] = useRecoilState(TimeSelectVisible)
-    const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(currentObjectType!))
     const [areaVisible, setAreaVisible] = useRecoilState(AreaSelectVisible)
     const [areaIndex, setAreaIndex] = useRecoilState(AreaSelectIndex)
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
     const addTimeData = useSetRecoilState(addConditionSingleTimeData)
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
+    const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const { routePop, routeJump, routePush, getAllRoutes, getRouteName } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
-
-    useEffect(() => {
-        setSaveDisabled(false)
-    }, [_conditionData])
-
+    const allSelected = useMemo(() => {
+        if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
+        return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
+    },[_conditionData])
+    
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])
@@ -77,7 +76,7 @@ const ContentsWrapper = () => {
     const disableCompleteBtn = (): boolean => {
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || !name || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
+                if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
                 return false;
                 // if (isRealTime) {
                 //     return !(targets.filter(_ => _.selected).length > 0 && cctv.filter(_ => _.selected).length > 0) || rtStatus === PROGRESS_STATUS['RUNNING']
@@ -104,11 +103,9 @@ const ContentsWrapper = () => {
         console.debug('route : ', routeInfo.at(-1))
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if(isRealTime) {
+                if (isRealTime) {
                     if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
                     if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
-                }
-                if (isRealTime) {
                     if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
                         return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
                     }
@@ -118,8 +115,26 @@ const ContentsWrapper = () => {
                     if (targets.filter(_ => _.selected).length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
-                    if (targets.filter(_ => _.selected).find(_ => _.type === 'ATTRIBUTION')) {
-                        return message.error({ title: '입력값 에러', msg: '인상착의 대상은 실시간 분석을 사용할 수 없습니다.' })
+                    if (rank < 1) {
+                        return message.error({ title: '입력값 에러', msg: '분석 결과 후보 수는 최소 1개 이상이어야 합니다.' })
+                    }
+                    if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
+                        setRealTimeData({
+                            type: currentObjectType,
+                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            threshHold: 1,
+                            description: targets.filter(_ => _.selected)[0].description,
+                            src: targets.filter(_ => _.selected)[0].src
+                        })
+                    } else {
+                        setRealTimeData({
+                            type: currentObjectType!,
+                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            threshHold: 50,
+                            src: targets.filter(_ => _.selected)[0].src
+                        })
                     }
                     setRtStatus(PROGRESS_STATUS['RUNNING'])
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
@@ -127,11 +142,12 @@ const ContentsWrapper = () => {
                     if(targets.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
                     if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간을 1개 이상 선택해주세요."})
                     if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV를 1개 이상 선택해주세요."})
+                    setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
                         params: [
                             {
-                                title: name,
+                                title: name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색",
                                 timeGroups: time.filter(_ => _.selected).map(_ => ({
                                     startTime: _.time[0],
                                     endTime: _.time[1]
@@ -139,7 +155,6 @@ const ContentsWrapper = () => {
                                 cctvIds: cctv.filter(_ => _.selected).map(_ => _.cctvList),
                                 rank,
                                 etc,
-
                                 objects: targets.filter(_ => _.selected).map(_ => ({
                                     id: _.objectId!,
                                     src: _.src,
@@ -209,12 +224,12 @@ const ContentsWrapper = () => {
             <Header noHeader={routeInfo.length < 2}>
                 <HeaderSubContainer>
                     <BackButton onClick={() => {
-                        routePop()
-                    }} icon={backIcon} />
+                        routeJump(ObjectTypeSelectRoute.key)
+                    }} icon={homeIcon} />
                     <HeaderHistories>
                         {
-                            getAllRoutes().map((_, ind, arr) => <Fragment key={ind}>
-                                {ind !== 0 ? '/' : ''}
+                            getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>
+                                {ind !== 0 ? '>' : ''}
                                 <HeaderHistoryItem onClick={() => {
                                     if (ind !== arr.length - 1) routeJump(_)
                                 }}>
@@ -225,32 +240,49 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton disabled={disableCompleteBtn() || isRealTime || saveDisabled || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({..._conditionData, selected: _.selected, id: _.id}))} onClick={() => {
-                        setSaveDisabled(true)
-                        let tempConditionData = { ..._conditionData }
-                        tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
-                        tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
-                        tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
-                        setConditionList(conditionList.concat({ ...tempConditionData, selected: false, id: listId++ }))
-                        message.success({
-                            title: "저장 성공",
-                            msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "조건 목록" 메뉴에서 확인할 수 있습니다.'
-                        })
+                    {routeInfo.length === 2 && <CompleteButton hover disabled={targets.length === 0 && cctv.length === 0 && time.length === 0} onClick={() => {
+                        if(allSelected) {
+                            setTargetDatas(targets.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                            setTimeData(time.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                            setAreaData(cctv.map(_ => ({
+                                ..._,
+                                selected: false
+                            })))
+                        } else {
+                            setTargetDatas(targets.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                            setTimeData(time.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                            setAreaData(cctv.map(_ => ({
+                                ..._,
+                                selected: true
+                            })))
+                        }
                     }}>
-                        현재 조건 저장
+                        전체 선택{allSelected && ' 해제'}
                     </CompleteButton>}
-                    <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
+                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && routeInfo.length === 3) && <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
                         completeCallback()
                     }} icon={routeInfo.length === 2 ? reidReqIcon : ''}>
                         {getCompleteButtonTextByRoute()}
-                    </CompleteButton>
+                    </CompleteButton>}
                 </CompleteButtons>
             </Header>
             {(Object.keys(ConditionRouteInfo) as ConditionRouteType['key'][]).map(_ => <ContentsContainer key={_} index={ConditionRouteInfo[_].pageNum} current={_} routeInfo={routeInfo}>
                 {ConditionRouteInfo[_].Component}
             </ContentsContainer>)}
         </Container>
-        <TimeModal title={`시간 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`} defaultValue={time[timeIndex] && {
+        <TimeModal title={`그룹 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`} defaultValue={time[timeIndex] && {
             startTime: time[timeIndex].time[0],
             endTime: time[timeIndex].time[1]
         }} onChange={data => {
@@ -260,7 +292,7 @@ const ContentsWrapper = () => {
             setTimeVisible(false)
         }} />
         <AreaSelect
-            title={`CCTV${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
+            title={`그룹 ${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
             visible={areaVisible}
             defaultSelected={(areaData[areaIndex] && areaData[areaIndex].cctvList) || []}
             complete={data => {
@@ -316,7 +348,6 @@ const HeaderHistoryItem = styled.div`
     font-size: 1rem;
     cursor: pointer;
     &:last-child {
-        text-decoration: underline;
         cursor: default;
         font-size: 1.3rem;
     }

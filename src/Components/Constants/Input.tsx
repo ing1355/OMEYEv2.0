@@ -30,14 +30,16 @@ type InputProps = {
 }
 
 const _Input = (props?: InputProps) => {
+
     useEffect(() => {
         if (props?.type === 'textarea') {
             if (!props?.value) {
                 const target = props.inputRef?.current
-                target.style.height = 30 + 'px'
+                if(target) target.style.height = 30 + 'px'
             }
         }
     }, [props?.value, props?.type])
+
     const attributes = {
         ref: props?.inputRef,
         maxLength: props?.maxLength ?? (props?.type === 'textarea' ? 300 : 16),
@@ -48,7 +50,7 @@ const _Input = (props?: InputProps) => {
         id: props?.id,
         disabled: props?.disabled,
         placeholder: props?.placeholder,
-        autoComplete: props?.autoComplete
+        autoComplete: props?.autoComplete || 'off'
     }
     const inputAttributes = {
         ...attributes,
@@ -76,7 +78,9 @@ const _Input = (props?: InputProps) => {
         }}
         {...attributes}
     />
-    else return <input
+    else return <>
+    {props?.type === 'password' && <input type="password" hidden/>}
+    <input
         onChange={(e) => {
             if (props?.onChange) {
                 props.onChange(e.currentTarget.value)
@@ -89,8 +93,8 @@ const _Input = (props?: InputProps) => {
                 if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
                 else {
                     let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
-                    if(props.maxNumber) {
-                        if(Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+                    if (props.maxNumber) {
+                        if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
                     }
                     e.currentTarget.value = temp
                 }
@@ -108,6 +112,7 @@ const _Input = (props?: InputProps) => {
         }}
         {...inputAttributes}
     />
+    </>
 }
 
 const Input = styled(_Input)`
@@ -120,6 +125,13 @@ const Input = styled(_Input)`
     background-color: ${InputBackgroundColor};
     &:focus::-webkit-input-placeholder {
         color: transparent;
+    }
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+        -webkit-transition: "color 9999s ease-out, background-color 9999s ease-out";
+        -webkit-transition-delay: 9999s;
     }
     &:disabled {
         opacity: 0.5;

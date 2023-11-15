@@ -29,6 +29,8 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const arrowUpDownTimer = useRef<NodeJS.Timer>()
     const arrowDownDownTimer = useRef<NodeJS.Timer>()
     const containerRef = useRef<HTMLDivElement>(null)
+    const globalContainerRef = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
         setSelectedIndex(0)
@@ -110,19 +112,39 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
         setSelectedIndex(0)
     }, [searchInputValue])
 
-    return <SearchControlContainer>
+    const blurClickCallback = useCallback((e: MouseEvent) => {
+        if (
+            globalContainerRef.current &&
+            !globalContainerRef.current.contains(e.target as Node)
+        ) {
+            e.preventDefault()
+            e.stopPropagation()
+            if (globalContainerRef.current && !globalContainerRef.current.contains(e.target as Node)) {
+                setSearchOpen(false);
+                inputRef.current?.blur()
+            }
+        }
+    },[])
+
+    useEffect(() => {
+        if(searchInputOpen) {
+            document.addEventListener('mousedown', blurClickCallback)
+        } else {
+            document.removeEventListener('mousedown', blurClickCallback)
+        }
+    },[searchInputOpen])
+
+    return <SearchControlContainer ref={globalContainerRef}>
         <SearchInput
             maxLength={40}
             value={searchInputValue}
+            inputRef={inputRef}
             onChange={val => {
                 setSearchInputValue(val)
                 setSearchOpen(true)
             }}
             onFocus={() => {
                 setSearchOpen(true)
-            }}
-            onBlur={() => {
-                setSearchOpen(false)
             }}
             onEnter={(e) => {
                 const target = viewList[selectedIndex]
@@ -144,6 +166,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                     selected={ind === selectedIndex}
                     key={_.cameraId}
                     onClick={() => {
+                        console.log('click????', _)
                         onChange(_)
                         setSearchInputValue(_.name)
                         setSearchOpen(false)
@@ -164,6 +187,7 @@ const SearchControlContainer = styled.div`
     z-index: 1001;
     height: 30px;
     width: 240px;
+    z-index: 1006;
 `
 
 const SearchInput = styled(Input)`

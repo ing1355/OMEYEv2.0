@@ -25,11 +25,6 @@ import OnepieceInner from "../../../../../../assets/img/descriptions/ResultImage
 import ShirtInner from "../../../../../../assets/img/descriptions/ResultImages/ShirtInner";
 import { PersonDescriptionResultImageID } from "../../../Constants/ConstantsValues";
 
-// const PersonDescriptionGeneralImages = ({data}: {data : descriptionDataType['general']['gender']}) => {
-//     return <>
-//     </>
-// }
-
 export type WithPatternColorsDescriptionItemProps = {
     Src?: React.FC<{ colorProps: JSX.Element | JSX.Element[] }>
     colors?: descriptionColorType[]
@@ -49,7 +44,7 @@ const OtherImage = ({ src, height, title }: {
         textAlign: 'center',
         fontSize: '1.1rem',
         gap: '30%',
-        flex: 1
+        width: '30%'
     }}>
         <img src={src} style={{
             height: '100%'
@@ -154,7 +149,8 @@ const PersonDescriptionResultImage = () => {
         <BodyCanvas>
             <div id={PersonDescriptionResultImageID} style={{
                 width: '100%',
-                height: '100%'
+                height: '100%',
+                backgroundColor: SectionBackgroundColor
             }}>
                 <ResultImage src={!general.hair ? Body : OnlyBody} height={bodyHeight} y={bodyTop} z={10} />
                 {general.hair && <ResultImage src={descriptionSelectItems.general.hair.items.find(_ => _.key === general.hair)?.resultIcon} height={bodyHeight} y={bodyTop} z={11} />}

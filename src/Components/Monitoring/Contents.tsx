@@ -52,17 +52,6 @@ const Contents = () => {
         return temp
     },[monitoringCCTVs, monitoringLayoutNums])
 
-    // useEffect(() => {
-    //     if (monitoringStatus === PROGRESS_STATUS['RUNNING']) {
-    //         count = 0
-    //         timerId = setInterval(() => {
-    //             count += 1
-    //         }, 10000)
-    //     } else {
-    //         clearInterval(timerId)
-    //     }
-    // }, [monitoringStatus])
-
     return <ContentsContainer>
         <VideosContainer>
             {

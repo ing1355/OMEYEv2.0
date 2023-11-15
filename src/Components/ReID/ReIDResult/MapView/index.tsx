@@ -3,7 +3,6 @@ import { useRecoilValue } from "recoil";
 import MapComponent from "../../../Constants/Map"
 import styled from "styled-components";
 import { ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
-import noImage from '../../../../assets/img/logo.png'
 import CCTVIcon from '../../../../assets/img/CCTVSelectedIcon.png'
 import CCTVStartIcon from '../../../../assets/img/CCTVStartIcon.png'
 import CCTVEndIcon from '../../../../assets/img/CCTVEndIcon.png'
@@ -19,15 +18,15 @@ import ForLog from "../../../Constants/ForLog";
 
 type MapViewProps = {
     opened: boolean
-    reidId: number
+    reIdId: number
 }
 
-const MapView = ({ opened, reidId }: MapViewProps) => {
+const MapView = ({ opened, reIdId }: MapViewProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
     const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType[] | null>(null)
-    const resultData = useRecoilValue(ReIDResultData(reidId))
-    const selectedData = useRecoilValue(SingleReIDSelectedData(reidId))
+    const resultData = useRecoilValue(ReIDResultData(reIdId))
+    const selectedData = useRecoilValue(SingleReIDSelectedData(reIdId))
 
     const filteredViewData = useMemo(() => resultData?.data.map((_, index) => ({
         title: _.title,
@@ -35,6 +34,10 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
         objectIds: _.resultList.map(__ => __.objectId)
     })), [resultData])
 
+    useEffect(() => {
+        console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
+    },[selectedData, selectedCondition, selectedTarget])
+    
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
     
@@ -61,14 +64,20 @@ const MapView = ({ opened, reidId }: MapViewProps) => {
         setDetailResult(null)
     }, [opened])
 
+    useEffect(() => {
+        if(detailResult) {
+            
+        }
+    },[detailResult])
+
     return <>
         <Container opened={opened}>
             <MapContainer>
                 <MapComponent
                     pathCameras={filteredPathCameras}
-                    idForViewChange={detailResult ? [detailResult[0].cctvId!] : undefined}
+                    viewChangeForPath={detailResult ? [detailResult[0].cctvId!] : undefined}
                     forAddtraffic
-                    reidId={reidId}
+                    reIdId={reIdId}
                     onlyMap>
                 </MapComponent>
                 <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {

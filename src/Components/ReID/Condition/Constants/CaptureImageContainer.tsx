@@ -38,8 +38,7 @@ const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) 
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                aspectRatio: '16/9',
-                height: '100%'
+                maxWidth: '50%'
             }} />
         <DetailMiddleCaptureContainer>
             <DetailMiddleCaptureActionContainer>

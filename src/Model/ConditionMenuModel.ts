@@ -1,7 +1,8 @@
 import { atom } from "recoil";
 import { ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
+import { IS_PRODUCTION } from "../Constants/GlobalConstantsValues";
 
 export const conditionMenu = atom<ReIDMenuKeys>({
     key: "conditionMenuState",
-    default: process.env.NODE_ENV === 'development' ? ReIDMenuKeys['CONDITION'] : ReIDMenuKeys['CONDITION']
+    default: IS_PRODUCTION ? ReIDMenuKeys['CONDITION'] : ReIDMenuKeys['CONDITION']
 })

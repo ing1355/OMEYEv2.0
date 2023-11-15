@@ -63,7 +63,7 @@ const SelectItemsContainer = styled.div`
 
 const ResultImageContainer = styled.div`
     ${CommonStyles}
-    flex: 0 0 460px;
+    width: 460px;
     ${globalStyles.flex()}
     font-size: 2rem;
     position: relative;
