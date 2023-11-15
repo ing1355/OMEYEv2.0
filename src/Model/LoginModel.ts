@@ -2,24 +2,115 @@ import { DefaultValue, atom, selector } from "recoil";
 import { AuthorizationKey } from "../Constants/GlobalConstantsValues";
 import { menuState } from "./MenuModel";
 import { conditionRoute } from "./ConditionRouteModel";
-import { _areaIndex, _areaVisible, _timeIndex, _timeVisible } from "./ConditionParamsModalModel";
+import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible, _areaIndex, _areaVisible, _timeIndex, _timeVisible } from "./ConditionParamsModalModel";
+import { conditionAllData, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, createDefaultConditionData, selectedConditionObjectType } from "./ConditionDataModel";
+import { conditionMenu } from "./ConditionMenuModel";
+import { ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
+import { descriptionData, descriptionInitialData } from "./DescriptionDataModel";
+import { GlobalSettingType, globalSettings } from "./GlobalSettingsModel";
+import { MonitoringAllData } from "./MonitoringDataModel";
+import { PROGRESS_STATUS, ProgressData, ProgressRequestParams, ProgressRequestType, ProgressStatus, ProgressStatusType, defaultProgressRequestParams } from "./ProgressModel";
+import { realTimeData, realTimeStatus } from "./RealTimeDataModel";
+import { AdditionalReIDTimeValue, ReIDResultSelectedCondition, ReIDResultSelectedView, ReIDSelectedData, _reidResultDatas, globalCurrentReidId } from "./ReIdResultModel";
 
-const loginToken = atom<string|null>({
+const loginToken = atom<string | null>({
     key: "isLogin",
     default: localStorage.getItem(AuthorizationKey)
 })
 
-export const isLogin = selector<string|null>({
+export const isLogin = selector<string | null>({
     key: "isLogin/get",
-    get: ({get}) => get(loginToken),
-    set: ({set}, newValue) => {
-        if(!(newValue instanceof DefaultValue)) {
-            if(!newValue) { // 로그아웃
-                // 모든 데이터 초기화
+    get: ({ get }) => get(loginToken),
+    set: ({ set }, newValue) => {
+        if (!(newValue instanceof DefaultValue)) {
+            if (!newValue) { // 로그아웃 - 모든 데이터 초기화
+
                 localStorage.removeItem(AuthorizationKey)
-                // window.location.reload()
+
+                set(selectedConditionObjectType, null)
+                set(conditionTargetDatasImageTemp, [])
+                set(conditionTargetDatasCCTVTemp, [])
+                set(conditionAllData, {
+                    selectedType: null,
+                    FACE: createDefaultConditionData('FACE'),
+                    PERSON: createDefaultConditionData('PERSON'),
+                    CARPLATE: createDefaultConditionData('CARPLATE'),
+                    ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')
+                })
+                // 검색 조건 설정 데이터 초기화
+
+                set(AreaSelectVisible, false)
+                set(AreaSelectIndex, -1)
+                set(TimeSelectIndex, -1)
+                set(TimeSelectVisible, false)
+                // 검색 조건 설정 부가 설정 데이터 초기화
+
+                set(conditionMenu, ReIDMenuKeys['CONDITION'])
+                // 고속 분석 사이드바 메뉴 선택 초기화
+
                 set(conditionRoute, [])
+                // 검색 조건 설정 라우팅 초기화
+
+                set(descriptionData, descriptionInitialData)
+                // 인상착의 대상 추가 데이터 설정 초기화
+
+                set(conditionTargetDatasListByObjectType('FACE'), [])
+                set(conditionTargetDatasListByObjectType('CARPLATE'), [])
+                set(conditionTargetDatasListByObjectType('ATTRIBUTION'), [])
+                set(conditionTargetDatasListByObjectType('PERSON'), [])
+                // 검색 조건 목록 데이터 초기화
+
+                set(globalSettings, {
+                    mapPlatformType: 'ol',
+                    maxStoredDay: 365
+                } as GlobalSettingType)
+                // 전역 설정 데이터 초기화
+
                 set(menuState, null)
+                // 메뉴 선택 초기화
+
+                set(MonitoringAllData, {
+                    visible: undefined,
+                    cctvs: [],
+                    status: "IDLE",
+                    layoutNum: 1
+                })
+                // 모니터링 데이터 초기화
+
+                set(ProgressData, [])
+                set(ProgressStatus, {
+                    type: '',
+                    status: PROGRESS_STATUS['IDLE']
+                } as {
+                    type: ProgressRequestType
+                    status: ProgressStatusType
+                })
+                set(ProgressRequestParams, defaultProgressRequestParams)
+                // 진행상황 데이터 초기화
+
+                set(realTimeData, {
+                    type: undefined,
+                    cameraIdList: [],
+                    objectId: 0,
+                    threshHold: 50,
+                    description: undefined
+                })
+                set(realTimeStatus, PROGRESS_STATUS['IDLE'])
+                // 실시간 분석 데이터 초기화
+
+                // 분석 로그 데이터 초기화 - 어차피 계속 Get Api 호출 및 수정이 없으므로 초기화 필요 X
+
+                set(globalCurrentReidId, 0)
+                set(_reidResultDatas, [])
+                set(ReIDSelectedData, [])
+                set(ReIDResultSelectedView, [0])
+                set(ReIDResultSelectedCondition, 0)
+                set(AdditionalReIDTimeValue, undefined)
+                // 분석 결과 데이터 초기화
+
+                // 사이트 데이터 초기화 - 분석 로그 데이터랑 동일
+
+                // 영상 반출 데이터 초기화 - 반출 이력 제외 로컬 데이터라 초기화 필요 X
             } else {
                 localStorage.setItem(AuthorizationKey, newValue)
             }

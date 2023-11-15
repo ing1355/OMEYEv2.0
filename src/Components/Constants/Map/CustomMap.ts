@@ -125,6 +125,11 @@ export abstract class CustomMap<MapType> {
     public abstract changeViewForPathCamera(camera: CameraDataType['cameraId']): void;
 
     /**
+     * 겹친 CCTV 클릭 시 콜백 등록 메소드
+     */
+    public abstract addDuplicatedCCTVsSelectCallback(callback: (cameras: CameraDataType['cameraId'][]) => void): void;
+
+    /**
      * @param map 맵 객체 할당
      */
     constructor(map: MapType) {

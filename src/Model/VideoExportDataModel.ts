@@ -28,6 +28,7 @@ export type VideoExportRowDataType = {
         password: string
         description: string
     }
+    path?: string
     progress: ProgressDataPercentType
 }
 

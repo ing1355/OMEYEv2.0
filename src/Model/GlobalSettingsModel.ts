@@ -5,7 +5,7 @@ import { distanceDaysTwoDate } from "../Functions/GlobalFunctions";
 
 export type MapPlatformType = "ol" | "kakao" | "naver" | "google" | "apple"
 
-type GlobalSettingType = {
+export type GlobalSettingType = {
     mapPlatformType: MapPlatformType
     maxStoredDay: number
 }
@@ -38,6 +38,12 @@ export const globalSettings = selector<GlobalSettingType>({
         return {
             mapPlatformType: get(mapPlatformType),
             maxStoredDay: get(maxStoredDay)
+        }
+    },
+    set: ({set}, newValue) => {
+        if(!(newValue instanceof DefaultValue)) {
+            set(mapPlatformType, newValue.mapPlatformType)
+            set(maxStoredDay, newValue.maxStoredDay)
         }
     }
 })

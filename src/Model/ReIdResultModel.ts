@@ -20,7 +20,7 @@ export type AdditionalReIDRequestParamsType = ReIDRequestParamsType & {
   reIdId?: number
 }
 
-const _reidResultDatas = atom<ReIDResultType[]>({
+export const _reidResultDatas = atom<ReIDResultType[]>({
   key: "reidResult/data",
   default: []
 })

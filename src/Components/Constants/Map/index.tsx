@@ -12,7 +12,7 @@ import { GlobalBackgroundColor, InputBackgroundColor, InputTextColor, TextActiva
 import Button from "../Button";
 import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
-import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel";
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel";
 import useMessage from "../../../Hooks/useMessage";
 import { AdditionalReIDTimeValue, ReIDResultData, SingleReIDSelectedData } from "../../../Model/ReIdResultModel";
 import AdditionalReIDContainer from "./AdditionalReIDContainer";
@@ -35,7 +35,7 @@ type MapComponentProps = PropsWithChildren & {
     noSelect?: boolean
     isDebug?: boolean
     initEvent?: boolean
-    viewChangeForPath?: CameraDataType['cameraId']
+    viewChangeForPath?: CameraDataType['cameraId'][]
 }
 
 const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
@@ -65,6 +65,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const globalMenuState = useRecoilValue(menuState)
     const conditionMenuState = useRecoilValue(conditionMenu)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const message = useMessage()
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
 
@@ -106,6 +107,9 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         })
         map.current.registerContextMenuHandler()
         if (selectedChange) map.current.addSelectedMarkerChangeEventCallback(selectedChange)
+        map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
+            console.log(cctvs)
+        })
     }, [])
 
     const valueInit = () => {
@@ -118,7 +122,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }
 
     useEffect(() => {
-        if(map.current) {
+        if (map.current) {
             map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
         }
     }, [selectedCCTVs])
@@ -127,7 +131,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (forAddtraffic && pathCameras && pathCameras.length > 0) {
             map.current?.clearPathLines()
             map.current?.createPathLines(pathCameras, TextActivateColor)
-        } else if(pathCameras && pathCameras.length === 0) {
+        } else if (pathCameras && pathCameras.length === 0) {
             map.current?.clearPathLines()
         }
     }, [forAddtraffic, pathCameras])
@@ -139,8 +143,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [idForViewChange])
 
     useEffect(() => {
-        if (viewChangeForPath) {
-            map.current?.changeViewForPathCamera(viewChangeForPath)
+        if (viewChangeForPath && viewChangeForPath.length > 0) {
+            map.current?.changeViewForPathCamera(viewChangeForPath[0])
         }
     }, [viewChangeForPath])
 
@@ -183,24 +187,24 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [trafficOverlayView])
 
     useEffect(() => {
-        if(initEvent && selectedChange) selectedChange([])
-    },[initEvent])
+        if (initEvent && selectedChange) selectedChange([])
+    }, [initEvent])
 
     return <>
         <MapContainer ref={mapElement}>
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
-                if(map.current) map.current.viewChangeById(target.cameraId)
+                if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}
             <SelectedViewBtn hover onClick={() => {
                 if (map.current) {
-                    if(forAddtraffic) map.current?.changeViewToSelectedCCTVs(pathCameras)
+                    if (forAddtraffic) map.current?.changeViewToSelectedCCTVs(pathCameras)
                     else map.current?.changeViewToSelectedCCTVs()
                 }
             }}>
                 <img src={selectedMarkerLocationIcon} style={{
                     width: '100%',
                     height: '100%'
-                }}/>
+                }} />
             </SelectedViewBtn>
             {children || <></>}
             {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
@@ -290,6 +294,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
                         if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
                         closeOverlayWrapper()
+                        setRequestFlag(true)
                         setProgressRequestParams({
                             type: 'ADDITIONALREID',
                             params: {

@@ -143,10 +143,8 @@ const ReIDLogs = () => {
                                                 }))
                                             }))}
                                             if (reidResults.some(r => r.reIdId === _.reidId)) {
-                                                console.log('some?????????', reidResults, _.reidId)
                                                 setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
                                             } else {
-                                                console.log('not some?????????', reidResults.concat(newData))
                                                 setReidResults(reidResults.concat(newData))
                                             }
                                             setReIDSelectedcondition(0)

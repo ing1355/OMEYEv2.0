@@ -18,8 +18,8 @@ import { ArrayDeduplication, DivToImg } from "../../../Functions/GlobalFunctions
 import TimeModal from "./Constants/TimeModal"
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible } from "../../../Model/ConditionParamsModalModel"
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react"
-import { realTimeStatus } from "../../../Model/RealTimeDataModel"
-import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus } from "../../../Model/ProgressModel"
+import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
+import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel"
 import AreaSelect from "./Constants/AreaSelect"
 import useMessage from "../../../Hooks/useMessage"
 import { PersonDescriptionResultImageID } from "./Constants/ConstantsValues"
@@ -37,6 +37,7 @@ const ContentsWrapper = () => {
     const targetDatasCCTVTemp = useRecoilValue(conditionTargetDatasCCTVTemp)
     const targetDatasImageTemp = useRecoilValue(conditionTargetDatasImageTemp)
     const setCurrentMenu = useSetRecoilState(conditionMenu)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const [timeIndex, setTimeIndex] = useRecoilState(TimeSelectIndex)
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
     const [timeVisible, setTimeVisible] = useRecoilState(TimeSelectVisible)
@@ -45,6 +46,7 @@ const ContentsWrapper = () => {
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
     const addTimeData = useSetRecoilState(addConditionSingleTimeData)
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
+    const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const { routePop, routeJump, routePush, getAllRoutes, getRouteName } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
@@ -101,11 +103,9 @@ const ContentsWrapper = () => {
         console.debug('route : ', routeInfo.at(-1))
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if(isRealTime) {
+                if (isRealTime) {
                     if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
                     if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
-                }
-                if (isRealTime) {
                     if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
                         return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
                     }
@@ -118,8 +118,23 @@ const ContentsWrapper = () => {
                     if (rank < 1) {
                         return message.error({ title: '입력값 에러', msg: '분석 결과 후보 수는 최소 1개 이상이어야 합니다.' })
                     }
-                    if (targets.filter(_ => _.selected).find(_ => _.type === 'ATTRIBUTION')) {
-                        return message.error({ title: '입력값 에러', msg: '인상착의 대상은 실시간 분석을 사용할 수 없습니다.' })
+                    if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
+                        setRealTimeData({
+                            type: currentObjectType,
+                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            threshHold: 1,
+                            description: targets.filter(_ => _.selected)[0].description,
+                            src: targets.filter(_ => _.selected)[0].src
+                        })
+                    } else {
+                        setRealTimeData({
+                            type: currentObjectType!,
+                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            threshHold: 50,
+                            src: targets.filter(_ => _.selected)[0].src
+                        })
                     }
                     setRtStatus(PROGRESS_STATUS['RUNNING'])
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
@@ -127,6 +142,7 @@ const ContentsWrapper = () => {
                     if(targets.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
                     if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간을 1개 이상 선택해주세요."})
                     if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV를 1개 이상 선택해주세요."})
+                    setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
                         params: [
@@ -212,7 +228,7 @@ const ContentsWrapper = () => {
                     }} icon={homeIcon} />
                     <HeaderHistories>
                         {
-                            getAllRoutes().map((_, ind, arr) => <Fragment key={ind}>
+                            getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>
                                 {ind !== 0 ? '>' : ''}
                                 <HeaderHistoryItem onClick={() => {
                                     if (ind !== arr.length - 1) routeJump(_)
@@ -255,11 +271,11 @@ const ContentsWrapper = () => {
                     }}>
                         전체 선택{allSelected && ' 해제'}
                     </CompleteButton>}
-                    <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
+                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && routeInfo.length === 3) && <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
                         completeCallback()
                     }} icon={routeInfo.length === 2 ? reidReqIcon : ''}>
                         {getCompleteButtonTextByRoute()}
-                    </CompleteButton>
+                    </CompleteButton>}
                 </CompleteButtons>
             </Header>
             {(Object.keys(ConditionRouteInfo) as ConditionRouteType['key'][]).map(_ => <ContentsContainer key={_} index={ConditionRouteInfo[_].pageNum} current={_} routeInfo={routeInfo}>

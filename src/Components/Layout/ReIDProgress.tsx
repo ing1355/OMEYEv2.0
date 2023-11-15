@@ -3,7 +3,7 @@ import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, Sect
 import React, { Suspense, useEffect, useRef, useState } from "react"
 import Button from "../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
-import { useRecoilState, useSetRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../Model/ReIdResultModel"
 import ProgressTimeIcon from '../../assets/img/ProgressTimeIcon.png'
 import ProgressVideoIcon from '../../assets/img/ProgressVideoIcon.png'
@@ -16,7 +16,7 @@ import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "..
 import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressRequestParams, ProgressStatus, SSEProgressResponseType, defaultProgressRequestParams } from "../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, defaultProgressRequestParams } from "../../Model/ProgressModel"
 import { CustomEventSource, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
 import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
@@ -198,6 +198,7 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
 
 const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     const [loadingTime, setLoadingTime] = useState(0)
+    const [isProgress, setIsProgress] = useState(false)
     const [progressStatus, setProgressStatus] = useRecoilState(ProgressStatus)
     const setReidResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
     const setMenu = useSetRecoilState(conditionMenu)
@@ -209,7 +210,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
     const [reidResult, setReidResult] = useRecoilState(ReIDAllResultData)
     const [singleReIdResult, setSingleReIdresult] = useRecoilState(ReIDResultData((_progressRequestParams.params as AdditionalReIDRequestParamsType).reIdId || null))
     const setSelectedResultCondition = useSetRecoilState(ReIDResultSelectedCondition)
-    const [isProgress, setIsProgress] = useState(false)
+    const [requestFlag, setRequestFlag] = useRecoilState(ReIdRequestFlag)
     const sseRef = useRef<EventSource>()
     const message = useMessage()
     const reidResultRef = useRef(reidResult)
@@ -423,7 +424,6 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                     } else if (status === REID_CANCEL_MSG) {
                         console.debug(`${type} cancel event`)
                         message.preset('REIDCANCEL')
-                        sseRef.current?.close()
                         setProgressStatus({ type, status: PROGRESS_STATUS['CANCELD'] })
                     } else if (status === REID_START_MSG) {
                         console.debug(`${type} start event`)
@@ -524,59 +524,62 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
 
     useEffect(() => {
         console.debug('Request Params 변경 : ', _progressRequestParams)
-        if (_progressRequestParams.type) {
-            let temp: typeof progressData = [];
-            if (_progressRequestParams.type === 'REID') {
-                const _params = params as ReIDRequestParamsType[]
-                console.log("params : ",_params)
-                if (!_params.every(_ => _.objects.every(__ => __.type === _params[0].objects[0].type))) {
-                    setProgressRequestParams(defaultProgressRequestParams)
-                    return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
-                }
-                temp = _params.map(_ => ({
-                    title: _.title,
-                    times: _.timeGroups.map(__ => {
-                        return {
-                            time: convertFullTimeStringToHumanTimeFormat(`${__.startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${__.endTime}`),
-                            data: _.cctvIds.flat().reduce((accumulator, value) => {
-                                return {
-                                    ...accumulator, [value]: {
-                                        aiPercent: 0,
-                                        videoPercent: 0
-                                    }
-                                };
-                            }, {})
-                        }
-                    })
-                }))
-            } else if (_progressRequestParams.type === 'ADDITIONALREID') {
-                const _params = params as AdditionalReIDRequestParamsType
-                if (!_params.objects.every(__ => __.type === _params.objects[0].type)) {
-                    setProgressRequestParams(defaultProgressRequestParams)
-                    return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
-                }
-                temp = [
-                    {
-                        title: _params.title,
-                        times: [{
-                            time: convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].endTime}`),
-                            data: _params.cctvIds.flat().reduce((acc, value) => {
-                                return {
-                                    ...acc, [value]: {
-                                        aiPercent: 0,
-                                        videoPercent: 0
-                                    }
-                                };
-                            }, {})
+        if(requestFlag) {
+            if (_progressRequestParams.type) {
+                let temp: typeof progressData = [];
+                if (_progressRequestParams.type === 'REID') {
+                    const _params = params as ReIDRequestParamsType[]
+                    console.log("params : ",_params)
+                    if (!_params.every(_ => _.objects.every(__ => __.type === _params[0].objects[0].type))) {
+                        setProgressRequestParams(defaultProgressRequestParams)
+                        return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
+                    }
+                    temp = _params.map(_ => ({
+                        title: _.title,
+                        times: _.timeGroups.map(__ => {
+                            return {
+                                time: convertFullTimeStringToHumanTimeFormat(`${__.startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${__.endTime}`),
+                                data: _.cctvIds.flat().reduce((accumulator, value) => {
+                                    return {
+                                        ...accumulator, [value]: {
+                                            aiPercent: 0,
+                                            videoPercent: 0
+                                        }
+                                    };
+                                }, {})
+                            }
+                        })
+                    }))
+                } else if (_progressRequestParams.type === 'ADDITIONALREID') {
+                    const _params = params as AdditionalReIDRequestParamsType
+                    if (!_params.objects.every(__ => __.type === _params.objects[0].type)) {
+                        setProgressRequestParams(defaultProgressRequestParams)
+                        return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
+                    }
+                    temp = [
+                        {
+                            title: _params.title,
+                            times: [{
+                                time: convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].endTime}`),
+                                data: _params.cctvIds.flat().reduce((acc, value) => {
+                                    return {
+                                        ...acc, [value]: {
+                                            aiPercent: 0,
+                                            videoPercent: 0
+                                        }
+                                    };
+                                }, {})
+                            }]
                         }]
-                    }]
+                }
+                progressDataRef.current = temp
+                console.debug("Progress Data Init : ", temp)
+                setProgressData(temp)
+                sseSetting()
             }
-            progressDataRef.current = temp
-            console.debug("Progress Data Init : ", temp)
-            setProgressData(temp)
-            sseSetting()
+            setRequestFlag(false)
         }
-    }, [_progressRequestParams])
+    }, [_progressRequestParams, requestFlag])
     
     return <>
         <SmallProgress percent={getAllProgressPercent(progressData)} color="white" noString />

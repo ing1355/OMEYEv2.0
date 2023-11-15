@@ -75,7 +75,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
             <MapContainer>
                 <MapComponent
                     pathCameras={filteredPathCameras}
-                    viewChangeForPath={detailResult ? detailResult[0].cctvId! : undefined}
+                    viewChangeForPath={detailResult ? [detailResult[0].cctvId!] : undefined}
                     forAddtraffic
                     reIdId={reIdId}
                     onlyMap>

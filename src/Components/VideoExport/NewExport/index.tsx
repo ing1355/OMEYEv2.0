@@ -21,17 +21,34 @@ import { CustomEventSource, IS_PRODUCTION } from "../../../Constants/GlobalConst
 import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
+import useMessage from "../../../Hooks/useMessage"
+import { SSEResponseErrorMsg } from "../../../Model/ProgressModel"
 
 type ParameterInputType = {
     index: number
     type: 'cctv' | 'time' | ''
 }
 
-const msgByStatus = (status: VideoExportRowDataType['status']) => {
+const videoDownloadByPath = (path: string) => {
+    fetch(path).then(res => res.blob()).then(file => {
+        let tempUrl = URL.createObjectURL(file);
+        FileDownloadByUrl(tempUrl)
+        URL.revokeObjectURL(tempUrl)
+    })
+}
+
+const msgByStatus = (status: VideoExportRowDataType['status'], progress?: VideoExportRowDataType['progress']) => {
     switch (status) {
         case 'canDownload': return '다운로드 가능'
         case 'complete': return '다운로드 완료'
-        case 'downloading': return '다운로드 중'
+        case 'downloading': {
+            if (progress) {
+                if (progress.videoPercent < 100) return '영상 다운로드 중'
+                else return '영상 변환 중'
+            } else {
+                return '영상 반출 진행 중'
+            }
+        }
         case 'cancel': return '취소됨'
         case 'wait': return '대기 중'
         case 'none':
@@ -49,6 +66,14 @@ const iconByStatus = (status: VideoExportRowDataType['status']) => {
     }
 }
 
+const btnMsgByStatus = (status: VideoExportRowDataType['status']) => {
+    switch (status) {
+        case 'complete': return '다운로드'
+        case 'downloading': return '취소'
+        default: return '반출하기'
+    }
+}
+
 const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, exportCallback, alreadyOtherProgress }: {
     data: VideoExportRowDataType
     setData: (d: VideoExportRowDataType) => void
@@ -59,7 +84,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
     alreadyOtherProgress: boolean
 }) => {
 
-    const { cctvId, status, options, time, progress } = data
+    const { cctvId, status, options, time, progress, path } = data
     const [count, setCount] = useState(0)
     const dataRef = useRef(data)
     const timerRef = useRef<NodeJS.Timer>()
@@ -100,7 +125,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
         <ContentsContainer>
             <TitleContainer>
                 <StatusTitle status={status}>
-                    {msgByStatus(status)}{status === 'downloading' && Array.from({ length: count % 4 }).map(_ => '.')}
+                    {msgByStatus(status, progress)}{status === 'downloading' && Array.from({ length: count % 4 }).map(_ => '.')}
                 </StatusTitle>
                 {!canChangeInput && <CountText>
                     {getLoadingTimeString(count)}
@@ -149,12 +174,12 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                     </OptionBtn>
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
-                    <ActionBottomBtn disabled={status === 'complete' || status === 'none' || alreadyOtherProgress} onClick={() => {
+                    <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress} onClick={() => {
                         if (status === 'downloading') videoExportCancelFunc()
-                        // else sseSetting()
-                        else exportCallback()
+                        if (status === 'canDownload') exportCallback()
+                        if (status === 'complete') videoDownloadByPath(path!)
                     }}>
-                        {status === 'downloading' ? '취소' : '반출하기'}
+                        {btnMsgByStatus(status)}
                     </ActionBottomBtn>
                 </ActionBottomBtnsContainer>
             </ActionBottomContainer>
@@ -194,6 +219,7 @@ const NewExport = () => {
     const datasRef = useRef(datas)
     const currentData = useRef<VideoExportRowDataType>(datas[0])
     const tempTimer = useRef<NodeJS.Timer>()
+    const message = useMessage()
 
     useEffect(() => {
         datasRef.current = datas
@@ -320,22 +346,25 @@ const NewExport = () => {
                     }, 200);
                 } else if (type === 'done') {
                     if (tempTimer.current) clearTimeout(tempTimer.current)
-                    setDatas(datasRef.current.map(_ => {
-                        return _.videoUUID === videoUUID ? ({
-                            ...currentData.current,
-                            status: 'complete'
-                        }) : _
-                    }))
+                    currentData.current = {
+                        ...currentData.current,
+                        status: 'complete'
+                    }
                 }
                 if (path) {
-                    fetch(path).then(res => res.blob()).then(file => {
-                        let tempUrl = URL.createObjectURL(file);
-                        FileDownloadByUrl(tempUrl)
-                        URL.revokeObjectURL(tempUrl)
-                    })
+                    message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
+                    currentData.current = {
+                        ...currentData.current,
+                        path
+                    }
                 }
+                setDatas(datasRef.current.map(_ => {
+                    return _.videoUUID === videoUUID ? ({
+                        ...currentData.current
+                    }) : _
+                }))
             }
-            if (status === 'EXPORT_CANCEL') {
+            if (status && SSEResponseErrorMsg.includes(status)) {
                 setDatas(datasRef.current.map(_ => _.videoUUID === currentUUIDRef.current ? ({
                     ..._,
                     status: 'cancel'
@@ -384,19 +413,25 @@ const NewExport = () => {
                 </EmptyIconContainer>
             </EmptyRowContainer>
         </Container>
-        <AreaSelect defaultSelected={datas[inputType.index] && datas[inputType.index].cctvId ? [datas[inputType.index].cctvId!] : []} visible={inputType.type === 'cctv'} close={clearInputType} complete={value => {
-            if (inputType.index === -1) {
-                setNewData({
-                    ...defaultExportRowData,
-                    cctvId: value[0]
-                })
-            } else {
-                setDatas(datas.map((_, ind) => inputType.index === ind ? ({
-                    ..._,
-                    cctvId: value[0]
-                }) : _))
-            }
-        }} title="CCTV 선택" singleSelect />
+        <AreaSelect
+            defaultSelected={datas[inputType.index] && datas[inputType.index].cctvId ? [datas[inputType.index].cctvId!] : []}
+            visible={inputType.type === 'cctv'}
+            close={clearInputType}
+            complete={value => {
+                if (inputType.index === -1) {
+                    setNewData({
+                        ...defaultExportRowData,
+                        cctvId: value[0]
+                    })
+                } else {
+                    setDatas(datas.map((_, ind) => inputType.index === ind ? ({
+                        ..._,
+                        cctvId: value[0]
+                    }) : _))
+                }
+            }}
+            title="CCTV 선택"
+            singleSelect />
         <TimeModal
             visible={inputType.type === 'time'}
             defaultValue={datas[inputType.index] && datas[inputType.index].time}
