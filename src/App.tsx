@@ -33,24 +33,44 @@ const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
   }
 }
 
+const getLocalIp = async () => {
+  const conn = new RTCPeerConnection()
+  conn.createDataChannel('')
+  conn.setLocalDescription(await conn.createOffer())
+  return await new Promise((resolve, reject) => {
+    conn.onicecandidate = ice => {
+      if (ice && ice.candidate && ice.candidate.candidate) {
+        resolve(ice.candidate.candidate.split(' ')[4])
+        conn.close()
+      } else {
+        reject('ip connection fail')
+      }
+    }
+  })
+}
+
 const App = () => {
   const [loginState, setLoginState] = useRecoilState(isLogin)
   const [handlerComplete, setHandlerComplete] = useState(false)
   const _message = useMessage()
 
   useEffect(() => {
-    if(loginState) {
+    if (loginState) {
       window.addEventListener('beforeunload', e => {
         e.preventDefault()
         e.returnValue = ''
       })
     }
     return () => {
-      
+
     }
-  },[loginState])
+  }, [loginState])
 
   useLayoutEffect(() => {
+    axios.interceptors.request.use(async req => {
+      req.headers['X-Forwarded-For'] = await getLocalIp()
+      return req
+    })
     axios.interceptors.response.use(res => {
       return res;
     }, err => {
@@ -62,7 +82,7 @@ const App = () => {
           title: serverErrorTitleByStatusCode(status),
           msg: status !== 502 ? (errorCode || message) : '서버 상태를 확인해주세요.'
         })
-        if(code === 401 || status === 502) {
+        if (code === 401 || status === 502) {
           setLoginState(null)
         }
       }
