@@ -1,6 +1,6 @@
 import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
-import { conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionIsRealTimeData, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
@@ -13,14 +13,17 @@ import IconBtn from "../../../Constants/IconBtn"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
+import useMessage from "../../../../Hooks/useMessage"
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
     const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
-    const { routePush } = useConditionRoutes()
     const [datas, setDatas] = useRecoilState(conditionTargetDatas(null))
     const selectedType = useRecoilValue(selectedConditionObjectType)
+    const isRealTime = useRecoilValue(conditionIsRealTimeData)
+    const { routePush } = useConditionRoutes()
+    const message = useMessage()
 
     const initAction = () => {
         setDatas([])
@@ -53,10 +56,18 @@ const TargetSelectColumn = () => {
             <ItemsScrollContainer>
                 {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
                 {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
-                    setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
-                        ..._,
-                        selected: !_.selected
-                    }))
+                    if(_.selected) {
+                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                            ..._,
+                            selected: false
+                        }))
+                    } else if(isRealTime && datas.find(_ => _.selected)) return message.error({title: "입력값 에러", msg:"실시간 분석은 1개의 대상만 선택 가능합니다."})
+                    else {
+                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                            ..._,
+                            selected: true
+                        }))
+                    }
                 }}>
                     <ItemSubContainer>
                         <ItemImage src={_.src} />
@@ -102,6 +113,9 @@ const ItemContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.conditionDataItemBox}
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     cursor: pointer;
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
 `
 
 const ItemSubContainer = styled.div`

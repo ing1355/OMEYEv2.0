@@ -1,12 +1,12 @@
 import { DefaultValue, atom, selector } from "recoil";
-import { ConditionRouteType, ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute } from "../Components/ReID/Condition/Constants/RouteInfo";
+import { ConditionRouteType, ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Components/ReID/Condition/Constants/RouteInfo";
 import { IS_PRODUCTION } from "../Constants/GlobalConstantsValues";
 
 let start = new Date()
 
 const _route = atom<ConditionRouteType['key'][]>({
     key: "conditionRoute",
-    default: IS_PRODUCTION ? [] : [ObjectTypeSelectRoute.key, ReIDConditionFormRoute.key]
+    default: IS_PRODUCTION ? [] : [ObjectTypeSelectRoute.key, ReIDConditionFormRoute.key, ReIDConditionTargetSelectPersonDescriptionRoute.key]
 })
 
 export const conditionRoute = selector({

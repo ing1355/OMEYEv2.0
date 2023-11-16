@@ -88,6 +88,9 @@ const AreaDataItem = styled.div<{ selected: boolean }>`
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex({ gap: '8px', justifyContent: 'space-between' })}
     cursor: pointer;
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
 `
 
 const AreaDataItemTitle = styled.div`

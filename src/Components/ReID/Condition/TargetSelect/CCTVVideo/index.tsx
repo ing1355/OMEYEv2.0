@@ -22,6 +22,10 @@ const CCTVVideo = () => {
     const message = useMessage()
 
     useEffect(() => {
+        if(!selectedCCTVs.find(_ => _ === selectedVideo?.cameraId)) setSelectedVideo(null)
+    },[selectedCCTVs])
+
+    useEffect(() => {
         setCctvDatasTemp([])
         if (selectedVideo && containerRef.current) {
             containerRef.current.scrollTo({

@@ -23,16 +23,18 @@ import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
 import useMessage from "../../../Hooks/useMessage"
 import { SSEResponseErrorMsg } from "../../../Model/ProgressModel"
+import { useRecoilValue } from "recoil"
+import { GetCameraById } from "../../../Model/SiteDataModel"
 
 type ParameterInputType = {
     index: number
     type: 'cctv' | 'time' | ''
 }
 
-const videoDownloadByPath = (path: string) => {
+const videoDownloadByPath = (path: string, fileName: string) => {
     fetch(path).then(res => res.blob()).then(file => {
         let tempUrl = URL.createObjectURL(file);
-        FileDownloadByUrl(tempUrl)
+        FileDownloadByUrl(tempUrl, fileName)
         URL.revokeObjectURL(tempUrl)
     })
 }
@@ -84,11 +86,11 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
     exportCallback: () => void
     alreadyOtherProgress: boolean
 }) => {
-
     const { cctvId, status, options, time, progress, path } = data
     const [count, setCount] = useState(0)
     const dataRef = useRef(data)
     const timerRef = useRef<NodeJS.Timer>()
+    const cctvName = useRecoilValue(GetCameraById(cctvId || 0))
 
     const canChangeInput = useMemo(() => {
         return status === 'none' || status === 'canDownload' || status === 'cancel' || status === 'wait'
@@ -140,16 +142,24 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 </NeedSelectTitle>
             </CCTVName>
             <ProgressContainer>
-                <Progress percent={progress.videoPercent} color={TextActivateColor} outString icon={ProgressVideoIcon} />
+                <Progress percent={progress.videoPercent || 98} color={TextActivateColor} outString icon={ProgressVideoIcon} />
             </ProgressContainer>
             <ProgressContainer>
-                <Progress percent={progress.aiPercent} color={TextActivateColor} outString icon={ProgressAIIcon} />
+                <Progress percent={progress.aiPercent || 100} color={TextActivateColor} outString icon={ProgressAIIcon} />
             </ProgressContainer>
             <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
                 if (canChangeInput) inputTypeChange('time')
             }}>
                 {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '클릭하여 반출할 날짜 선택'}
             </NeedSelectTitle>
+            {options.description && <ETCContainer>
+                <div>
+                    비고 :
+                </div>
+                <div>
+                    {options.description}
+                </div>
+            </ETCContainer>}
             <TagsContainer>
                 <OptionTags options={options} />
             </TagsContainer>
@@ -183,7 +193,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                                 ...data,
                                 status: 'downloadComplete'
                             })
-                            videoDownloadByPath(path!)
+                            videoDownloadByPath(path!, `${cctvName}_${time?.startTime}_${time?.endTime}`)
                         }
                     }}>
                         {btnMsgByStatus(status)}
@@ -604,3 +614,13 @@ const TagsContainer = styled.div`
     ${globalStyles.flex({ justifyContent: 'flex-start', flexDirection: 'row', gap: '8px' })}
 `
 
+const ETCContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+    & > div:first-child {
+        flex: 0 0 48px;
+        font-size: 1.2rem;
+    }
+    & > div:last-child {
+        font-size: 1.1rem;
+    }
+`

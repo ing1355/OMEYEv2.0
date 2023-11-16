@@ -9,7 +9,7 @@ export const OptionTags = ({ options }: {
     if (!options) return <></>
     const { masking, password, description } = options
     return <>
-        {description && <CategoryTag selected title="비고" description={description}/>}
+        {/* {description && <CategoryTag selected title="비고" description={description}/>} */}
         {masking.includes('area') && <CategoryTag selected title="영역 비식별화"/>}
         {masking.includes('head') && <CategoryTag selected title="얼굴 비식별화"/>}
         {masking.includes('carplate') && <CategoryTag selected title="번호판 비식별화"/>}

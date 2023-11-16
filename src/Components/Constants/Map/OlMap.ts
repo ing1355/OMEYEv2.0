@@ -453,7 +453,6 @@ export class OlMap extends CustomMap<Map> {
     }
 
     registerSingleClickHandler(): void {
-        console.debug("click!!")
         this.map.on("singleclick", (e) => {
             let feature = this.map.forEachFeatureAtPixel(e.pixel, (feature) => feature) as Feature;
             if (feature) {
@@ -462,7 +461,9 @@ export class OlMap extends CustomMap<Map> {
                     if (features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
                         this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     } else {
+                        this.dispatchDuplicatedMarkerChangeEvent([])
                         this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
+                        // this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     }
                 } else {
                     let _feature: Feature<Geometry>

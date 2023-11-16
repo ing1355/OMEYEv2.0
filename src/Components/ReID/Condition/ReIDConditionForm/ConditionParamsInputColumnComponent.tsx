@@ -9,8 +9,7 @@ import resetIcon from '../../../../assets/img/resetIcon.png'
 import resetHoverIcon from '../../../../assets/img/resetHoverIcon.png'
 import conditionDataAddIcon from '../../../../assets/img/conditionDataAddIcon.png'
 import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHoverIcon.png'
-import realtimeIcon from '../../../../assets/img/realtimeIcon.png'
-import realtimeOffIcon from '../../../../assets/img/realtimeOffIcon.png'
+import liveIcon from '../../../../assets/img/liveIcon.png'
 
 type ConditionParamsInputColumnComponentProps = PropsWithChildren<{
     title: string
@@ -54,21 +53,21 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
     const [isHover, setIsHover] = useState(false)
 
     const resetIconByHover = clearHover ? resetHoverIcon : resetIcon
-    
+
     return <>
         <TitleContainer>
             <TitleInnerContainer>
                 {titleIcon && <TitleIconContainer isTarget={isTarget || false}>
-                    <TitleIcon src={titleIcon}/>
+                    <TitleIcon src={titleIcon} />
                 </TitleIconContainer>}
                 <TitleText>
-                {title}
+                    {title}
                 </TitleText>
             </TitleInnerContainer>
             <ButtonsContainer>
-                {realtimeBtn && <OptionButton concept="icon" $isRealTime={isRealTime} onClick={() => {
+                {realtimeBtn && <OptionButton concept="icon" onClick={() => {
                     setIsRealTime(!isRealTime)
-                }} icon={isRealTime ? realtimeOffIcon : realtimeIcon} />}
+                }} icon={liveIcon} isLive={true} liveOn={isRealTime} />}
                 <OptionButton
                     concept="icon"
                     disabled={!isDataExist && !(realtimeBtn && isRealTime)}
@@ -105,17 +104,23 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                     setIsHover(false)
                 }
             }}>
-            {isDataExist ? <>
-                {!dataAddDelete && <DataExistAndAddComponent onClick={() => {
-                    if (!((realtimeBtn || false) && isRealTime)) dataAddAction()
-                }} disabled={(realtimeBtn || false) && isRealTime}>
-                    <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
-                </DataExistAndAddComponent>}
-                {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
-                    전체 선택 {allSelected && '해제'}
-                </AllSelectBtn>}
-                {children}
-            </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />}
+            {
+                (realtimeBtn && isRealTime) ? <IsRealTimeContainer>
+                    
+                </IsRealTimeContainer> : (
+                    isDataExist ? <>
+                        {!dataAddDelete && <DataExistAndAddComponent onClick={() => {
+                            if (!((realtimeBtn || false) && isRealTime)) dataAddAction()
+                        }} disabled={(realtimeBtn || false) && isRealTime}>
+                            <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
+                        </DataExistAndAddComponent>}
+                        {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
+                            전체 선택 {allSelected && '해제'}
+                        </AllSelectBtn>}
+                        {children}
+                    </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />
+                )
+            }
         </DataContainer>
     </>
 }
@@ -127,15 +132,25 @@ const ButtonsContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '8px' })}
 `
 
-const OptionButton = styled(Button) <{ $isRealTime?: boolean }>`
+const OptionButton = styled(Button) <{ isLive?: boolean, liveOn?: boolean }>`
     height: 100%;
     border: none;
+    ${({ isLive, liveOn }) => isLive && `
+        &:hover {
+            filter: drop-shadow(0 0 6px #FF6E6E);
+        }
+        ${liveOn && `
+                filter: drop-shadow(0 0 6px #FF6E6E);
+            `
+        }
+    `}
 `
 
 const DataContainer = styled.div<{ isDataExist: boolean, isRealTime?: boolean }>`
     height: calc(100% - 48px);
     width: 100%;
     padding: 12px 8px;
+    border-radius: 12px;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '12px' })}
     background-color: ${SectionBackgroundColor};
     ${({ isRealTime }) => isRealTime && `
@@ -161,12 +176,12 @@ const TitleContainer = styled.div`
 `
 
 const TitleInnerContainer = styled.div`
-    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start'})}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
     flex: 1;
 `
 
-const TitleIconContainer = styled.div<{isTarget: boolean}>`
-    flex: 0 0 ${({isTarget}) => isTarget ? 40 : 20}px;
+const TitleIconContainer = styled.div<{ isTarget: boolean }>`
+    flex: 0 0 ${({ isTarget }) => isTarget ? 40 : 20}px;
     margin-right: 6px;
     height: 100%;
     ${globalStyles.flex()}
@@ -205,4 +220,9 @@ const AllSelectBtn = styled(Button)`
     width: 100%;
     font-size: .9rem;
     padding: 8px 0;
+`
+
+const IsRealTimeContainer = styled.div`
+    ${globalStyles.flex()}
+    height: 100%;
 `

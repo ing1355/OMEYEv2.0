@@ -317,7 +317,6 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
     const aTag = document.createElement("a");
     aTag.target = "_self"
     aTag.href = url
-    fileName = "/Users/hozzi/Desktop/test"
     aTag.download = fileName || "";
     console.log(url, fileName)
     document.body.appendChild(aTag);

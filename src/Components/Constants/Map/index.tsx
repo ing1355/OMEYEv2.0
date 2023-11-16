@@ -8,7 +8,7 @@ import { OlMap } from './OlMap';
 import { CameraDataType, ReIDObjectTypeKeys, SiteDataType } from '../../../Constants/GlobalTypes';
 import { CustomMap } from './CustomMap';
 import Input from "../../Constants/Input"
-import { ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
+import { ButtonDefaultHoverColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
 import Button from "../Button";
 import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
@@ -39,16 +39,17 @@ type MapComponentProps = PropsWithChildren & {
     viewChangeForPath?: CameraDataType['cameraId'][]
 }
 
+const hasCameraInSite = (siteData: SiteDataType) => {
+    return siteData.cameras.length > 0 || (siteData.sites && siteData.sites.some(_ => _.cameras.length > 0))
+}
+
 const findSiteByDuplicatedCCTVs = (cctvs: CameraDataType['cameraId'][], siteData: SiteDataType[]): SiteDataType[] => {
-    const filteredTreeData = siteData.filter(_ => _.cameras.some(__ => cctvs.includes(__.cameraId)))
-    return filteredTreeData.map(_ => (_.sites ? {
+    const filteredTreeData = siteData.map(_ => ({
         ..._,
         cameras: _.cameras.filter(__ => cctvs.includes(__.cameraId)),
-        sites: findSiteByDuplicatedCCTVs(cctvs, _.sites)
-    } : {
-        ..._,
-        cameras: _.cameras.filter(__ => cctvs.includes(__.cameraId)),
+        sites: _.sites ? findSiteByDuplicatedCCTVs(cctvs, _.sites) : []
     }))
+    return filteredTreeData.filter(_ => hasCameraInSite(_))
 }
 
 const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
@@ -243,7 +244,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     // }
 
     const createCameraRow = (camera: CameraDataType) => {
-        return <CCTVItemContainer key={camera.cameraId} onClick={() => {
+        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
             if(map.current) {
                 if(forAddtraffic) {
                     closeOverlayWrapper()
@@ -262,7 +263,23 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }
 
     return <>
-        <MapContainer ref={mapElement}>
+        <MapContainer ref={mapElement} 
+        onMouseEnter={e => {
+            e.stopPropagation()
+        }}
+        onMouseDown={e => {
+            e.stopPropagation()
+        }}
+        onMouseUp={e => {
+            e.stopPropagation()
+        }}
+        onMouseLeave={e => {
+            e.stopPropagation()
+        }}
+        onMouseMove={e => {
+            e.stopPropagation()
+        }}
+        >
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}
@@ -285,7 +302,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         CCTV
                     </CCTVListHeader>
                     <CCTVContentsContainer>
-                        {ArrayDeduplication(duplicatedCCTVSelect.flatMap(_ => _.cameras)).map(_ => createCameraRow(_))}
+                        {ArrayDeduplication(duplicatedCCTVSelect.flatMap(_ => _.cameras), (a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))}
                     </CCTVContentsContainer>
                 </CCTVListContainer>}
             </ControlsContainer>
@@ -559,7 +576,7 @@ const CCTVListContainer = styled.div`
     background-color: ${SectionBackgroundColor};
     padding: 8px;
     border-radius: 12px;
-    width: 240px;
+    width: 340px;
 `
 
 const CCTVListHeader = styled.div`
@@ -571,7 +588,6 @@ const CCTVContentsContainer = styled.div`
     max-height: 250px;
     overflow: auto;
     padding: 10px 6px;
-    ${globalStyles.flex({gap: '6px'})}
 `
 
 const CCTVRowContainer = styled.div<{ opened: boolean }>`
@@ -601,10 +617,10 @@ const CCTVRowContentsContainer = styled.div`
     ${globalStyles.flex({justifyContent:'flex-start'})}
 `
 
-const CCTVItemContainer = styled.div`
+const CCTVItemContainer = styled.div<{selected: boolean}>`
     width: 100%;
     border: none;
-    background-color: ${ContentsBorderColor};
+    background-color: ${({selected}) => selected ? ContentsActivateColor : ContentsBorderColor};
     border-radius: 8px;
     height: 24px;
     line-height: 20px;
@@ -613,4 +629,11 @@ const CCTVItemContainer = styled.div`
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
+    font-family: NanumGothicLight;
+    &:not(:last-child) {
+        margin-bottom: 4px;
+    }
+    &:hover {
+        background-color: ${ButtonDefaultHoverColor};
+    }
 `

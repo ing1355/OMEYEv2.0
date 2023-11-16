@@ -203,7 +203,7 @@ const descriptionSelectItems: {
     general: {
         gender: {
             title: '성별',
-            flex: '25%',
+            flex: '20%',
             items: [
                 {
                     title: '남자',

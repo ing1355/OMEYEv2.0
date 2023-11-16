@@ -6,6 +6,7 @@ import { ArrayDeduplication } from "../../Functions/GlobalFunctions"
 import { useRecoilValue } from "recoil"
 import { SitesData } from "../../Model/SiteDataModel"
 import { CameraDataType } from "../../Constants/GlobalTypes"
+import useThrottle from "../../Hooks/useThrottle"
 
 type DropdownSearchProps = {
     onChange: (value: CameraDataType) => void
@@ -19,9 +20,8 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const sitesData = useRecoilValue(SitesData)
     const cameraList = useMemo(() => ArrayDeduplication(sitesData.flatMap(_ => _.cameras), (__, ___) => __.cameraId === ___.cameraId), [sitesData])
-    const viewList = useMemo(() => cameraList.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true), [cameraList, searchInputValue])
+    const viewList = useMemo(() => searchInputOpen ? cameraList.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true) : [], [cameraList, searchInputValue, searchInputOpen])
     const viewListRef = useRef(viewList)
-    const registered = useRef(false)
     const arrowUpIsDown = useRef(false)
     const arrowDownIsDown = useRef(false)
     const arrowUpTimer = useRef<NodeJS.Timeout>()
@@ -31,18 +31,19 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const globalContainerRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const throttling = useThrottle()
 
     useEffect(() => {
         setSelectedIndex(0)
-    },[searchInputOpen])
-    
+    }, [searchInputOpen])
+
     useEffect(() => {
         if (containerRef.current) {
-            if(selectedIndex * nodeHeight < containerRef.current.scrollTop) {
+            if (selectedIndex * nodeHeight < containerRef.current.scrollTop) {
                 containerRef.current.scrollTo({
                     top: selectedIndex * nodeHeight
                 })
-            } else if((selectedIndex - 2) * nodeHeight > containerRef.current.scrollTop) {
+            } else if ((selectedIndex - 2) * nodeHeight > containerRef.current.scrollTop) {
                 containerRef.current.scrollTo({
                     top: (selectedIndex - 2) * nodeHeight
                 })
@@ -64,7 +65,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
 
     const keyDownCallback = useCallback((e: KeyboardEvent) => {
         if (e.key === 'ArrowDown' && !arrowDownIsDown.current) {
-            if(arrowUpIsDown.current) clearArrowUp()
+            if (arrowUpIsDown.current) clearArrowUp()
             arrowDownIsDown.current = true
             setSelectedIndex(_ => viewListRef.current.length === 0 ? 0 : (_ === viewListRef.current.length - 1 ? viewListRef.current.length - 1 : _ + 1))
             arrowDownTimer.current = setTimeout(() => {
@@ -73,7 +74,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                 }, 66)
             }, 125);
         } else if (e.key === 'ArrowUp' && !arrowUpIsDown.current) {
-            if(arrowDownIsDown.current) clearArrowDown()
+            if (arrowDownIsDown.current) clearArrowDown()
             arrowUpIsDown.current = true
             setSelectedIndex(_ => viewListRef.current.length === 0 ? 0 : (_ === 0 ? 0 : _ - 1))
             arrowUpTimer.current = setTimeout(() => {
@@ -94,16 +95,11 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
 
     useEffect(() => {
         if (viewList.length > 0) {
-            if (!registered.current) {
-                document.addEventListener('keydown', keyDownCallback)
-                document.addEventListener('keyup', keyUpCallback)
-            }
-            registered.current = true
+            document.addEventListener('keydown', keyDownCallback)
+            document.addEventListener('keyup', keyUpCallback)
         } else {
-            if (registered.current) {
-                document.removeEventListener('keydown', keyDownCallback)
-                document.removeEventListener('keyup', keyUpCallback)
-            }
+            document.removeEventListener('keydown', keyDownCallback)
+            document.removeEventListener('keyup', keyUpCallback)
         }
         viewListRef.current = viewList
     }, [viewList])
@@ -124,34 +120,41 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                 inputRef.current?.blur()
             }
         }
-    },[])
+    }, [])
 
     useEffect(() => {
-        if(searchInputOpen) {
+        if (searchInputOpen) {
             document.addEventListener('mousedown', blurClickCallback)
         } else {
             document.removeEventListener('mousedown', blurClickCallback)
         }
-    },[searchInputOpen])
+    }, [searchInputOpen])
 
     return <SearchControlContainer ref={globalContainerRef}>
         <SearchInput
             maxLength={40}
-            value={searchInputValue}
+            defaultValue={searchInputValue}
             inputRef={inputRef}
             onChange={val => {
-                setSearchInputValue(val)
-                setSearchOpen(true)
+                setSearchOpen(false)
+                throttling(() => {
+                    setSearchInputValue(val)
+                    setSearchOpen(true)
+                }, 400)
             }}
-            onFocus={() => {
+            onFocus={(e) => {
+                setSearchInputValue('')
+                e.currentTarget.value = ''
                 setSearchOpen(true)
             }}
             onEnter={(e) => {
                 const target = viewList[selectedIndex]
+                console.debug(target)
                 if (target) {
                     onChange(target)
-                    setSearchInputValue(target.name)
+                    // setSearchInputValue(target.name)
                     setSearchOpen(false)
+                    e.currentTarget!.value = target.name
                     e.currentTarget.blur()
                 }
             }}
@@ -166,9 +169,9 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                     selected={ind === selectedIndex}
                     key={_.cameraId}
                     onClick={() => {
-                        console.log('click????', _)
                         onChange(_)
                         setSearchInputValue(_.name)
+                        inputRef.current!.value = _.name
                         setSearchOpen(false)
                     }}>
                     {_.name}
@@ -196,7 +199,7 @@ const SearchInput = styled(Input)`
     padding: 4px 8px;
 `
 
-const SearchAutoCompleteContaier = styled.div<{opened: boolean}>`
+const SearchAutoCompleteContaier = styled.div<{ opened: boolean }>`
     position: absolute;
     top: 110%;
     left: 0;
@@ -206,7 +209,7 @@ const SearchAutoCompleteContaier = styled.div<{opened: boolean}>`
     max-height: 180px;
     overflow-x: hidden;
     overflow-y: auto;
-    display: ${({opened}) => opened ? 'block' : 'none'};
+    display: ${({ opened }) => opened ? 'block' : 'none'};
 `
 
 const SearchAutoCompleteItem = styled.div<{ selected: boolean }>`

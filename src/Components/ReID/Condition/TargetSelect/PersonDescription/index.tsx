@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ContentsActivateColor, globalStyles } from "../../../../../styles/global-styled"
+import { ButtonActiveBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import Button from "../../../../Constants/Button"
 import { useState } from "react"
 import { DescriptionCategories, DescriptionCategoryKeyType } from "./DescriptionType"
@@ -52,13 +52,20 @@ const CategoryItem = styled(Button) <{ selected: boolean }>`
     font-size: 1.2rem;
     white-space: pre-wrap;
     ${({selected}) => selected && {
-        backgroundColor: ContentsActivateColor
+        backgroundColor: ButtonActiveBackgroundColor
     }};
+    &:hover {
+        border: 1px solid ${ButtonActiveBackgroundColor};
+    }
 `
 
 const SelectItemsContainer = styled.div`
     ${CommonStyles}
     flex: 6.4;
+    height: 100%;
+    padding: 12px 24px;
+    border-radius: 16px;
+    background-color: ${SectionBackgroundColor};
 `
 
 const ResultImageContainer = styled.div`
@@ -67,4 +74,6 @@ const ResultImageContainer = styled.div`
     ${globalStyles.flex()}
     font-size: 2rem;
     position: relative;
+    border-radius: 16px;
+    background-color: ${SectionBackgroundColor};
 `

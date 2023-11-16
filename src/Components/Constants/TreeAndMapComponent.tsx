@@ -74,7 +74,6 @@ const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs, singleSelect, vi
                 selectedCCTVs={selectedCCTVs}
                 forSingleCamera={singleSelect}
                 selectedChange={(cctvs) => {
-                    console.debug('change??? : ' , cctvs)
                     _setSelectedCCTVs(cctvs)
                 }}
                 idForViewChange={searchCCTV ? searchCCTV : undefined} />

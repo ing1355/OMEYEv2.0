@@ -237,7 +237,7 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton hover disabled={isRealTime || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
+                    {routeInfo.length === 2 && <CompleteButton hover disabled={(isRealTime && targets.length > 1) || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,

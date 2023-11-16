@@ -85,5 +85,5 @@ const InfoImg = styled.img`
 const Contents = styled.div<{ _wrap: boolean }>`
     width: 100%;
     height: calc(100% - 40px);
-    ${({ _wrap }) => `${globalStyles.flex({ flexDirection: 'row', gap: '2.5%', justifyContent: 'flex-start', flexWrap: _wrap ? 'wrap' : 'nowrap' })}`}
+    ${({ _wrap }) => `${globalStyles.flex({ flexDirection: 'row', gap: '1%', justifyContent: 'flex-start', flexWrap: _wrap ? 'wrap' : 'nowrap' })}`}
 `

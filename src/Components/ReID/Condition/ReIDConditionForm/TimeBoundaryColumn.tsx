@@ -40,7 +40,7 @@ const TimeBoundaryColumn = () => {
     return <>
         <Container>
             <ConditionParamsInputColumnComponent
-                title={`시간(${timeData.length})`}
+                title={`시간(${isRealTime ? '실시간' : timeData.length})`}
                 titleIcon={timeIcon}
                 isDataExist={timeData.length > 0}
                 initAction={initAction}
@@ -101,6 +101,9 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.flex()}
     position: relative;
     cursor: pointer;
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
 `
 
 const ContentsContainer = styled.div`

@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { DescriptionColorItemType } from "../DescriptionItems"
-import { ContentsActivateColor, globalStyles } from "../../../../../../styles/global-styled"
+import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../../../styles/global-styled"
 import { descriptionColorType } from "../DescriptionType"
 
 type ColorSelectItemProps = {
@@ -25,7 +25,7 @@ export default ColorSelectItem
 const Container = styled.div`
     cursor: pointer;
     ${globalStyles.flex()}
-    flex: 0 0 12%;
+    flex: 0 0 ${100 / 8}%;
     height: 50%;
 `
 
@@ -34,6 +34,8 @@ const Color = styled.div<{value: DescriptionColorItemType['value'], selected: bo
     ${({selected}) => selected && `border: 3px solid ${ContentsActivateColor};`}
     width: 100%;
     flex: 1;
+    border-radius: 12px;
+    border: 1px solid ${ContentsBorderColor};
 `
 
 const Title = styled.div`

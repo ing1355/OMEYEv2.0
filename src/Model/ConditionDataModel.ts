@@ -46,7 +46,7 @@ export type ConditionDataType = { selectedType: ReIDObjectTypeKeys | null } & Co
 const _data = atom<ConditionDataType>({
     key: "conditionData",
     default: {
-        selectedType: IS_PRODUCTION ? null : 'PERSON',
+        selectedType: IS_PRODUCTION ? null : 'ATTRIBUTION',
         FACE: createDefaultConditionData('FACE'),
         // Face: FaceConditionTestData,
         PERSON: createDefaultConditionData('PERSON'),
