@@ -3,12 +3,12 @@ import { memo, useMemo, useRef, useState, PropsWithChildren } from 'react'
 import { globalSettings } from '../../../Model/GlobalSettingsModel';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { useEffect } from 'react';
-import { SitesData } from '../../../Model/SiteDataModel';
+import { SitesData, SitesDataForTreeView } from '../../../Model/SiteDataModel';
 import { OlMap } from './OlMap';
-import { CameraDataType, ReIDObjectTypeKeys } from '../../../Constants/GlobalTypes';
+import { CameraDataType, ReIDObjectTypeKeys, SiteDataType } from '../../../Constants/GlobalTypes';
 import { CustomMap } from './CustomMap';
 import Input from "../../Constants/Input"
-import { GlobalBackgroundColor, InputBackgroundColor, InputTextColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
+import { ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
 import Button from "../Button";
 import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
@@ -20,6 +20,7 @@ import { menuState } from "../../../Model/MenuModel";
 import { conditionMenu } from "../../../Model/ConditionMenuModel";
 import CCTVDropdownSearch from "../CCTVDropdownSearch";
 import selectedMarkerLocationIcon from '../../../assets/img/selectedMarkerLocationIcon.png'
+import CollapseArrow from "../CollapseArrow";
 
 type MapComponentProps = PropsWithChildren & {
     selectedCCTVs?: CameraDataType['cameraId'][]
@@ -38,6 +39,18 @@ type MapComponentProps = PropsWithChildren & {
     viewChangeForPath?: CameraDataType['cameraId'][]
 }
 
+const findSiteByDuplicatedCCTVs = (cctvs: CameraDataType['cameraId'][], siteData: SiteDataType[]): SiteDataType[] => {
+    const filteredTreeData = siteData.filter(_ => _.cameras.some(__ => cctvs.includes(__.cameraId)))
+    return filteredTreeData.map(_ => (_.sites ? {
+        ..._,
+        cameras: _.cameras.filter(__ => cctvs.includes(__.cameraId)),
+        sites: findSiteByDuplicatedCCTVs(cctvs, _.sites)
+    } : {
+        ..._,
+        cameras: _.cameras.filter(__ => cctvs.includes(__.cameraId)),
+    }))
+}
+
 const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
@@ -49,6 +62,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const circleSelectContainer = useRef<HTMLDivElement>(null)
     const { mapPlatformType } = useRecoilValue(globalSettings);
     const sitesData = useRecoilValue(SitesData)
+    const treeData = useRecoilValue(SitesDataForTreeView)
     const [timeVisible, setTimeVisible] = useState(false)
     const [timeValue, setTimeValue] = useRecoilState(AdditionalReIDTimeValue)
     const [rankInput, setRankInput] = useState(10)
@@ -59,6 +73,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         id: number,
         type: ReIDObjectTypeKeys
     }[]>([])
+    const [duplicatedCCTVs, setDuplicatedCCTVs] = useState<CameraDataType['cameraId'][]>([])
+    const [collapseOpen, setCollapseOpen] = useState<SiteDataType['fullName'][]>([])
     const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
     const progressStatus = useRecoilValue(ProgressStatus)
     const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
@@ -68,6 +84,14 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const message = useMessage()
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
+
+    useEffect(() => {
+        if (duplicatedCCTVs.length > 0) {
+
+        } else {
+            setCollapseOpen([])
+        }
+    }, [duplicatedCCTVs])
 
     useEffect(() => {
         selectedReIdResultDataRef.current = selectedReIdResultData
@@ -107,8 +131,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         })
         map.current.registerContextMenuHandler()
         if (selectedChange) map.current.addSelectedMarkerChangeEventCallback(selectedChange)
-        map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
-            console.log(cctvs)
+        if (!noSelect) map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
+            setDuplicatedCCTVs(cctvs)
         })
     }, [])
 
@@ -173,7 +197,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         setTimeVisible(true)
     }
 
-    const closeOverlayWrapper = () => {
+    const closeOverlayWrapper = (duplicatedFlag?: boolean) => {
         map.current?.closeOverlayView()
         valueInit()
     }
@@ -190,22 +214,81 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (initEvent && selectedChange) selectedChange([])
     }, [initEvent])
 
+    const duplicatedCCTVSelect = useMemo(() => {
+        return findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData)
+    }, [duplicatedCCTVs, treeData])
+
+    // const createSiteRowByCollapse = (data: SiteDataType) => {
+    //     const isOpened = collapseOpen.includes(data.fullName)
+    //     return <CCTVRowContainer opened={isOpened} key={data.fullName}>
+    //         <CCTVTitleContainer onClick={() => {
+    //             if(isOpened) {
+    //                 setCollapseOpen(collapseOpen.filter(_ => _ !== data.fullName))
+    //             } else {
+    //                 setCollapseOpen(collapseOpen.concat(data.fullName))
+    //             }
+    //         }}>
+    //             {data.siteName}
+    //             <CollapseContainer>
+    //                 <CollapseArrow opened={isOpened} style={{
+    //                     width: '100%',
+    //                     height: '100%'
+    //                 }} />
+    //             </CollapseContainer>
+    //         </CCTVTitleContainer>
+    //         <CCTVRowContentsContainer>
+    //             {data.cameras.map(_ => createCameraRow(_))}
+    //         </CCTVRowContentsContainer>
+    //     </CCTVRowContainer>
+    // }
+
+    const createCameraRow = (camera: CameraDataType) => {
+        return <CCTVItemContainer key={camera.cameraId} onClick={() => {
+            if(map.current) {
+                if(forAddtraffic) {
+                    closeOverlayWrapper()
+                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
+                } else {
+                    if(selectedCCTVs?.includes(camera.cameraId)) {
+                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
+                    } else {
+                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
+                    }
+                }
+            }
+        }}>
+            {camera.name}
+        </CCTVItemContainer>
+    }
+
     return <>
         <MapContainer ref={mapElement}>
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}
-            <SelectedViewBtn hover onClick={() => {
-                if (map.current) {
-                    if (forAddtraffic) map.current?.changeViewToSelectedCCTVs(pathCameras)
-                    else map.current?.changeViewToSelectedCCTVs()
-                }
-            }}>
-                <img src={selectedMarkerLocationIcon} style={{
-                    width: '100%',
-                    height: '100%'
-                }} />
-            </SelectedViewBtn>
+            <ControlsContainer>
+                <SelectedViewBtn hover onClick={() => {
+                    if (map.current) {
+                        if (forAddtraffic) {
+                            map.current?.changeViewToSelectedCCTVs(pathCameras)
+                        }
+                        else map.current?.changeViewToSelectedCCTVs()
+                    }
+                }}>
+                    <img src={selectedMarkerLocationIcon} style={{
+                        width: '100%',
+                        height: '100%'
+                    }} />
+                </SelectedViewBtn>
+                {duplicatedCCTVs.length > 0 && <CCTVListContainer>
+                    <CCTVListHeader>
+                        CCTV
+                    </CCTVListHeader>
+                    <CCTVContentsContainer>
+                        {ArrayDeduplication(duplicatedCCTVSelect.flatMap(_ => _.cameras)).map(_ => createCameraRow(_))}
+                    </CCTVContentsContainer>
+                </CCTVListContainer>}
+            </ControlsContainer>
             {children || <></>}
             {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
                 <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
@@ -455,12 +538,79 @@ const AddReIDInputBtn = styled(Button)`
 `
 
 const SelectedViewBtn = styled(Button)`
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: none;
+    padding: 8px;
+`
+
+const ControlsContainer = styled.div`
     position: absolute;
     top: 48px;
     right: 12px;
-    width: 42px;
-    height: 42px;
-    z-index: 1005;
-    border: none;
+    & > * {
+        z-index: 1005;
+    }
+    ${globalStyles.flex({ gap: '12px', alignItems: 'flex-end' })}
+`
+
+const CCTVListContainer = styled.div`
+    background-color: ${SectionBackgroundColor};
     padding: 8px;
+    border-radius: 12px;
+    width: 240px;
+`
+
+const CCTVListHeader = styled.div`
+    padding: 4px 8px;
+    font-weight: bold;
+`
+
+const CCTVContentsContainer = styled.div`
+    max-height: 250px;
+    overflow: auto;
+    padding: 10px 6px;
+    ${globalStyles.flex({gap: '6px'})}
+`
+
+const CCTVRowContainer = styled.div<{ opened: boolean }>`
+    max-height: ${({ opened }) => opened ? '200px' : '28px'};
+    transition: all .1s ease-out;
+    overflow: hidden;
+    padding: 2px 10px;
+    border: 1px solid ${ContentsBorderColor};
+    border-radius: 6px;
+    &:not(:last-child) {
+        margin-bottom: 8px;
+    }
+`
+
+const CCTVTitleContainer = styled.div`
+    cursor: pointer;
+    height: 24px;
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+`
+
+const CollapseContainer = styled.div`
+    height: 100%;
+`
+
+const CCTVRowContentsContainer = styled.div`
+    padding: 10px 0;
+    ${globalStyles.flex({justifyContent:'flex-start'})}
+`
+
+const CCTVItemContainer = styled.div`
+    width: 100%;
+    border: none;
+    background-color: ${ContentsBorderColor};
+    border-radius: 8px;
+    height: 24px;
+    line-height: 20px;
+    padding: 2px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
 `

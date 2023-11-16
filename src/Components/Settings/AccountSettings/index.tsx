@@ -94,8 +94,6 @@ const AccountSettings = () => {
   const [searchInputValue, setSearchInputValue] = useState<string>('');
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
 
-console.log('searchInputValue',searchInputValue)
-
   const getUsersAccountList = async () => {
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,

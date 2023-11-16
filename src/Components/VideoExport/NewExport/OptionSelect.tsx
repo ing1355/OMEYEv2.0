@@ -252,7 +252,10 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             }}>
                 <DescriptionInput value={options.description} maxLength={100} onChange={val => {
                     setOptions({ ...options!, description: val })
-                }} type="textarea" placeholder="설명을 입력해주세요. (100자 이내)" inputRef={inputRef}/>
+                }} type="textarea" placeholder="설명을 입력해주세요. (100자 이내)" inputRef={inputRef}
+                style={{
+                    pointerEvents: 'all'
+                }}/>
             </DescriptionContainer>
         </OptionsModalContainer>
     </Modal>

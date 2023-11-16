@@ -68,6 +68,8 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
         style={{
             width: src ? '100%' : '50%',
             height: src ? '100%' : '50%',
+            maxWidth: src ? '100%' : '100px',
+            maxHeight: src ? '100%' : '60px',
             ...style
         }}
         onClick={(e) => {

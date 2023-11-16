@@ -26,7 +26,7 @@ export const CustomEventSource = (url: string) => new EventSource(url, {
     headers: {
         Authorization: GetAuthorizationToken()!
     },
-    heartbeatTimeout: 3600000
+    heartbeatTimeout: 3600000,
 })
 
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production'

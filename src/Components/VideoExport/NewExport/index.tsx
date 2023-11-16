@@ -40,7 +40,7 @@ const videoDownloadByPath = (path: string) => {
 const msgByStatus = (status: VideoExportRowDataType['status'], progress?: VideoExportRowDataType['progress']) => {
     switch (status) {
         case 'canDownload': return '다운로드 가능'
-        case 'complete': return '다운로드 완료'
+        case 'complete': return '완료'
         case 'downloading': {
             if (progress) {
                 if (progress.videoPercent < 100) return '영상 다운로드 중'
@@ -68,6 +68,7 @@ const iconByStatus = (status: VideoExportRowDataType['status']) => {
 
 const btnMsgByStatus = (status: VideoExportRowDataType['status']) => {
     switch (status) {
+        case 'downloadComplete':
         case 'complete': return '다운로드'
         case 'downloading': return '취소'
         default: return '반출하기'
@@ -174,10 +175,16 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                     </OptionBtn>
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
-                    <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress} onClick={() => {
+                    <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
                         if (status === 'downloading') videoExportCancelFunc()
                         if (status === 'canDownload') exportCallback()
-                        if (status === 'complete') videoDownloadByPath(path!)
+                        if (status === 'complete') {
+                            setData({
+                                ...data,
+                                status: 'downloadComplete'
+                            })
+                            videoDownloadByPath(path!)
+                        }
                     }}>
                         {btnMsgByStatus(status)}
                     </ActionBottomBtn>

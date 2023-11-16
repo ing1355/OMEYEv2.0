@@ -61,6 +61,7 @@ const _Input = (props?: InputProps) => {
     if (props?.type === 'textarea') return <textarea
         style={{
             resize: 'none',
+            ...props.style
         }}
         onInput={(e) => {
             const target = e.currentTarget

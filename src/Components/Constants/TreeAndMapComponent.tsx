@@ -72,8 +72,11 @@ const TreeAndMapComponent = ({ setSelectedCCTVs, selectedCCTVs, singleSelect, vi
         <CCTVSelectInnerContainer isView={!isTreeView}>
             <MapComponent
                 selectedCCTVs={selectedCCTVs}
-                selectedChange={_setSelectedCCTVs}
                 forSingleCamera={singleSelect}
+                selectedChange={(cctvs) => {
+                    console.debug('change??? : ' , cctvs)
+                    _setSelectedCCTVs(cctvs)
+                }}
                 idForViewChange={searchCCTV ? searchCCTV : undefined} />
         </CCTVSelectInnerContainer>
         <CCTVDropdownSearch onChange={(target) => {

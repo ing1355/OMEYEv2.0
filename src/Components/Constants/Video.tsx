@@ -111,4 +111,6 @@ const Poster = styled.img`
     height: 50%;
     position: absolute;
     z-index: 99;
+    max-width: 100px;
+    max-height: 60px;
 `

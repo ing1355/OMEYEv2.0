@@ -83,8 +83,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const downMouseY = useRef(0)
     const mouseX = useRef(0)
     const mouseY = useRef(0)
+    const clickTemp = useRef<number[]>([])
     const currentObjectType = useRecoilValue(selectedConditionObjectType)
-    const isMoved = useRef(false)
     const [imgSize, setImgSize] = useState<number[]>([])
 
     useEffect(() => {
@@ -158,7 +158,6 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             ctx.clearRect(0, 0, userCanvasRef.current.width, userCanvasRef.current.height);
         }
         isClicked.current = false
-        isMoved.current = false
     }, [captureType])
     
     return <Container style={{...containerStyle, aspectRatio: `${imgSize[0]}/${imgSize[1]}`}}>
@@ -188,6 +187,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                         const canvasRect = canvas.getBoundingClientRect();
                         const res_x = canvas.width / canvasRect.width
                         const res_y = canvas.height / canvasRect.height
+                        clickTemp.current = [e.screenX, e.screenY]
                         downMouseX.current = (e.clientX - canvasRect.left) * res_x;
                         downMouseY.current = (e.clientY - canvasRect.top) * res_y;
                         const div = document.createElement('div')
@@ -199,7 +199,6 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                         div.style.top = '0'
                         div.style.left = '0'
                         div.onmousemove = (_e) => {
-                            isMoved.current = true
                             const _x = _e.clientX - canvasRect.left
                             const _y = _e.clientY - canvasRect.top 
                             mouseX.current = (_x < 0 ? 0 : (_x > canvasRect.width ? canvasRect.width : _x)) * res_x;
@@ -216,11 +215,11 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                             ctx.lineJoin = 'round';
                             ctx.stroke();
                         }
-                        div.onmouseup = () => {
-                            console.debug("test : " ,mouseX.current, downMouseX.current, mouseY.current, downMouseY.current)
+                        div.onmouseup = (_e: MouseEvent) => {
                             const _x = mouseX.current > downMouseX.current ? (mouseX.current - downMouseX.current) : (downMouseX.current - mouseX.current)
                             const _y = mouseY.current > downMouseY.current ? (mouseY.current - downMouseY.current) : (downMouseY.current - mouseY.current)
-                            if (isMoved.current && captureCallback) {
+                            const isMoved = !(clickTemp.current[0] === _e.screenX || clickTemp.current[1] === _e.screenY)
+                            if (isMoved && captureCallback) {
                                 captureCallback([{
                                     type: currentObjectType!,
                                     mask: false,
@@ -228,31 +227,9 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                                     src: getImageByCanvas(_x, _y, imgRef.current!, mouseX.current > downMouseX.current ? downMouseX.current : mouseX.current, mouseY.current > downMouseY.current ? downMouseY.current : mouseY.current)
                                 }])
                             }
-                            isMoved.current = false
                             div.remove()
                         }
                         document.body.appendChild(div)
-                    }
-                }}
-                onMouseMove={e => {
-                    if (isClicked.current && userCaptureOn) {
-                        const canvas = e.currentTarget
-                        const canvasRect = canvas.getBoundingClientRect();
-                        const res_x = canvas.width / canvasRect.width
-                        const res_y = canvas.height / canvasRect.height
-                        mouseX.current = (e.clientX - canvasRect.left) * res_x;
-                        mouseY.current = (e.clientY - canvasRect.top) * res_y;
-                        let ctx = canvas.getContext('2d')!;
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.setLineDash([3, 3]);
-                        ctx.beginPath();
-                        let width = mouseX.current - downMouseX.current;
-                        let height = mouseY.current - downMouseY.current;
-                        ctx.rect(downMouseX.current, downMouseY.current, width, height);
-                        ctx.strokeStyle = 'red';
-                        ctx.lineWidth = 4;
-                        ctx.lineJoin = 'round';
-                        ctx.stroke();
                     }
                 }}
             />

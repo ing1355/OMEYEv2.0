@@ -132,6 +132,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </div>
         <AccountInput 
           value={newAccountEmail}
+          maxLength={48}
           onChange={(e) => {
             setNewAccountEmail(e);
           }}

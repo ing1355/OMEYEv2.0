@@ -19,7 +19,7 @@ import { DragBoxEvent } from "ol/interaction/DragBox";
 import { DragBox } from "ol/interaction.js";
 import { platformModifierKeyOnly } from "ol/events/condition";
 import { ArrayDeduplication } from "../../../Functions/GlobalFunctions";
-import { Circle, LineString } from "ol/geom";
+import { Circle, Geometry, LineString } from "ol/geom";
 import { Overlay } from "ol";
 import { getPointResolution, METERS_PER_UNIT } from "ol/proj";
 import circleImg from '../../../assets/img/circle.png'
@@ -40,8 +40,8 @@ enum mapState {
 const selectedMarkerDataKey = 'SELECTEDMARKERDATAKEY' // 선택 마커 데이터 키
 const selectedMarkerTempDataKey = 'SELECTEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
 const selectedMarkerDataChange = 'SELECTEDMARKERDATACHANGE' // 선택 마커 실제 변경할 이벤트 명
-const duplicatedMarkerTempDataKey = 'SELECTEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
-const duplicatedMarkerDataChange = 'SELECTEDMARKERDATACHANGE' // 중복 마커 선택 시 이벤트 명
+const duplicatedMarkerTempDataKey = 'DUPLICATEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
+const duplicatedMarkerDataChange = 'DUPLICATEDMARKERDATACHANGE' // 중복 마커 선택 시 이벤트 명
 const mapStateKey = 'MAPSTATE'
 
 // const greenMarkerSvg = `<svg id="target" xmlns="http://www.w3.org/2000/svg" width="70" height="105" viewBox="0 0 38 56.55"><defs><style>.cls-1{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.3px;}.cls-2{fill:#25af32;stroke:#139926;stroke-miterlimit:10;}</style></defs><g id="_룹_1"><path class="cls-2" d="M19,.5C8.78,.5,.5,8.78,.5,19c0,8.11,11.65,29.26,16.46,35.99,1,1.4,3.08,1.4,4.08,0,4.81-6.73,16.46-27.89,16.46-35.99C37.5,8.78,29.22,.5,19,.5Z"/><path class="cls-1" d="M12.05,15.82c0,.15-.12,.28-.28,.28s-.28-.12-.28-.28,.12-.28,.28-.28,.28,.12,.28,.28Zm2.24-.28c-.15,0-.28,.12-.28,.28s.12,.28,.28,.28,.28-.12,.28-.28-.12-.28-.28-.28Zm17.45-2.6H8.49v10.1h14.34l8.91-10.1Zm-7.4,8.39h7.09v-5.39h-2.34l-4.75,5.39Zm-11.56,8.71h6.61v-7m-10.9,10.95c2.18,0,3.95-1.77,3.95-3.95s-1.77-3.95-3.95-3.95v7.9Z"/></g></svg>`;
@@ -453,28 +453,33 @@ export class OlMap extends CustomMap<Map> {
     }
 
     registerSingleClickHandler(): void {
+        console.debug("click!!")
         this.map.on("singleclick", (e) => {
             let feature = this.map.forEachFeatureAtPixel(e.pixel, (feature) => feature) as Feature;
             if (feature) {
                 let features: Feature[] = feature.get("features");
-                if (features) {
-                    // if(features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
-                    //     this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
-                    // }
-                    this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
+                if (features && features.length > 1) {
+                    if (features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
+                        this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
+                    } else {
+                        this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
+                    }
                 } else {
-                    this.clickId = feature.getId()
+                    let _feature: Feature<Geometry>
+                    if(feature.getId()) _feature = feature
+                    else _feature = features[0]
+                    this.clickId = _feature.getId()
                     switch (this.map.get(mapStateKey)) {
                         case mapState['NORMAL']:
                             const selectedMarker: SelectedMarkersType = this.map.get(selectedMarkerDataKey)
                             let temp = []
                             if (this.singleSelected) {
-                                temp = [feature.getId()]
+                                temp = [_feature.getId()]
                             } else {
-                                if (selectedMarker.includes(feature.getId() as number)) {
-                                    temp = selectedMarker.filter(_ => _ !== (features[0] || feature).getId())
+                                if (selectedMarker.includes(_feature.getId() as number)) {
+                                    temp = selectedMarker.filter(_ => _ !== _feature.getId())
                                 } else {
-                                    temp = selectedMarker.concat(feature.getId() as number)
+                                    temp = selectedMarker.concat(_feature.getId() as number)
                                 }
                             }
                             this.dispatchSelectedMarkerChangeEvent(temp)
@@ -722,6 +727,7 @@ export class OlMap extends CustomMap<Map> {
     }
 
     closeOverlayView(): void {
+        this.dispatchDuplicatedMarkerChangeEvent([])
         if (this.trafficInputOverlay) this.trafficInputOverlay.setPosition(undefined)
         if (this.circleSelectOverlay) this.circleSelectOverlay.setPosition(undefined)
     }
@@ -740,6 +746,7 @@ export class OlMap extends CustomMap<Map> {
     }
 
     dispatchSelectedMarkerChangeEvent = (data: (CameraDataType['cameraId'] | string | undefined)[]) => {
+        console.debug("test!!")
         this.map.set(selectedMarkerTempDataKey, data)
         this.map.dispatchEvent(selectedMarkerDataChange)
     }
@@ -763,7 +770,7 @@ export class OlMap extends CustomMap<Map> {
 
     changeViewForPathCamera = (camera: CameraDataType['cameraId']) => {
         const feature = this.VS.getFeatureById(camera)
-        if(this.arrowVS.getFeatures().length > 0) this.fitWithPaddingByExtent(this.arrowVS.getExtent())
+        if (this.arrowVS.getFeatures().length > 0) this.fitWithPaddingByExtent(this.arrowVS.getExtent())
         else this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
         // this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
         if (this.hoverId) this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
@@ -773,12 +780,19 @@ export class OlMap extends CustomMap<Map> {
 
     dispatchDuplicatedMarkerChangeEvent = (data: (CameraDataType['cameraId'])[]) => {
         this.map.set(duplicatedMarkerTempDataKey, data)
-        this.map.dispatchEvent(duplicatedMarkerDataChange)
     }
 
     addDuplicatedCCTVsSelectCallback = (callback: (cameras: number[]) => void) => {
-        this.map.addEventListener(duplicatedMarkerDataChange, () => {
+        this.map.addChangeListener(duplicatedMarkerTempDataKey, () => {
             if (callback) callback(this.map.get(duplicatedMarkerTempDataKey))
         })
+    }
+
+    callAdditionalOverlyByCctvId = (cctvId: number) => {
+        const feature = this.VS.getFeatureById(cctvId)!
+        const geom = feature.getGeometry()
+        this.clickId = cctvId;
+        this.trafficInputOverlay?.setPosition((geom as Point).getCoordinates())
+        this.circleFeature.setGeometry(geom)
     }
 }

@@ -128,6 +128,11 @@ export abstract class CustomMap<MapType> {
      * 겹친 CCTV 클릭 시 콜백 등록 메소드
      */
     public abstract addDuplicatedCCTVsSelectCallback(callback: (cameras: CameraDataType['cameraId'][]) => void): void;
+    
+    /**
+     * CCTV 목록 클릭 시 추가 동선 오버레이 호출 메소드
+     */
+    public abstract callAdditionalOverlyByCctvId(cctvId: CameraDataType['cameraId']): void;
 
     /**
      * @param map 맵 객체 할당
