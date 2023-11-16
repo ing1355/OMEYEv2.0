@@ -53,10 +53,17 @@ export const UserAccountApi = '/api/v2/users'
 export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
 
 // VMS 설정
+export const GetVmsListApi = '/api/v2/settings/vms/list'
+export const GetVmsInfoApi = (siteName: string) => `/api/v2/settings/vms/${siteName}`
 
 // OMEYE 설정
 export const getSettingsInfoApi = '/api/v2/settings'
 export const maxDurationApi = (duration: number) => `/api/v2/settings/storage/max-duration/${duration}`
 export const mapTypeApi = '/api/v2/settings/map/type'
+export const zoomLevelApi = '/api/v2/settings/map/zoom-level'
+export const fpsSettingApi = '/api/v2/settings/fps'
+export const customMapTileApi = '/api/v2/settings/map/custom-tile'
+export const maxCCTVCountApi = '/api/v2/settings/analyze/max-count'
+export const maxAnalyzeDurationApi = (duration: number) => `/api/v2/settings/analyze/duration/${duration}`
 
 // 서버 관리

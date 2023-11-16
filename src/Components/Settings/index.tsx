@@ -56,7 +56,7 @@ const Settings = () => {
         }}>
           계정 설정
         </CategoryBtn>
-        <CategoryBtn selected={category === 'vms'} onClick={() => {
+        {/* <CategoryBtn selected={category === 'vms'} onClick={() => {
           setCategory('vms')
         }}>
           VMS 설정
@@ -70,7 +70,7 @@ const Settings = () => {
           setCategory('server')
         }}>
           서버 관리
-        </CategoryBtn>
+        </CategoryBtn> */}
       </Header>
       <Contents>
         <ViewByCategory type={category} />

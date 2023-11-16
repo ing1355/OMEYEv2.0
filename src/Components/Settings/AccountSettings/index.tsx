@@ -289,6 +289,7 @@ const AccountSettings = () => {
         visible={isAddMember} 
         close={() => {
           setIsAddMember(false);
+          setSearchInputValue('');
         }}
         noComplete={true}
       />
@@ -297,6 +298,7 @@ const AccountSettings = () => {
         close={() => {
           setIsModifyMember(false);
           setModifySelectMember(modifySelectMemberInit);
+          setSearchInputValue('');
         }}
         noComplete={true}
       />
@@ -304,6 +306,7 @@ const AccountSettings = () => {
         visible={isDeleteMember}
         close={() => {
           setIsDeleteMember(false);
+          setSearchInputValue('');
         }}
         title="멤버 삭제"
         noComplete={true}
