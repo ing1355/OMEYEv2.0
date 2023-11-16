@@ -3,7 +3,7 @@ import Input from "../../../Constants/Input"
 import { useRecoilState } from "recoil";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo } from "../../../../Model/OmeyeSettingsDataModel";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { fpsSettingApi, getSettingsInfoApi, maxAnalyzeDurationApi } from "../../../../Constants/ApiRoutes";
+import { fpsSettingApi, getSettingsInfoApi, maxAnalyzeDurationApi, maxCCTVCountApi } from "../../../../Constants/ApiRoutes";
 import { useEffect } from "react";
 import Button from "../../../Constants/Button";
 import useMessage from "../../../../Hooks/useMessage";
@@ -39,10 +39,23 @@ const OMEYESidebar = () => {
       GetOMEYESettingsInfo();
     }
   }
+  
+  const ChangeMaxCCTVCountFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxCCTVCountApi, {
+      maxAnalyzeCount: omeyeSettingsInfo.maxAnalyzeCount,
+      maxLiveAnalyzeCount: omeyeSettingsInfo.maxLiveAnalyzeCount
+    })
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  } 
 
   const SaveDataFun = () => {
     ChangeMapTypeFun();
     ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
+    ChangeMaxCCTVCountFun();
 
     setTimeout(()=>{
       message.success({title: '', msg: '저장 완료'});

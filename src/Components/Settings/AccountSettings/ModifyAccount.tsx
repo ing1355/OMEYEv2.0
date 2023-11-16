@@ -60,7 +60,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         </div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           PW:
         </div>
         <AccountInput 
@@ -72,7 +72,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           PW 확인: 
         </div>
         <AccountInput 
@@ -84,7 +84,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           이름 :
         </div>
         <AccountInput 
@@ -95,7 +95,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           이메일: 
         </div>
         <AccountInput 
@@ -106,7 +106,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           전화번호: 
         </div>
         <AccountInput 

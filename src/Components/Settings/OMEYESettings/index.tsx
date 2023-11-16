@@ -4,7 +4,7 @@ import { GlobalBackgroundColor } from "../../../styles/global-styled";
 import Input from "../../Constants/Input";
 import Button from "../../Constants/Button";
 import { useEffect, useState } from "react";
-import { getSettingsInfoApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
+import { customMapTileApi, getSettingsInfoApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
 import { useRecoilState } from "recoil";
@@ -43,6 +43,17 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
     }
   }
 
+  const ChangeMapCustomTileUrlFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', customMapTileApi, {
+      customMapTile: omeyeSettingsInfo.customMapTile,
+    })
+    
+    if(res === undefined) {
+      console.log('에러');
+      GetOMEYESettingsInfo();
+    }
+  }
+
   const ChangeZoomLevelFun = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', zoomLevelApi, {
       minZoom: omeyeSettingsInfo.minZoom,
@@ -58,7 +69,9 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
   const SaveDataFun = () => {
     ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
     ChangeMapTypeFun();
+    ChangeMapCustomTileUrlFun();
     ChangeZoomLevelFun();
+    
     setTimeout(()=>{
       message.success({title: '', msg: '저장 완료'});
       GetOMEYESettingsInfo();
@@ -159,7 +172,7 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
                 }))
               }}
             />
-            <OMEYEButton>새로고침</OMEYEButton>
+            {/* <OMEYEButton>새로고침</OMEYEButton> */}
           </div>
 
           {/* 지도 파일 업로드 */}
@@ -167,7 +180,7 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
             <div style={{width: '25%', paddingLeft: '10px'}}>지도 파일 업로드</div>
             <div style={{display: 'flex'}}>
               <OMEYEButton>업로드</OMEYEButton>
-              <OMEYEButton>새로고침</OMEYEButton>
+              {/* <OMEYEButton>새로고침</OMEYEButton> */}
             </div>
           </div>
 

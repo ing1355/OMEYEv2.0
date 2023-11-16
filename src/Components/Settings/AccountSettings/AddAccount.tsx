@@ -71,7 +71,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
       noComplete={noComplete}
     >
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           ID:
         </div>
         <AccountInput 
@@ -89,7 +89,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </AccountButton>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           PW:
         </div>
         <AccountInput 
@@ -99,10 +99,10 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPassword(e);
           }}
         />
-        <div style={{width: '130px'}}></div>
+        <div style={{width: '160px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           PW 확인: 
         </div>
         <AccountInput 
@@ -112,10 +112,10 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPasswordConfirm(e);
           }}
         />
-        <div style={{width: '130px'}}></div>
+        <div style={{width: '160px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           이름 :
         </div>
         <AccountInput 
@@ -124,10 +124,10 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountName(e);
           }}
         />
-        <div style={{width: '130px'}}></div>
+        <div style={{width: '160px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           이메일:
         </div>
         <AccountInput 
@@ -136,10 +136,10 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountEmail(e);
           }}
         />
-        <div style={{width: '130px'}}></div>
+        <div style={{width: '160px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
-        <div style={{ width: '100px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           전화번호: 
         </div>
         <AccountInput 
@@ -148,7 +148,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPhoneNumber(e);
           }}
         />
-        <div style={{width: '130px'}}></div>
+        <div style={{width: '160px'}}></div>
       </div>
       <div style={{textAlign: 'center'}}>
         <AccountButton hover
@@ -193,5 +193,6 @@ const AccountInput = styled(Input)`
 
 const AccountButton = styled(Button)`
   height: 30px;
-  width: 120px;
+  width: 130px;
+  margin-left: 10px;
 `

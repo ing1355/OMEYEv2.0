@@ -51,7 +51,7 @@ const ReIDLogs = () => {
     const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
     const logs = useReIDLogDatas(params.current)
     const refresh = useRecoilRefresher_UNSTABLE(SearchReIDLogDatas(params.current))
-console.log('currentPage',currentPage)
+
     useEffect(() => {
         refresh()
         params.current = { ...params.current, page: currentPage + 1 }
