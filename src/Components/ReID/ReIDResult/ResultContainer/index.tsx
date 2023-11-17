@@ -189,7 +189,8 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                             </ItemMediasContainer>
                                             <SelectBtnsContainer>
                                                 <SelectBtn hover onClick={async () => {
-                                                    const type = _.resultList.find(r => r.objectId === selectedTarget)?.objectType!
+                                                    let type = _.resultList.find(r => r.objectId === selectedTarget)?.objectType!
+                                                    type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
                                                     const res = await GetObjectIdByImage([{
                                                         type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
                                                         image: result.imgUrl

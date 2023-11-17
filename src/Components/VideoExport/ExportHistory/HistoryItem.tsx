@@ -51,7 +51,7 @@ const HistoryItem = ({ item }: {
                 <SubContentsRow title="영상 사이즈" content={getSizeByNumber(videoSize)} />
                 <SubContentsRow title="영상 타입" content={videoType} />
             </SubContentsContainer>
-            <DownloadBtn hover onClick={() => {
+            {/* <DownloadBtn hover onClick={() => {
                 try {
                     fetch(videoPath).then(res => res.blob()).then(file => {
                         let tempUrl = URL.createObjectURL(file);
@@ -63,7 +63,7 @@ const HistoryItem = ({ item }: {
                 }
             }}>
                 다시 내려받기
-            </DownloadBtn>
+            </DownloadBtn> */}
         </ContentsContainer>
         {/* <CloseIconContainer>
             <CloseIcon src={closeIcon} />
@@ -75,7 +75,7 @@ export default HistoryItem
 
 const Container = styled.div`
     flex: 0 0 32%;
-    height: 200px;
+    min-height: 250px;
     border: 1px solid ${ContentsBorderColor};
     border-radius: 12px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '1%' })}

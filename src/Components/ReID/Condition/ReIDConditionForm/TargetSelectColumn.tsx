@@ -53,41 +53,39 @@ const TargetSelectColumn = () => {
             disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
-            <ItemsScrollContainer>
-                {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
-                {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
-                    if(_.selected) {
-                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
-                            ..._,
-                            selected: false
-                        }))
-                    } else if(isRealTime && datas.find(_ => _.selected)) return message.error({title: "입력값 에러", msg:"실시간 분석은 1개의 대상만 선택 가능합니다."})
-                    else {
-                        setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
-                            ..._,
-                            selected: true
-                        }))
-                    }
-                }}>
-                    <ItemSubContainer>
-                        <ItemImage src={_.src} />
-                        <ItemDescription>
-                            <ItemDescriptionHeader>
-                                <IconBtn type="delete" onClick={(e) => {
-                                    e.stopPropagation()
-                                    setDatas(datas.filter(__ => _.objectId !== __.objectId))
-                                }} />
-                            </ItemDescriptionHeader>
-                            <ItemDescriptionContents>
-                                <TargetDescriptionByType data={_} />
-                            </ItemDescriptionContents>
-                        </ItemDescription>
-                    </ItemSubContainer>
-                    <ItemSelectBtn hover activate={_.selected}>
-                        {_.selected ? '해제' : '선택'}
-                    </ItemSelectBtn>
-                </ItemContainer>)}
-            </ItemsScrollContainer>
+            {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
+            {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+                if (_.selected) {
+                    setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                        ..._,
+                        selected: false
+                    }))
+                } else if (isRealTime && datas.find(_ => _.selected)) return message.error({ title: "입력값 에러", msg: "실시간 분석은 1개의 대상만 선택 가능합니다." })
+                else {
+                    setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                        ..._,
+                        selected: true
+                    }))
+                }
+            }}>
+                <ItemSubContainer>
+                    <ItemImage src={_.src} />
+                    <ItemDescription>
+                        <ItemDescriptionHeader>
+                            <IconBtn type="delete" onClick={(e) => {
+                                e.stopPropagation()
+                                setDatas(datas.filter(__ => _.objectId !== __.objectId))
+                            }} />
+                        </ItemDescriptionHeader>
+                        <ItemDescriptionContents>
+                            <TargetDescriptionByType data={_} />
+                        </ItemDescriptionContents>
+                    </ItemDescription>
+                </ItemSubContainer>
+                <ItemSelectBtn hover activate={_.selected}>
+                    {_.selected ? '해제' : '선택'}
+                </ItemSelectBtn>
+            </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
     </Container>
 }
@@ -153,9 +151,4 @@ const ItemDescriptionContents = styled.div`
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '8px' })}
     overflow-wrap: anywhere;
-`
-
-const ItemDescriptionContentText = styled.div`
-    color: white;
-    width: 100%;
 `

@@ -84,7 +84,7 @@ const Container = styled.div`
 const AreaDataItem = styled.div<{ selected: boolean }>`
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     width: 100%;
-    flex: 0 0 130px;
+    flex: 0 0 150px;
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex({ gap: '8px', justifyContent: 'space-between' })}
     cursor: pointer;

@@ -11,6 +11,7 @@ import { conditionTargetDatas } from "../../../../../Model/ConditionDataModel"
 import { GetObjectIdByImage } from "../../../../../Functions/NetworkFunctions"
 import { ObjectTypes } from "../../../ConstantsValues"
 import useMessage from "../../../../../Hooks/useMessage"
+import IconBtn from "../../../../Constants/IconBtn"
 
 type PlateTargetProps = {
     data?: CaptureResultListItemType
@@ -28,7 +29,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
     const message = useMessage()
 
     useEffect(() => {
-        if(status !== 'none') {
+        if (status !== 'none') {
             const img = new Image();
             img.src = emptyIcon;
             img.onload = (e) => {
@@ -41,7 +42,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 ctx!.font = "120px Sans-serif";
                 ctx!.fillStyle = "rgba(0,0,0,1)";
                 // ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 330, 270);
-                ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 215, 275);
+                ctx!.fillText((ocr || plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 215, 275);
                 // ctx!.fillText((ocr||plateInput).replace(/[\*]/gi, 'X').padEnd(4, " "), 260, 270);
                 imgRef.current!.src = canvas.toDataURL();
                 img.src = ""
@@ -51,13 +52,13 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
 
     const addCompleteCallback = async () => {
         if (plateInput.length !== 4) {
-            return message.error({title: "입력값 에러", msg:"번호판 4자리를 입력해주세요."})
+            return message.error({ title: "입력값 에러", msg: "번호판 4자리를 입력해주세요." })
         }
         if (plateInput.match(/[\*]{3}/g)) {
-            return message.error({title: "입력값 에러", msg:"번호판을 최소 2자리는 입력해주세요."})
+            return message.error({ title: "입력값 에러", msg: "번호판을 최소 2자리는 입력해주세요." })
         }
         if (globalData.find(_ => _.ocr === plateInput)) {
-            return message.error({title: "입력값 에러", msg:"동일한 번호판 대상이 이미 존재합니다."})
+            return message.error({ title: "입력값 에러", msg: "동일한 번호판 대상이 이미 존재합니다." })
         }
         if (status === 'add') {
             const vrpObjectId = (await GetObjectIdByImage([{
@@ -77,7 +78,20 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
         setStatus('none')
     }
 
-    return <Container selected={selected || false}>
+    return <Container selected={selected || false} onClick={() => {
+        setGlobalData(globalData.map(_ => _.id === id ? ({
+            ..._,
+            selected: !_.selected
+        }) : _))
+    }}>
+            {status === "none" && <IconBtn type="delete" onClick={(e) => {
+                e.stopPropagation()
+                setGlobalData(globalData.filter(_ => _.ocr !== _.ocr))
+            }} style={{
+                position: 'absolute',
+                top: 4,
+                right: 4
+            }}/>}
         <PlateIcon src={src || emptyIcon} ref={imgRef} />
         <PlateDescription>
             <PlateDescriptionInputContainer>
@@ -113,11 +127,11 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 }}>
                     수정
                 </PlateDescriptionBtn> */}
-                <PlateDescriptionBtn hover onClick={() => {
+                {/* <PlateDescriptionBtn hover onClick={() => {
                     setGlobalData(globalData.filter(_ => _.id !== id))
                 }}>
                     삭제
-                </PlateDescriptionBtn>
+                </PlateDescriptionBtn> */}
             </PlateDescriptionBtnsContainer>}
         </PlateDescription>
     </Container>
@@ -125,11 +139,16 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
 
 export default PlateTarget
 
-const Container = styled.div<{selected: boolean}>`
+const Container = styled.div<{ selected: boolean }>`
     height: 100px;
     width: 100%;
     border-radius: 8px;
-    border: 1px solid ${({selected}) => selected ? ContentsActivateColor : ContentsBorderColor};
+    border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
+    cursor: pointer;
+    position: relative;
     ${globalStyles.flex({ flexDirection: 'row' })}
 `
 

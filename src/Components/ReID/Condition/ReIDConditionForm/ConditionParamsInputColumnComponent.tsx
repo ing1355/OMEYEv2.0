@@ -106,7 +106,7 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
             }}>
             {
                 (realtimeBtn && isRealTime) ? <IsRealTimeContainer>
-                    
+
                 </IsRealTimeContainer> : (
                     isDataExist ? <>
                         {!dataAddDelete && <DataExistAndAddComponent onClick={() => {
@@ -117,7 +117,9 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                         {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
                             전체 선택 {allSelected && '해제'}
                         </AllSelectBtn>}
-                        {children}
+                        <ItemsScrollContainer>
+                            {children}
+                        </ItemsScrollContainer>
                     </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />
                 )
             }
@@ -225,4 +227,12 @@ const AllSelectBtn = styled(Button)`
 const IsRealTimeContainer = styled.div`
     ${globalStyles.flex()}
     height: 100%;
+`
+
+const ItemsScrollContainer = styled.div`
+    overflow-y: auto;
+    width: 100%;
+    height: calc(100% - 170px);
+    ${globalStyles.conditionParamsColumnContainer}
+    justify-content: flex-start;
 `

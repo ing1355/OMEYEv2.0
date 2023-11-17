@@ -93,7 +93,7 @@ const Container = styled.div`
 `
 
 const TimeDataContainer = styled.div<{ selected: boolean }>`
-    flex: 0 0 100px;
+    flex: 0 0 150px;
     color: white;
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     width: 100%;
@@ -115,7 +115,6 @@ const ContentsContainer = styled.div`
 
 const BtnsContainer = styled.div`
     width: 100%;
-    flex: 0 0 28px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end', gap: '4px' })}
 `
 
