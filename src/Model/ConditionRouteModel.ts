@@ -6,7 +6,7 @@ let start = new Date()
 
 const _route = atom<ConditionRouteType['key'][]>({
     key: "conditionRoute",
-    default: IS_PRODUCTION ? [] : [ObjectTypeSelectRoute.key, ReIDConditionFormRoute.key, ReIDConditionTargetSelectPersonDescriptionRoute.key]
+    default: IS_PRODUCTION ? [] : [ObjectTypeSelectRoute.key, ReIDConditionFormRoute.key]
 })
 
 export const conditionRoute = selector({

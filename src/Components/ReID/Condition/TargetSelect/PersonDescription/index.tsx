@@ -5,9 +5,15 @@ import { useState } from "react"
 import { DescriptionCategories, DescriptionCategoryKeyType } from "./DescriptionType"
 import DescriptionSelectContents from "./DescriptionSelectContents"
 import PersonDescriptionResultImage from "./Layout/PersonDescriptionResultImage"
+import resetIcon from '../../../../../assets/img/resetIcon.png'
+import resetHoverIcon from '../../../../../assets/img/resetHoverIcon.png'
+import { useRecoilState } from "recoil"
+import { descriptionInitialData, descriptionSingleData } from "../../../../../Model/DescriptionDataModel"
 
 const PersonDescription = () => {
     const [category, setCategory] = useState<DescriptionCategoryKeyType>('general')
+    const [hover, setHover] = useState(false)
+    const [singleData, setSingleData] = useRecoilState(descriptionSingleData(category))
     
     return <Container>
         <CategoryContainer>
@@ -20,6 +26,15 @@ const PersonDescription = () => {
             }
         </CategoryContainer>
         <SelectItemsContainer>
+            <Reset icon={hover ? resetHoverIcon : resetIcon} onMouseOver={() => {
+                setHover(true)
+            }} onMouseLeave={() => {
+                setHover(false)
+            }} onClick={() => {
+                console.debug(descriptionInitialData)
+                console.debug(category)
+                setSingleData(descriptionInitialData[category])
+            }}/>
             <DescriptionSelectContents type={category} />
         </SelectItemsContainer>
         <ResultImageContainer>
@@ -38,6 +53,18 @@ const Container = styled.div`
 
 const CommonStyles = `
     height: 100%;
+`
+
+const Reset = styled(Button)`
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    padding: 2px;
+    border: none;
+    background-color: transparent;
+    z-index: 10;
 `
 
 const CategoryContainer = styled.div`
@@ -65,6 +92,7 @@ const SelectItemsContainer = styled.div`
     height: 100%;
     padding: 12px 24px;
     border-radius: 16px;
+    position: relative;
     background-color: ${SectionBackgroundColor};
 `
 

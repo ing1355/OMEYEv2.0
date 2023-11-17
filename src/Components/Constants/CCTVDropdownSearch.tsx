@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import Input from "./Input"
 import { GlobalBackgroundColor, InputTextColor, TextActivateColor } from "../../styles/global-styled"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { ArrayDeduplication } from "../../Functions/GlobalFunctions"
 import { useRecoilValue } from "recoil"
 import { SitesData } from "../../Model/SiteDataModel"
@@ -19,7 +19,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const [searchInputOpen, setSearchOpen] = useState(false)
     const [selectedIndex, setSelectedIndex] = useState(0)
     const sitesData = useRecoilValue(SitesData)
-    const cameraList = useMemo(() => ArrayDeduplication(sitesData.flatMap(_ => _.cameras), (__, ___) => __.cameraId === ___.cameraId), [sitesData])
+    const cameraList = useMemo(() => sitesData.flatMap(_ => _.cameras), [sitesData])
     const viewList = useMemo(() => searchInputOpen ? cameraList.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true) : [], [cameraList, searchInputValue, searchInputOpen])
     const viewListRef = useRef(viewList)
     const arrowUpIsDown = useRef(false)

@@ -255,7 +255,7 @@ const CaptureResultListItemBox = styled.div<{ selected: boolean }>`
 
 const CaptureResultListItemImageContainer = styled.div`
     height: calc(100% - 40px);
-    border: 1px solid white;
+    border: 1px solid ${ContentsBorderColor};
     width: 100%;
     ${globalStyles.flex()}
 `
@@ -288,6 +288,7 @@ const CaptureResultListItemFaceSelectContainer = styled.div`
 const CaptureResultListItemSelectButton = styled(Button) <{ selected: boolean, isMask: boolean }>`
     ${({ isMask }) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
     height: 100%;
+    margin-top: 3px;
     border-radius: 12px;
 `
 
@@ -329,7 +330,7 @@ const StreamingVideo = styled(Video)`
 
 const VideoCaptureBtn = styled(Button)`
     width: 100%;
-    margin-top: 4px;
+    margin-top: 3px;
     height: 32px;
 `
 

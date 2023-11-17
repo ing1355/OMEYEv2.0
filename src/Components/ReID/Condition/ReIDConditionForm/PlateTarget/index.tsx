@@ -91,10 +91,10 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 </>}
             </PlateDescriptionInputContainer>
             {!data ? <PlateDescriptionBtnsContainer>
-                <PlateDescriptionBtn onClick={addCompleteCallback}>
-                    저장
+                <PlateDescriptionBtn hover onClick={addCompleteCallback}>
+                    대상 추가
                 </PlateDescriptionBtn>
-                <PlateDescriptionBtn onClick={() => {
+                <PlateDescriptionBtn hover onClick={() => {
                     setStatus('none')
                 }}>
                     취소

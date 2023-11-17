@@ -164,6 +164,24 @@ const GlobalStyle = createGlobalStyle`
       user-select: none;
       font-size: .9rem;
       font-family: NanumGothic;
+      &::-webkit-scrollbar {
+        width: 15px;
+        overflow: hidden;
+      }
+      &::-webkit-scrollbar-thumb {
+        background-color: ${ContentsActivateColor};
+        border-radius: 15px;
+        outline: none;
+        border: 6px solid transparent;
+        background-clip: padding-box;
+      }
+      &::-webkit-scrollbar-track {
+        border-radius: 15px;
+        border: 6px solid transparent;
+        background-clip: padding-box;
+        background-color: transparent;
+        box-shadow: none;
+      }
    }
 `
 

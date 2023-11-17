@@ -1,8 +1,8 @@
-import { useRecoilValue } from "recoil";
-import { descriptionData } from "../../../../../../Model/DescriptionDataModel";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { descriptionData, descriptionInitialData } from "../../../../../../Model/DescriptionDataModel";
 import { descriptionColorType, descriptionPatternType } from "../DescriptionType";
 import styled from "styled-components";
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import descriptionSelectItems, { OuterShapeTypes, OuterTypeTypes, PatternItems } from "../DescriptionItems";
 import Body from '../../../../../../assets/img/descriptions/ResultImages/body.png'
 import OnlyBody from '../../../../../../assets/img/descriptions/ResultImages/onlyBody.png'
@@ -24,6 +24,9 @@ import ShortInner from "../../../../../../assets/img/descriptions/ResultImages/S
 import OnepieceInner from "../../../../../../assets/img/descriptions/ResultImages/OnepieceInner";
 import ShirtInner from "../../../../../../assets/img/descriptions/ResultImages/ShirtInner";
 import { PersonDescriptionResultImageID } from "../../../Constants/ConstantsValues";
+import resetIcon from "../../../../../../assets/img/resetIcon.png";
+import resetHoverIcon from "../../../../../../assets/img/resetHoverIcon.png";
+import Button from "../../../../../Constants/Button";
 
 export type WithPatternColorsDescriptionItemProps = {
     Src?: React.FC<{ colorProps: JSX.Element | JSX.Element[] }>
@@ -136,7 +139,8 @@ const findInnerTypeSrc = (type: OuterTypeTypes): React.FC<WithPatternColorsDescr
 const outerAndBottomPatternX = "3%"
 
 const PersonDescriptionResultImage = () => {
-    const data = useRecoilValue(descriptionData)
+    const [hover, setHover] = useState(false)
+    const [data, setData] = useRecoilState(descriptionData)
     const { general, outer, inner, bottom, shoes, etc } = data
     const hasInner = (inner.color.length > 0 || inner.pattern)
     const hasOuter = (outer.type || outer.pattern || outer.color.length > 0 || outer.shape)
@@ -144,8 +148,16 @@ const PersonDescriptionResultImage = () => {
 
     return <>
         <Title>
-            속성 미리보기
+            미리보기
         </Title>
+        <Reset icon={hover ? resetHoverIcon : resetIcon} onMouseOver={() => {
+                setHover(true)
+            }} onMouseLeave={() => {
+                setHover(false)
+            }} onClick={() => {
+                setData(descriptionInitialData)
+            }}/>
+        {/* <AllResultContainer> */}
         <BodyCanvas>
             <div id={PersonDescriptionResultImageID} style={{
                 width: '100%',
@@ -238,6 +250,8 @@ const PersonDescriptionResultImage = () => {
                 </OtherCanvas>
             </div>
         </OtherCanvasContainer>
+        
+        {/* </AllResultContainer> */}
     </>
 }
 
@@ -245,7 +259,7 @@ export default PersonDescriptionResultImage;
 
 const Title = styled.div`
     width: 100%;
-    height: 60px;
+    height: 70px;
     ${globalStyles.flex({ alignItems: 'flex-start' })}
     padding: 16px 16px;
     font-size: 2rem;
@@ -261,7 +275,7 @@ const OtherCategories = styled.div`
 `
 
 const OtherCanvasContainer = styled.div`
-    height: calc(100% - 572px - 60px - 80px);
+    height: calc(100% - 572px - 70px);
     width: 100%;
     padding: 12px 0;
     padding: 8px;
@@ -284,4 +298,19 @@ const ResultImage = styled.img<{ x?: CSSProperties['left'], y?: CSSProperties['t
     width: ${({ width }) => width ?? '100%'};
     height: ${({ height }) => height ?? '100%'};
     z-index: ${({ z }) => z ?? 1};
+`
+
+const AllResultContainer = styled.div`
+    ${globalStyles.flex()}
+    height: 100%;
+    width: 100%;
+`
+
+const Reset = styled(Button)`
+    position: absolute;
+    right: 16px;
+    top: 18px;
+    z-index: 10;
+    background-color: transparent;
+    border: none;
 `

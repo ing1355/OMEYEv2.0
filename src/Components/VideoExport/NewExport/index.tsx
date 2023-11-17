@@ -142,10 +142,10 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 </NeedSelectTitle>
             </CCTVName>
             <ProgressContainer>
-                <Progress percent={progress.videoPercent || 98} color={TextActivateColor} outString icon={ProgressVideoIcon} />
+                <Progress percent={progress.videoPercent} color={TextActivateColor} outString icon={ProgressVideoIcon} />
             </ProgressContainer>
             <ProgressContainer>
-                <Progress percent={progress.aiPercent || 100} color={TextActivateColor} outString icon={ProgressAIIcon} />
+                <Progress percent={progress.aiPercent} color={TextActivateColor} outString icon={ProgressAIIcon} />
             </ProgressContainer>
             <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
                 if (canChangeInput) inputTypeChange('time')
@@ -261,7 +261,7 @@ const NewExport = () => {
         if (!IS_PRODUCTION) setDatas([
             {
                 "status": "canDownload",
-                "cctvId": 501,
+                "cctvId": 5960,
                 "time": {
                     "startTime": "20231113000000",
                     "endTime": "20231113000146"
@@ -279,7 +279,7 @@ const NewExport = () => {
             },
             {
                 "status": "canDownload",
-                "cctvId": 502,
+                "cctvId": 5960,
                 "time": {
                     "startTime": "20231113000000",
                     "endTime": "20231113000030"

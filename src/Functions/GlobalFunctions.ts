@@ -5,8 +5,18 @@ import { ConditionDataSingleType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
 import { toPng } from "html-to-image";
 
+function arrayDistinct(list: any[]):any[] {
+    const result = [];
+    for (var i = 0; i < list.length; i++) {
+        var value = list[i];
+        if (result.indexOf(value) == -1)
+            result.push(value);
+    }
+    return result;
+}
+
 export function ArrayDeduplication<T>(array: Array<T>, func?: (data1: T, data2: T) => boolean) {
-    return array.filter((v, i) => (func ? array.findIndex(_ => func(v, _)) : array.indexOf(v)) === i)
+    return func ? array.filter((v, i) => array.findIndex(_ => func(v, _)) === i) : arrayDistinct(array)
 }
 
 export async function multipleFileUploadFunction(files: File[] | FileList) {

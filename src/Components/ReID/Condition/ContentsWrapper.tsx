@@ -48,14 +48,14 @@ const ContentsWrapper = () => {
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
-    const { routePop, routeJump, routePush, getAllRoutes, getRouteName } = useConditionRoutes()
+    const { routePop, routeJump, routePush, getAllRoutes, getRouteName, getCurrentRoute } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
     const allSelected = useMemo(() => {
         if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
         return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
     },[_conditionData])
-    
+    console.debug("test : ", targets)
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])

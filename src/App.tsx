@@ -10,6 +10,7 @@ import ErrorHandleComponent from './ErrorHandleComponent';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
+import { IS_PRODUCTION } from './Constants/GlobalConstantsValues';
 
 type ServerErrorDataType = {
   code: number
@@ -56,10 +57,12 @@ const App = () => {
 
   useEffect(() => {
     if (loginState) {
-      window.addEventListener('beforeunload', e => {
-        e.preventDefault()
-        e.returnValue = ''
-      })
+      if(IS_PRODUCTION) {
+        window.addEventListener('beforeunload', e => {
+          e.preventDefault()
+          e.returnValue = ''
+        })
+      }
     }
     return () => {
 

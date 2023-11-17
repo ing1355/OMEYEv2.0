@@ -31,7 +31,7 @@ const AreaBoundaryColumn = () => {
     }
     return <Container>
         <ConditionParamsInputColumnComponent
-            title={`CCTV(${areaData.length})`}
+            title={`CCTV(${areaData.filter(_ => _.selected).length}/${areaData.length})`}
             titleIcon={cctvIcon}
             isDataExist={areaData.length > 0}
             initAction={initAction}

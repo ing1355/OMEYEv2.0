@@ -42,7 +42,7 @@ const TargetSelectColumn = () => {
 
     return <Container>
         <ConditionParamsInputColumnComponent
-            title={`대상(${datas.length})`}
+            title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
             titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
             isTarget
             initAction={initAction}

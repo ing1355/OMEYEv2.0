@@ -529,7 +529,7 @@ export const descriptionItemLabels = {
     printing: PatternItems[3].title,
     colorblocking: PatternItems[4].title,
     male: descriptionSelectItems['general']['gender']['items'][0]['title'],
-    female: descriptionSelectItems['general']['gender']['items'][0]['title'],
+    female: descriptionSelectItems['general']['gender']['items'][1]['title'],
     // child: descriptionSelectItems['general']['age']['items'][0]['title'],
     // young: descriptionSelectItems['general']['age']['items'][1]['title'],
     // old: descriptionSelectItems['general']['age']['items'][2]['title'],
