@@ -44,7 +44,7 @@ const AccountSearchDropdownList = [
   }
 ];
 
-const RoleSearchDropdownList = [
+export const RoleSearchDropdownList = [
   {
     key: 'USER',
     value: 'USER',
@@ -80,7 +80,7 @@ type ResType = {
 }
 
 type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' ;
-type RoleValues = 'USER' | 'username' | 'name' | 'email' | 'phoneNumber' ;
+export type RoleValues = 'USER' | 'username' | 'name' | 'email' | 'phoneNumber' ;
 
 const AccountSettings = () => {
   const [currentPage, setCurrentPage] = useState<number>(0);
@@ -174,8 +174,20 @@ const AccountSettings = () => {
           /> */}
           <div
             style={{ cursor: 'pointer' }}
-            onClick={() => {
-              getUsersAccountList();
+            onClick={async () => {
+              const res:ResType = await Axios('GET', UserAccountApi, {
+                size: 10,
+                page: 0,
+                username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
+                role: searchValue === 'role' ? searchRoleValue : null,
+                name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
+                email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
+                phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
+              })
+              if (res) {
+                setUsersAccountRows(res);
+                setCurrentPage(0);
+              }
             }}
           >
             <img 
@@ -239,9 +251,10 @@ const AccountSettings = () => {
           {usersAccountRows && usersAccountRows.results.length > 0 ?
             <>
               <div style={{display: 'flex', flexDirection: 'column', marginBottom: '15px'}}>
-                {usersAccountRows.results.map((data:usersType) => {
+                {usersAccountRows.results.map((data:usersType, index) => {
                   return (
                     <div 
+                      key={'usersAccountRows' + index}
                       style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
                       onClick={() => {
                         const isDelete = selectUsers.find((_) => _ === data.id);

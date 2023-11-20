@@ -33,10 +33,10 @@ const ViewByCategory = ({ type }: {
     }
     {type === 'server' && 
       <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-        <ChangedView selected={type === 'server'} style={{width:'79%', marginRight: '0.5%'}}>
+        <ChangedView selected={type === 'server'} style={{width:'77%', marginRight: '0.5%'}}>
           <ServerManagement />
         </ChangedView>
-        <ChangedView selected={type === 'server'} style={{width:'20%', marginRight: '0.5%'}}>
+        <ChangedView selected={type === 'server'} style={{width:'22%', marginRight: '0.5%'}}>
           <ServerMgmtSidebar />
         </ChangedView>
       </div>
@@ -56,7 +56,7 @@ const Settings = () => {
         }}>
           계정 설정
         </CategoryBtn>
-        {/* <CategoryBtn selected={category === 'vms'} onClick={() => {
+        <CategoryBtn selected={category === 'vms'} onClick={() => {
           setCategory('vms')
         }}>
           VMS 설정
@@ -70,7 +70,7 @@ const Settings = () => {
           setCategory('server')
         }}>
           서버 관리
-        </CategoryBtn> */}
+        </CategoryBtn>
       </Header>
       <Contents>
         <ViewByCategory type={category} />

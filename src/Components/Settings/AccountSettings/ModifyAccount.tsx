@@ -100,6 +100,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         </div>
         <AccountInput 
           value={modifyAccountEmail}
+          maxLength={48}
           onChange={(e) => {
             setModifyAccountEmail(e);
           }}

@@ -8,6 +8,9 @@ import { IdCheckApi, UserAccountApi } from "../../../Constants/ApiRoutes"
 import { IsAddMember } from "../../../Model/AccountDataModel"
 import { useRecoilState } from "recoil"
 import useMessage from "../../../Hooks/useMessage"
+import Dropdown from "../../Layout/Dropdown"
+import { ButtonBackgroundColor, InputBackgroundColor } from "../../../styles/global-styled"
+import { RoleSearchDropdownList, RoleValues } from "."
 
 type AddAccountType = {
   visible: boolean
@@ -32,6 +35,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [newAccountPhoneNumber, setNewAccountPhoneNumber] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
   const message = useMessage();
 
   const newAccountSaveFun = async () => {
@@ -54,12 +58,16 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   }
 
   const checkIdFun = async () => {
-    const res = await Axios("GET", IdCheckApi(newAccountUsername))
-    setIsSameId(res);
-    if(res) {
-      message.error({ title: '아이디 중복 확인', msg: '사용 불가능한 아이디 입니다.' })
+    if(!newAccountUsername) {
+      message.error({ title: '아이디 중복 확인', msg: '아이디를 입력해주세요.' })
     } else {
-      message.success({ title: '아이디 중복 확인', msg: '사용 가능한 아이디 입니다.' })
+      const res = await Axios("GET", IdCheckApi(newAccountUsername))
+      setIsSameId(res);
+      if(res) {
+        message.error({ title: '아이디 중복 확인', msg: '사용 불가능한 아이디 입니다.' })
+      } else {
+        message.success({ title: '아이디 중복 확인', msg: '사용 가능한 아이디 입니다.' })
+      }
     }
   }
 
@@ -99,7 +107,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPassword(e);
           }}
         />
-        <div style={{width: '160px'}}></div>
+        <div style={{width: '130px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -112,7 +120,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPasswordConfirm(e);
           }}
         />
-        <div style={{width: '160px'}}></div>
+        <div style={{width: '130px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -124,7 +132,22 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountName(e);
           }}
         />
-        <div style={{width: '160px'}}></div>
+        <div style={{width: '130px'}}></div>
+      </div>
+      <div style={{ display: 'flex', marginBottom: '10px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
+          등급 :
+        </div>
+        <div>
+          <RoleDropdown 
+            itemList={RoleSearchDropdownList} 
+            bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
+            onChange={val => {
+              setSearchRoleValue(val.value as RoleValues);
+            }}
+          />
+        </div>
+        <div style={{width: '130px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -137,7 +160,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountEmail(e);
           }}
         />
-        <div style={{width: '160px'}}></div>
+        <div style={{width: '130px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -149,7 +172,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
             setNewAccountPhoneNumber(e);
           }}
         />
-        <div style={{width: '160px'}}></div>
+        <div style={{width: '130px'}}></div>
       </div>
       <div style={{textAlign: 'center'}}>
         <AccountButton hover
@@ -194,6 +217,11 @@ const AccountInput = styled(Input)`
 
 const AccountButton = styled(Button)`
   height: 30px;
-  width: 130px;
+  width: 100px;
   margin-left: 10px;
+`
+
+const RoleDropdown = styled(Dropdown)`
+  height: 30px;
+  width: 240px;
 `
