@@ -23,6 +23,7 @@ export const ContentsActivateColor = ButtonActiveBackgroundColor
 export const ContentsDisableColor = 'rgba(128,128,128,.5)'
 export const loadingVideoDownloadColor = ContentsActivateColor
 export const loadingAIAnalysisColor = ButtonActiveBackgroundColor
+export const ScrollBarColor = "#302f35"
 
 const fadeOut = keyframes`
   0% {
@@ -164,6 +165,24 @@ const GlobalStyle = createGlobalStyle`
       user-select: none;
       font-size: .9rem;
       font-family: NanumGothic;
+      &::-webkit-scrollbar {
+        width: 14px;
+        overflow: hidden;
+      }
+      &::-webkit-scrollbar-thumb {
+        background-color: ${ScrollBarColor};
+        border-radius: 15px;
+        outline: none;
+        border: 4px solid transparent;
+        background-clip: padding-box;
+      }
+      &::-webkit-scrollbar-track {
+        border-radius: 15px;
+        border: 4px solid transparent;
+        background-clip: padding-box;
+        background-color: transparent;
+        box-shadow: none;
+      }
    }
 `
 

@@ -117,6 +117,7 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             if (clickPoints.length > 0) {
                 ctx.beginPath()
+                ctx.lineWidth = 8;
                 ctx.strokeStyle = "black"
                 clickPoints.forEach(_ => {
                     ctx.arc(_[0], _[1], 5, 0, 2 * Math.PI, true)

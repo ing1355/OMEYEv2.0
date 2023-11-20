@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { DescriptionItemType } from "../DescriptionItems"
 import { descriptionDataType } from "../DescriptionType"
-import { ContentsActivateColor, globalStyles } from "../../../../../../styles/global-styled"
+import { ButtonActiveBackgroundColor, ContentsBorderColor, globalStyles } from "../../../../../../styles/global-styled"
 import { CSSProperties } from "react"
 
 type NormalSelectItemProps<T extends keyof descriptionDataType> = {
@@ -32,11 +32,15 @@ const Container = styled.div<{ flex: CSSProperties['flex'], selected: boolean }>
     ${globalStyles.flex({ gap: '8%' })}
     flex: ${({ flex }) => `1 1 ${flex || '20%'}`};
     max-width: ${({ flex }) => flex || '20%'};
-    border: 1px solid white;
+    border: 1px solid ${ContentsBorderColor};
+    border-radius: 12px;
     height: 100%;
     ${({selected}) => selected && {
-        backgroundColor: ContentsActivateColor
+        backgroundColor: ButtonActiveBackgroundColor
     }};
+    &:hover {
+        border: 1px solid ${ButtonActiveBackgroundColor};
+    }
 `
 
 const Icon = styled.img`

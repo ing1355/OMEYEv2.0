@@ -50,8 +50,8 @@ const ProgressContainer = styled.div`
 `
 
 const OuterText = styled.div`
-    ${globalStyles.flex()}
-    flex: 0 0 30px;
+    ${globalStyles.flex({alignItems:'flex-start'})}
+    flex: 0 0 40px;
     height: 100%;
 `
 

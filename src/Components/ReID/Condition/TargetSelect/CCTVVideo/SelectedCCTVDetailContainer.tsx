@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
+import { ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import CaptureImageContainer from "../../Constants/CaptureImageContainer"
 import Button from "../../../../Constants/Button"
 import { useEffect, useState } from "react"
@@ -73,7 +73,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                     setSelected(null)
                 }} />
             </DetailTitle>
-            <DetailInfoRow>
+            {/* <DetailInfoRow>
                 <DetailInfoCol>
                     주소
                 </DetailInfoCol>
@@ -96,7 +96,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                 <DetailInfoCol>
                     {selected?.longitude}
                 </DetailInfoCol>
-            </DetailInfoRow>
+            </DetailInfoRow> */}
             <VideosContainer>
                 <VideosInnerContainer>
                     <VideosTitle>
@@ -255,7 +255,7 @@ const CaptureResultListItemBox = styled.div<{ selected: boolean }>`
 
 const CaptureResultListItemImageContainer = styled.div`
     height: calc(100% - 40px);
-    border: 1px solid white;
+    border: 1px solid ${ContentsBorderColor};
     width: 100%;
     ${globalStyles.flex()}
 `
@@ -288,6 +288,7 @@ const CaptureResultListItemFaceSelectContainer = styled.div`
 const CaptureResultListItemSelectButton = styled(Button) <{ selected: boolean, isMask: boolean }>`
     ${({ isMask }) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
     height: 100%;
+    margin-top: 3px;
     border-radius: 12px;
 `
 
@@ -296,9 +297,9 @@ const VideosContainer = styled.div`
     margin-bottom: 16px;
 `
 
-const VideosInnerContainer = styled.div`    
+const VideosInnerContainer = styled.div`
     flex: 50%;
-    height: 320px;
+    height: 324px;
     margin-top: 12px;
 `
 
@@ -320,7 +321,7 @@ const VideosTitle = styled.div`
 const VideoContainer = styled.div`
     height: calc(100% - 60px);
     ${globalStyles.flex()}
-    border: 1px solid white;
+    border: 1px solid ${ContentsBorderColor};
 `
 
 const StreamingVideo = styled(Video)`
@@ -329,6 +330,7 @@ const StreamingVideo = styled(Video)`
 
 const VideoCaptureBtn = styled(Button)`
     width: 100%;
+    margin-top: 3px;
     height: 32px;
 `
 

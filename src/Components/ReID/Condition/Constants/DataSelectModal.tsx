@@ -12,13 +12,12 @@ type DataSelectModalProps = PropsWithChildren<{
     visible: boolean
     complete: () => void
     close: () => void
-    title: string
+    title: React.ReactNode
     className?: string
     width?: CSSProperties['width']
-    half?: boolean
 }>
 
-const DataSelectModal = ({ visible, children, title, className, width, close, complete, half }: DataSelectModalProps) => {
+const DataSelectModal = ({ visible, children, title, className, width, close, complete }: DataSelectModalProps) => {
 
     const c_menu = useRecoilValue(conditionMenu)
     const c_route = useRecoilValue(conditionRoute)
@@ -42,7 +41,7 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
         close()
     },[c_menu, c_route, menu])
     
-    return <Background visible={visible} half={half || false}>
+    return <Background visible={visible}>
         <Rest onClick={() => {
             close()
         }} />
@@ -73,19 +72,18 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
 
 export default DataSelectModal
 
-const Background = styled.div<{ visible: boolean, half: boolean }>`
+const Background = styled.div<{ visible: boolean }>`
     position: absolute;
-    width: ${({visible}) => visible ? '100%' : '0%'};
+    width: 100%;
     height: 100%;
     top: 0;
-    background-color: transparent;
     z-index: 9000;
-    transition: all .25s ease-out;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
-    ${({ visible, half }) => ({
-        right: visible ? (half ? 24 : 0) : '-100%',
-    })}
     overflow: hidden;
+    ${({ visible }) => ({
+        visibility: visible ? 'visible' : 'hidden',
+    })}
+    background-color: rgba(0,0,0,.3);
 `
 
 const Rest = styled.div`
@@ -95,9 +93,14 @@ const Rest = styled.div`
 
 const Container = styled.div<{ visible: boolean }>`
     height: 100%;
+    position: absolute;
     background-color: ${SectionBackgroundColor};
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
+    transition: all .25s ease-out;
+    ${({ visible }) => ({
+        right: visible ? 0 : '-100%',
+    })}
 `
 
 const Header = styled.div`

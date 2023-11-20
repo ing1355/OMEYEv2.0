@@ -40,7 +40,7 @@ const TimeBoundaryColumn = () => {
     return <>
         <Container>
             <ConditionParamsInputColumnComponent
-                title={`시간(${timeData.length})`}
+                title={`시간(${isRealTime ? '실시간' : `${timeData.filter(_ => _.selected).length}/${timeData.length}`})`}
                 titleIcon={timeIcon}
                 isDataExist={timeData.length > 0}
                 initAction={initAction}
@@ -93,7 +93,7 @@ const Container = styled.div`
 `
 
 const TimeDataContainer = styled.div<{ selected: boolean }>`
-    flex: 0 0 100px;
+    flex: 0 0 150px;
     color: white;
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     width: 100%;
@@ -101,6 +101,9 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.flex()}
     position: relative;
     cursor: pointer;
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
 `
 
 const ContentsContainer = styled.div`
@@ -112,7 +115,6 @@ const ContentsContainer = styled.div`
 
 const BtnsContainer = styled.div`
     width: 100%;
-    flex: 0 0 28px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end', gap: '4px' })}
 `
 

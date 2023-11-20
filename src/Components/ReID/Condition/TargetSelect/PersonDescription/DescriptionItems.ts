@@ -203,7 +203,7 @@ const descriptionSelectItems: {
     general: {
         gender: {
             title: '성별',
-            flex: '25%',
+            flex: '20%',
             items: [
                 {
                     title: '남자',
@@ -529,7 +529,7 @@ export const descriptionItemLabels = {
     printing: PatternItems[3].title,
     colorblocking: PatternItems[4].title,
     male: descriptionSelectItems['general']['gender']['items'][0]['title'],
-    female: descriptionSelectItems['general']['gender']['items'][0]['title'],
+    female: descriptionSelectItems['general']['gender']['items'][1]['title'],
     // child: descriptionSelectItems['general']['age']['items'][0]['title'],
     // young: descriptionSelectItems['general']['age']['items'][1]['title'],
     // old: descriptionSelectItems['general']['age']['items'][2]['title'],

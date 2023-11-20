@@ -25,7 +25,9 @@ const useConditionRoutes = () => {
 
     const getAllRoutes = () => route
 
-    return { routePush, routePop, routeJump, getRouteName, getAllRoutes, setRoute }
+    const getCurrentRoute = () => route[route.length -1]
+
+    return { routePush, routePop, routeJump, getRouteName, getAllRoutes, setRoute, getCurrentRoute }
 }
 
 export default useConditionRoutes

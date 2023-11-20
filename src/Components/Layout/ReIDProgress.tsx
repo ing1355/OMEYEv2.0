@@ -755,7 +755,8 @@ const Contents = styled.div<{ opened: boolean }>`
     padding: 12px;
     max-height: 100%;
     height: ${({ opened }) => opened ? 'auto' : '60px'};
-    overflow-y: auto;
+    overflow-y: ${({opened}) => opened ? 'auto' : 'hidden'};
+    overflow-y: hidden;
     transition: height .1s ease;
     ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '6px' })}
 `
@@ -805,7 +806,7 @@ const TimeGroupContainer = styled.div<{ opened: boolean, rowNum: number }>`
     border-radius: 8px;
     width: 100%;
     height: ${({ opened, rowNum }) => opened ? (60 + (rowNum * rowHeight)) : 60}px;
-    overflow-y: ${({ opened }) => opened ? 'auto' : 'hidden'};
+    overflow: hidden;
     transition: height .3s ease-out;
 `
 
@@ -845,7 +846,7 @@ const TimeGroupProgressItem = styled.div`
 const TimeGroupContents = styled.div`
     width: 100%;
     max-height: calc(100% - 28px);
-    overflow-y: auto;
+    overflow-y: hidden;
     padding: 0 6px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '1%', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start' })}
 `

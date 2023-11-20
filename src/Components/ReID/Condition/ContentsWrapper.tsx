@@ -48,7 +48,7 @@ const ContentsWrapper = () => {
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
-    const { routePop, routeJump, routePush, getAllRoutes, getRouteName } = useConditionRoutes()
+    const { routePop, routeJump, routePush, getAllRoutes, getRouteName, getCurrentRoute } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
     const allSelected = useMemo(() => {
@@ -237,7 +237,7 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton hover disabled={isRealTime || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
+                    {routeInfo.length === 2 && <CompleteButton hover disabled={(isRealTime && targets.length > 1) || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,

@@ -1,12 +1,12 @@
-import { useRecoilValue } from "recoil";
-import { descriptionData } from "../../../../../../Model/DescriptionDataModel";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { descriptionData, descriptionInitialData } from "../../../../../../Model/DescriptionDataModel";
 import { descriptionColorType, descriptionPatternType } from "../DescriptionType";
 import styled from "styled-components";
-import { CSSProperties } from "react";
+import { CSSProperties, useState } from "react";
 import descriptionSelectItems, { OuterShapeTypes, OuterTypeTypes, PatternItems } from "../DescriptionItems";
 import Body from '../../../../../../assets/img/descriptions/ResultImages/body.png'
 import OnlyBody from '../../../../../../assets/img/descriptions/ResultImages/onlyBody.png'
-import { SectionBackgroundColor, globalStyles } from "../../../../../../styles/global-styled";
+import { GlobalBackgroundColor, InputBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../../../styles/global-styled";
 import SVGComponentHOC, { WithPatternColorsDescriptionItemWrappedProps } from "../../../../../Constants/SVGComponentHOC";
 import ShortOuter from "../../../../../../assets/img/descriptions/ResultImages/ShortOuter";
 import OuterLine from '../../../../../../assets/img/descriptions/ResultImages/outerLine.png'
@@ -24,6 +24,9 @@ import ShortInner from "../../../../../../assets/img/descriptions/ResultImages/S
 import OnepieceInner from "../../../../../../assets/img/descriptions/ResultImages/OnepieceInner";
 import ShirtInner from "../../../../../../assets/img/descriptions/ResultImages/ShirtInner";
 import { PersonDescriptionResultImageID } from "../../../Constants/ConstantsValues";
+import resetIcon from "../../../../../../assets/img/resetIcon.png";
+import resetHoverIcon from "../../../../../../assets/img/resetHoverIcon.png";
+import Button from "../../../../../Constants/Button";
 
 export type WithPatternColorsDescriptionItemProps = {
     Src?: React.FC<{ colorProps: JSX.Element | JSX.Element[] }>
@@ -136,21 +139,29 @@ const findInnerTypeSrc = (type: OuterTypeTypes): React.FC<WithPatternColorsDescr
 const outerAndBottomPatternX = "3%"
 
 const PersonDescriptionResultImage = () => {
-    const data = useRecoilValue(descriptionData)
+    const [hover, setHover] = useState(false)
+    const [data, setData] = useRecoilState(descriptionData)
     const { general, outer, inner, bottom, shoes, etc } = data
     const hasInner = (inner.color.length > 0 || inner.pattern)
     const hasOuter = (outer.type || outer.pattern || outer.color.length > 0 || outer.shape)
     const hasBottom = (bottom.type || bottom.color.length > 0 || bottom.pattern)
-    
+
     return <>
         <Title>
-            속성 미리보기
+            미리보기
         </Title>
+        <Reset icon={hover ? resetHoverIcon : resetIcon} onMouseOver={() => {
+                setHover(true)
+            }} onMouseLeave={() => {
+                setHover(false)
+            }} onClick={() => {
+                setData(descriptionInitialData)
+            }}/>
+        {/* <AllResultContainer> */}
         <BodyCanvas>
             <div id={PersonDescriptionResultImageID} style={{
                 width: '100%',
-                height: '100%',
-                backgroundColor: SectionBackgroundColor
+                height: '100%'
             }}>
                 <ResultImage src={!general.hair ? Body : OnlyBody} height={bodyHeight} y={bodyTop} z={10} />
                 {general.hair && <ResultImage src={descriptionSelectItems.general.hair.items.find(_ => _.key === general.hair)?.resultIcon} height={bodyHeight} y={bodyTop} z={11} />}
@@ -200,38 +211,47 @@ const PersonDescriptionResultImage = () => {
         </BodyCanvas>
         <OtherCanvasContainer>
             <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                height: '30%'
+                width: '100%',
+                height: '100%',
+                backgroundColor: InputBackgroundColor,
+                borderRadius: '12px'
             }}>
-                <OtherCategories>
-                    {/* 성별·나이 */}
-                    성별
-                </OtherCategories>
-                <OtherCategories>
-                    기타
-                </OtherCategories>
-            </div>
-            <OtherCanvas>
-                <OtherImage
-                    src={descriptionSelectItems.general.gender.items.find(_ => _.key === general.gender)?.icon}
-                    title={descriptionSelectItems.general.gender.items.find(_ => _.key === general.gender)?.title}
-                    height={otherImageHeight} />
-                {/* <OtherImage
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    height: '30%'
+                }}>
+                    <OtherCategories>
+                        {/* 성별·나이 */}
+                        성별
+                    </OtherCategories>
+                    <OtherCategories>
+                        기타
+                    </OtherCategories>
+                </div>
+                <OtherCanvas>
+                    <OtherImage
+                        src={descriptionSelectItems.general.gender.items.find(_ => _.key === general.gender)?.icon}
+                        title={descriptionSelectItems.general.gender.items.find(_ => _.key === general.gender)?.title}
+                        height={otherImageHeight} />
+                    {/* <OtherImage
                     src={descriptionSelectItems.general.age.items.find(_ => _.key === general.age)?.icon}
                     title={descriptionSelectItems.general.age.items.find(_ => _.key === general.age)?.title}
                     height={otherImageHeight} /> */}
-                <OtherImage
-                    src={descriptionSelectItems.etc.bag.items.find(_ => _.key === etc.bag)?.icon}
-                    title={descriptionSelectItems.etc.bag.items.find(_ => _.key === etc.bag)?.title}
-                    height={otherImageHeight} />
-                <OtherImage
-                    src={descriptionSelectItems.etc.walkingaids.items.find(_ => _.key === etc.walkingaids)?.icon}
-                    title={descriptionSelectItems.etc.walkingaids.items.find(_ => _.key === etc.walkingaids)?.title}
-                    height={otherImageHeight} />
-            </OtherCanvas>
+                    <OtherImage
+                        src={descriptionSelectItems.etc.bag.items.find(_ => _.key === etc.bag)?.icon}
+                        title={descriptionSelectItems.etc.bag.items.find(_ => _.key === etc.bag)?.title}
+                        height={otherImageHeight} />
+                    <OtherImage
+                        src={descriptionSelectItems.etc.walkingaids.items.find(_ => _.key === etc.walkingaids)?.icon}
+                        title={descriptionSelectItems.etc.walkingaids.items.find(_ => _.key === etc.walkingaids)?.title}
+                        height={otherImageHeight} />
+                </OtherCanvas>
+            </div>
         </OtherCanvasContainer>
+        
+        {/* </AllResultContainer> */}
     </>
 }
 
@@ -239,7 +259,7 @@ export default PersonDescriptionResultImage;
 
 const Title = styled.div`
     width: 100%;
-    height: 60px;
+    height: 70px;
     ${globalStyles.flex({ alignItems: 'flex-start' })}
     padding: 16px 16px;
     font-size: 2rem;
@@ -255,10 +275,10 @@ const OtherCategories = styled.div`
 `
 
 const OtherCanvasContainer = styled.div`
-    height: calc(100% - 572px - 60px);
+    height: calc(100% - 572px - 70px);
     width: 100%;
     padding: 12px 0;
-    border-top: 1px solid white;
+    padding: 8px;
 `
 const OtherCanvas = styled.div`
     height: 70%;
@@ -269,7 +289,6 @@ const BodyCanvas = styled.div`
     position: relative;
     height: 572px;
     width: 100%;
-    background-color: ${SectionBackgroundColor};
 `
 
 const ResultImage = styled.img<{ x?: CSSProperties['left'], y?: CSSProperties['top'], z?: CSSProperties['zIndex'], width?: CSSProperties['width'], height?: CSSProperties['height'] }>`
@@ -279,4 +298,19 @@ const ResultImage = styled.img<{ x?: CSSProperties['left'], y?: CSSProperties['t
     width: ${({ width }) => width ?? '100%'};
     height: ${({ height }) => height ?? '100%'};
     z-index: ${({ z }) => z ?? 1};
+`
+
+const AllResultContainer = styled.div`
+    ${globalStyles.flex()}
+    height: 100%;
+    width: 100%;
+`
+
+const Reset = styled(Button)`
+    position: absolute;
+    right: 16px;
+    top: 18px;
+    z-index: 10;
+    background-color: transparent;
+    border: none;
 `

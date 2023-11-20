@@ -5,8 +5,18 @@ import { ConditionDataSingleType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
 import { toPng } from "html-to-image";
 
+function arrayDistinct(list: any[]):any[] {
+    const result = [];
+    for (var i = 0; i < list.length; i++) {
+        var value = list[i];
+        if (result.indexOf(value) == -1)
+            result.push(value);
+    }
+    return result;
+}
+
 export function ArrayDeduplication<T>(array: Array<T>, func?: (data1: T, data2: T) => boolean) {
-    return array.filter((v, i) => (func ? array.findIndex(_ => func(v, _)) : array.indexOf(v)) === i)
+    return func ? array.filter((v, i) => array.findIndex(_ => func(v, _)) === i) : arrayDistinct(array)
 }
 
 export async function multipleFileUploadFunction(files: File[] | FileList) {
@@ -317,7 +327,6 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
     const aTag = document.createElement("a");
     aTag.target = "_self"
     aTag.href = url
-    fileName = "/Users/hozzi/Desktop/test"
     aTag.download = fileName || "";
     console.log(url, fileName)
     document.body.appendChild(aTag);

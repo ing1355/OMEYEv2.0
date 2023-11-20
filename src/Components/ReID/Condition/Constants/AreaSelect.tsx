@@ -31,7 +31,9 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         }
     }, [visible])
 
-    return <ModalWrapper width={'1000px'} visible={visible} title={title} close={close} complete={() => {
+    return <ModalWrapper visible={visible} title={<>
+        {title}<SelectedText>({selectedCCTVs.length})</SelectedText>
+    </>} close={close} complete={() => {
         if (selectedCCTVs.length === 0) return message.preset('WRONG_PARAMETER', "CCTV를 선택해주세요.");
         complete(selectedCCTVs)
         close()
@@ -51,4 +53,9 @@ const ModalWrapper = styled(DataSelectModal)`
 const Container = styled.div`
     width: 100%;
     height: 100%;
+`
+
+const SelectedText = styled.div`
+    font-size: 1.3rem;
+    display: inline-block;
 `

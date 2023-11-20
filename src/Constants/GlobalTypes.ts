@@ -24,12 +24,12 @@ export type CameraDataType = {
   longitude: number;
   vmsId: string;
   vmsType: SiteVmsType;
-  created_at: string;
+  createdAt: string;
 };
 
 export type SiteDataType = {
   cameras: Array<CameraDataType>;
-  created_at: string;
+  createdAt: string;
   siteId: number;
   siteName: string;
   siteType?: SiteVmsType;

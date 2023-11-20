@@ -18,10 +18,10 @@ const ViewByCategory = ({ type }: {
     <ChangedView selected={type === 'account'}>
       <AccountSettings />
     </ChangedView>
-    <ChangedView selected={type === 'vms'}>
+    {/* <ChangedView selected={type === 'vms'}>
       <VMSSettings />
-    </ChangedView>
-    {type === 'omeye' &&
+    </ChangedView> */}
+    {/* {type === 'omeye' &&
       <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
         <ChangedView selected={type === 'omeye'} style={{width:'49.5%', marginRight: '0.5%'}}>
           <OMEYESettings />
@@ -40,7 +40,7 @@ const ViewByCategory = ({ type }: {
           <ServerMgmtSidebar />
         </ChangedView>
       </div>
-    }
+    } */}
 
 
   </>

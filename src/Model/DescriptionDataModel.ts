@@ -63,8 +63,10 @@ export const descriptionSingleData = selectorFamily<descriptionParamType[Descrip
     set: (key: DescriptionCategoryKeyType) => ({ get, set }, newValue) => {
         let oldData = get(_data)
         if (!(newValue instanceof DefaultValue)) {
-            (oldData[key] as descriptionDataSingleType<typeof key>) = newValue as descriptionDataSingleType<typeof key>;
-            set(_data, oldData)
+            set(_data, {
+                ...oldData,
+                [key]: newValue as descriptionDataSingleType<typeof key>
+            })
         }
     }
 })

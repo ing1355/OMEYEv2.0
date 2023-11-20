@@ -19,6 +19,7 @@ import { PROGRESS_STATUS, SSEResponseStatusType } from "../../../Model/ProgressM
 import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
 import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys } from "../Condition/TargetSelect/PersonDescription/DescriptionType"
+import CCTVNameById from "../../Constants/CCTVNameById"
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -381,7 +382,7 @@ const RealTimeReID = () => {
                                     CCTV 이름
                                 </ResultDetailDescriptionCol>
                                 <ResultDetailDescriptionCol>
-                                    {selected?.cameraId || '정보 없음'}
+                                    {selected?.cameraId ? <CCTVNameById cctvId={selected.cameraId}/> : '정보 없음'}
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>

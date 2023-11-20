@@ -5,6 +5,7 @@ import React, { PropsWithChildren, forwardRef, useCallback, useEffect, useRef, u
 
 type ImageViewProps = PropsWithChildren & {
     src?: string
+    subSrc?: string
     style?: React.CSSProperties
     className?: string;
     onLoad?: React.ReactEventHandler<HTMLImageElement>
@@ -43,17 +44,41 @@ const ImageWithRetry = forwardRef<HTMLImageElement, ImageViewProps>((props, ref)
                 setError(false)
             }
         }
-    }}/>
+    }} loading="lazy"/>
 })
 
-const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, children, className }, ref) => {
+const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, children, className, subSrc }, ref) => {
+    const [subOpen, setSubOpen] = useState(false)
     const imgRef = useRef<HTMLImageElement>(null)
     const fullScreenRef = useRef<Node>()
 
     const exitFullscreen = useCallback(() => {
         fullScreenRef.current?.removeEventListener('click', exitFullscreen)
         document.body.removeChild(fullScreenRef.current!);
+        setSubOpen(false)
     }, [])
+
+    useEffect(() => {
+        if (subSrc && subOpen) {
+            const _ref = ref as any
+            fullScreenRef.current = (_ref || imgRef).current?.cloneNode(true)
+            let fullscreenImage = fullScreenRef.current as HTMLImageElement
+            fullscreenImage.src = subSrc
+            fullscreenImage.style.position = 'fixed';
+            fullscreenImage.style.top = '0';
+            fullscreenImage.style.left = '0';
+            fullscreenImage.style.width = '100vw';
+            fullscreenImage.style.height = '100vh';
+            fullscreenImage.style.objectFit = 'contain';
+            fullscreenImage.style.zIndex = '9999';
+            fullscreenImage.style.backgroundColor = 'rgba(0,0,0,.3)';
+            fullscreenImage.style.cursor = 'zoom-out';
+            fullscreenImage.style.userSelect = 'none'
+            fullscreenImage.style.pointerEvents = 'auto';
+            document.body.appendChild(fullscreenImage);
+            fullscreenImage.addEventListener('click', exitFullscreen)
+        }
+    },[subOpen, subSrc])
 
     return <ImageContainer
         key={src}
@@ -89,11 +114,15 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
                 fullscreenImage.style.cursor = 'zoom-out';
                 fullscreenImage.style.userSelect = 'none'
                 fullscreenImage.style.pointerEvents = 'auto';
-                document.body.appendChild(fullscreenImage);
+                fullscreenImage.oncontextmenu = (e) => {
+                    e.preventDefault()
+                }
                 fullscreenImage.addEventListener('click', exitFullscreen)
+                document.body.appendChild(fullscreenImage);
             }
         }} onContextMenu={(e) => {
             e.preventDefault()
+            setSubOpen(true)
         }}>
         <ImageWithRetry ref={ref || imgRef} src={src || noImage} />
         {children}

@@ -16,9 +16,14 @@ type SelectedCCTVListItemProps = {
 
 const SelectedCCTVListItem = ({ cctvId, selectedCCTVs, setSelectedCCTVs, selectedVideo, setSelectedVideo }: SelectedCCTVListItemProps) => {
     const cctvInfo = useRecoilValue(GetCameraById(cctvId))
-    return <Container onClick={() => {
-        setSelectedVideo(cctvInfo!)
-    }} selected={cctvInfo !== undefined && selectedVideo !== undefined && selectedVideo !== null && (selectedVideo.cameraId === cctvInfo.cameraId)}>
+    return <Container
+        onClick={() => {
+            setSelectedVideo(cctvInfo!)
+        }}
+        selected={cctvInfo !== undefined && selectedVideo !== undefined && selectedVideo !== null && (selectedVideo.cameraId === cctvInfo.cameraId)}
+        onMouseDown={e => {
+            e.stopPropagation()
+        }}>
         <Header>
             <Title>
                 <TitleText>

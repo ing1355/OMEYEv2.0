@@ -49,8 +49,7 @@ const _data = atom<ConditionDataType>({
         selectedType: IS_PRODUCTION ? null : 'PERSON',
         FACE: createDefaultConditionData('FACE'),
         // Face: FaceConditionTestData,
-        PERSON: createDefaultConditionData('PERSON'),
-        // PERSON: PersonConditionTestData,
+        PERSON: IS_PRODUCTION ? createDefaultConditionData('PERSON') : PersonConditionTestData,
         CARPLATE: createDefaultConditionData('CARPLATE'),
         // car_plate: PlateConditionTestData
         // ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')

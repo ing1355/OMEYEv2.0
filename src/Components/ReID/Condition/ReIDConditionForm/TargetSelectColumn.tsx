@@ -1,6 +1,6 @@
 import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
-import { conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionIsRealTimeData, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
@@ -13,14 +13,17 @@ import IconBtn from "../../../Constants/IconBtn"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
+import useMessage from "../../../../Hooks/useMessage"
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
     const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
-    const { routePush } = useConditionRoutes()
     const [datas, setDatas] = useRecoilState(conditionTargetDatas(null))
     const selectedType = useRecoilValue(selectedConditionObjectType)
+    const isRealTime = useRecoilValue(conditionIsRealTimeData)
+    const { routePush } = useConditionRoutes()
+    const message = useMessage()
 
     const initAction = () => {
         setDatas([])
@@ -39,7 +42,7 @@ const TargetSelectColumn = () => {
 
     return <Container>
         <ConditionParamsInputColumnComponent
-            title={`대상(${datas.length})`}
+            title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
             titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
             isTarget
             initAction={initAction}
@@ -50,33 +53,39 @@ const TargetSelectColumn = () => {
             disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
-            <ItemsScrollContainer>
-                {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
-                {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+            {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
+            {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+                if (_.selected) {
                     setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
                         ..._,
-                        selected: !_.selected
+                        selected: false
                     }))
-                }}>
-                    <ItemSubContainer>
-                        <ItemImage src={_.src} />
-                        <ItemDescription>
-                            <ItemDescriptionHeader>
-                                <IconBtn type="delete" onClick={(e) => {
-                                    e.stopPropagation()
-                                    setDatas(datas.filter(__ => _.objectId !== __.objectId))
-                                }} />
-                            </ItemDescriptionHeader>
-                            <ItemDescriptionContents>
-                                <TargetDescriptionByType data={_} />
-                            </ItemDescriptionContents>
-                        </ItemDescription>
-                    </ItemSubContainer>
-                    <ItemSelectBtn hover activate={_.selected}>
-                        {_.selected ? '해제' : '선택'}
-                    </ItemSelectBtn>
-                </ItemContainer>)}
-            </ItemsScrollContainer>
+                } else if (isRealTime && datas.find(_ => _.selected)) return message.error({ title: "입력값 에러", msg: "실시간 분석은 1개의 대상만 선택 가능합니다." })
+                else {
+                    setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
+                        ..._,
+                        selected: true
+                    }))
+                }
+            }}>
+                <ItemSubContainer>
+                    <ItemImage src={_.src} />
+                    <ItemDescription>
+                        <ItemDescriptionHeader>
+                            <IconBtn type="delete" onClick={(e) => {
+                                e.stopPropagation()
+                                setDatas(datas.filter(__ => _.objectId !== __.objectId))
+                            }} />
+                        </ItemDescriptionHeader>
+                        <ItemDescriptionContents>
+                            <TargetDescriptionByType data={_} />
+                        </ItemDescriptionContents>
+                    </ItemDescription>
+                </ItemSubContainer>
+                <ItemSelectBtn hover activate={_.selected}>
+                    {_.selected ? '해제' : '선택'}
+                </ItemSelectBtn>
+            </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
     </Container>
 }
@@ -102,6 +111,9 @@ const ItemContainer = styled.div<{ selected: boolean }>`
     ${globalStyles.conditionDataItemBox}
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     cursor: pointer;
+    &:hover {
+        border: 1px solid ${ContentsActivateColor};
+    }
 `
 
 const ItemSubContainer = styled.div`
@@ -139,9 +151,4 @@ const ItemDescriptionContents = styled.div`
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '8px' })}
     overflow-wrap: anywhere;
-`
-
-const ItemDescriptionContentText = styled.div`
-    color: white;
-    width: 100%;
 `

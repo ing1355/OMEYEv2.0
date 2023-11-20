@@ -136,7 +136,7 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
         }
     }, [startDate, endDate])
 
-    return <DataSelectModal half={noEndTime} visible={visible} title={title} close={close} complete={() => {
+    return <DataSelectModal visible={visible} title={title} close={close} complete={() => {
         if(!startDate) return message.preset('WRONG_PARAMETER', '시작 시간을 설정해주세요.')
         if(noEndTime) {
             if(!startDate) return;

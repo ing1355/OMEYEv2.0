@@ -2,6 +2,8 @@ import { PropsWithChildren } from "react";
 import styled from "styled-components";
 import { SectionBackgroundColor, globalStyles } from "../../../../../../styles/global-styled";
 import infoIcon from '../../../../../../assets/img/descriptions/descriptionInfoIcon.png'
+import Button from "../../../../../Constants/Button";
+import resetIcon from '../../../../../../assets/img/resetIcon.png'
 
 type DescriptionSelectItemContainerProps = PropsWithChildren & {
     title: string
@@ -37,12 +39,13 @@ const Container = styled.div`
     height: 25%;
     width: 100%;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '2%' })}
+    position: relative;
 `
 
 const TitleContainer = styled.div`
     width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
-    height: 40px;
+    height: 52px;
 `
 
 const Title = styled.div`
@@ -84,6 +87,6 @@ const InfoImg = styled.img`
 
 const Contents = styled.div<{ _wrap: boolean }>`
     width: 100%;
-    height: calc(100% - 40px);
-    ${({ _wrap }) => `${globalStyles.flex({ flexDirection: 'row', gap: '2.5%', justifyContent: 'flex-start', flexWrap: _wrap ? 'wrap' : 'nowrap' })}`}
+    height: calc(100% - 52px);
+    ${({ _wrap }) => `${globalStyles.flex({ flexDirection: 'row', gap: '1%', justifyContent: 'flex-start', flexWrap: _wrap ? 'wrap' : 'nowrap' })}`}
 `

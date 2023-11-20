@@ -16,6 +16,11 @@ import { ObjectTypes } from "../../ConstantsValues"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
 import Progress from "../../../Layout/Progress"
+import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
+import { getLastTargetListId } from "../../Condition/Constants/ImageViewWithCanvas"
+import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
+import { conditionAllData } from "../../../../Model/ConditionDataModel"
+import useMessage from "../../../../Hooks/useMessage"
 
 type ResultcontainerProps = {
     reidId: number
@@ -23,8 +28,12 @@ type ResultcontainerProps = {
 }
 
 type ResultImageViewProps = {
-    data: ReIDResultDataResultListDataType
-    type: ReIDObjectTypeKeys
+    src: string
+    subSrc: string
+}
+
+const GetCoordByUrl = (url: string): Array<any> => {
+    return url.match(/_\d{1,4}_\d{1,4}_\d{1,4}_\d{1,4}/g)![0].slice(1,).split('_') || []
 }
 
 const getConditionPercent = (data: ProgressDataType['times']) => {
@@ -36,21 +45,60 @@ const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
     return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
 }
 
-const ResultImageView = ({ data, type }: ResultImageViewProps) => {
-    const setContextMenuVisible = useSetRecoilState(contextMenuVisible)
+const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
+    // const setContextMenuVisible = useSetRecoilState(contextMenuVisible)
+    const [frameImage, setFrameImage] = useState('')
 
     return <ItemMediaContainer onContextMenu={(e) => {
         e.preventDefault()
-        if (type === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) return;
-        const { innerWidth, innerHeight } = window
-        setContextMenuVisible({
-            left: e.clientX + 110 > innerWidth ? e.clientX - 110 : e.clientX + 10,
-            top: e.clientY,
-            data,
-            type
-        })
+        const image = new Image();
+        image.crossOrigin = "Anonymous";
+        console.debug("load start")
+        image.onload = () => {
+            console.debug("load end")
+            const canvas = document.createElement("canvas") as HTMLCanvasElement;
+            const ctx = canvas.getContext("2d");
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx!.drawImage(
+                image,
+                0,
+                0,
+                image.width,
+                image.height
+            );
+            console.debug("draw end")
+            ctx!.beginPath();
+            const coord = GetCoordByUrl(subSrc);
+            let width = coord[2] - coord[0];
+            let height = coord[3] - coord[1];
+            ctx!.rect(
+                coord[0],
+                coord[1],
+                width,
+                height
+            );
+            ctx!.strokeStyle = "red";
+            ctx!.lineWidth = 4;
+            ctx!.lineJoin = "round";
+            ctx!.stroke();
+            ctx!.globalCompositeOperation =
+                "destination-over";
+                console.debug("draw path")
+            setFrameImage(canvas.toDataURL())
+            image.src = '';
+        }
+        image.src = subSrc;
+        // if (type === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) return;
+        // const { innerWidth, innerHeight } = window
+        // setContextMenuVisible({
+        //     left: e.clientX + 110 > innerWidth ? e.clientX - 110 : e.clientX + 10,
+        //     top: e.clientY,
+        //     data,
+        //     type
+        // })
     }}>
-        <ImageView src={data.imgUrl} />
+        <ImageView src={src} subSrc={frameImage} />
     </ItemMediaContainer>
 }
 
@@ -59,10 +107,12 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
     const [selectedCondition, setSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
     const [selectedTarget, setSelectedTarget] = useState<number>(0)
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reidId))
+    const [conditionDatas, setConditionDatas] = useRecoilState(conditionAllData)
     const selectedView = useRecoilValue(ReIDResultSelectedView)
     const progressStatus = useRecoilValue(ProgressStatus)
     const progressData = useRecoilValue(ProgressData)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
+    const message = useMessage()
 
     // useEffect(() => {
     //     console.debug("Resultcontainer data Change : ", data)
@@ -99,7 +149,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
             </TargetsContainer>
             <ResultListGroupContainer>
                 {globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && <ProgressContainer>
-                    <ProgressItem percent={Math.floor(getConditionPercent(progressData[selectedCondition].times))} color={ContentsActivateColor}/>
+                    <ProgressItem percent={Math.floor(getConditionPercent(progressData[selectedCondition].times))} color={ContentsActivateColor} />
                 </ProgressContainer>}
                 <ResultDescriptionContainer>
                     <DescriptionReIdIdTextContainer>
@@ -132,33 +182,68 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                     <TimeGroupCCTVRowContentsContainer>
                                         {val.map((result, resultInd) => <TimeGroupCCTVItemBox key={resultInd} selected={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
                                             <ItemMediasContainer>
-                                                <ResultImageView data={{ ...result, cctvId: key }} type={_.resultList.find(r => r.objectId === selectedTarget)?.objectType!} />
+                                                <ResultImageView src={result.imgUrl} subSrc={result.frameImgUrl} />
                                                 <ItemMediaContainer>
                                                     <LazyVideo poster={result.frameImgUrl} src={result.searchCameraUrl} />
                                                 </ItemMediaContainer>
                                             </ItemMediasContainer>
-                                            <SelectBtn hover activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
-                                                if (selectedData) {
-                                                    if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
-                                                        setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
-                                                            ...sData,
-                                                            [selectedTarget]: sData[selectedTarget].filter(target => target.resultId !== result.resultId)
-                                                        } : sData))
-                                                    } else {
-                                                        setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
-                                                            ...sData,
-                                                            [selectedTarget]: sData[selectedTarget].concat({ ...result, cctvId: key })
-                                                        } : sData))
+                                            <SelectBtnsContainer>
+                                                <SelectBtn hover onClick={async () => {
+                                                    let type = _.resultList.find(r => r.objectId === selectedTarget)?.objectType!
+                                                    type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
+                                                    const res = await GetObjectIdByImage([{
+                                                        type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
+                                                        image: result.imgUrl
+                                                    }])
+                                                    if (res) {
+                                                        const { cctvId, imgUrl, accuracy } = { ...result, cctvId: key }
+                                                        setConditionDatas({
+                                                            ...conditionDatas,
+                                                            [type]: {
+                                                                ...conditionDatas[type],
+                                                                targets: [
+                                                                    ...conditionDatas[type]['targets'],
+                                                                    {
+                                                                        type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
+                                                                        cctvId,
+                                                                        selected: false,
+                                                                        src: imgUrl,
+                                                                        objectId: res[0],
+                                                                        accuracy,
+                                                                        id: getLastTargetListId(),
+                                                                        method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        })
+                                                        message.success({ title: "등록 성공", msg: "현재 결과를 대상으로 추가 성공하였습니다." })
                                                     }
-                                                }
-                                            }}>
-                                                <SelectBtnInnerIconContainer>
-                                                    <SelectBtnInnerIcon src={timeIcon} />
-                                                </SelectBtnInnerIconContainer> {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}&nbsp;&nbsp;{_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
-                                                    <SelectBtnInnerIcon src={similarityIcon} />
-                                                </SelectBtnInnerIconContainer>} {result.accuracy}%
-                                                &nbsp;&nbsp;{selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) ? '해제' : '선택'}
-                                            </SelectBtn>
+                                                }}>
+                                                    대상으로 추가
+                                                </SelectBtn>
+                                                <SelectBtn hover activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
+                                                    if (selectedData) {
+                                                        if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
+                                                            setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
+                                                                ...sData,
+                                                                [selectedTarget]: sData[selectedTarget].filter(target => target.resultId !== result.resultId)
+                                                            } : sData))
+                                                        } else {
+                                                            setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
+                                                                ...sData,
+                                                                [selectedTarget]: sData[selectedTarget].concat({ ...result, cctvId: key })
+                                                            } : sData))
+                                                        }
+                                                    }
+                                                }}>
+                                                    <SelectBtnInnerIconContainer>
+                                                        <SelectBtnInnerIcon src={timeIcon} />
+                                                    </SelectBtnInnerIconContainer> {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}&nbsp;&nbsp;{_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
+                                                        <SelectBtnInnerIcon src={similarityIcon} />
+                                                    </SelectBtnInnerIconContainer>} {result.accuracy}%
+                                                    &nbsp;&nbsp;{selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) ? '해제' : '선택'}
+                                                </SelectBtn>
+                                            </SelectBtnsContainer>
                                         </TimeGroupCCTVItemBox>)}
                                     </TimeGroupCCTVRowContentsContainer>
                                 </TimeGroupCCTVRow>)
@@ -223,7 +308,7 @@ const ResultDescriptionContainer = styled.div`
     border-radius: 12px;
     height: ${etcDescriptionHeight}px;
     margin-bottom: 8px;
-    ${globalStyles.flex({flexDirection:'row', gap: '0.5%'})}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '0.5%' })}
     & > div {
         height: 100%;
         ${globalStyles.flex()}
@@ -255,8 +340,8 @@ const TargetSelectBtn = styled(Button)`
     height: 32px;
 `
 
-const ResultListItemsContainer = styled.div<{isProgress: boolean}>`
-    height: calc(100% - ${({isProgress}) => isProgress ? (etcDescriptionHeight + 8 + 40) : (etcDescriptionHeight + 8)}px);
+const ResultListItemsContainer = styled.div<{ isProgress: boolean }>`
+    height: calc(100% - ${({ isProgress }) => isProgress ? (etcDescriptionHeight + 8 + 40) : (etcDescriptionHeight + 8)}px);
     overflow: auto;
     border: 1px solid ${ContentsBorderColor};
     border-radius: 12px;
@@ -332,7 +417,10 @@ const ItemMediaContainer = styled.div`
 `
 
 const SelectBtn = styled(Button)`
-    width: 100%;
+    flex: 1;
+    &:first-child {
+        flex: 0 0 140px;
+    }
     height: 28px;
     ${globalStyles.flex({ flexDirection: 'row' })}
 `
@@ -370,9 +458,13 @@ const DescriptionReIdIdTextContainer = styled.div`
 
 const ProgressContainer = styled.div`
     height: 40px;
-    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start'})}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
 `
 
 const ProgressItem = styled(Progress)`
     width: 100%;
+`
+
+const SelectBtnsContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
 `

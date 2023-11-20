@@ -112,7 +112,7 @@ const ReIDLogs = () => {
                 </SearchContainer>
             </Form>
             {
-                logs && logs.results.length > 0 ? <>
+                logs && logs.totalCount > 0 ? <>
                     <ContentsContainer>
                         {
                             logs.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId}>
@@ -285,6 +285,7 @@ export default ReIDLogs
 
 const Container = styled.div`
     height: 100%;
+    position: relative;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '12px' })}
 `
 

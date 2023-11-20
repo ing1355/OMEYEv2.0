@@ -14,12 +14,15 @@ const Menus = () => {
     }
 
     return <Container>
-        <HomeBtn src={HomeIcon} onClick={goToMain} />
+        {/* <HomeBtn src={HomeIcon} onClick={goToMain} /> */}
         <MenuItemsContainer>
             {
                 MenuItemList.map((_, ind) => <MenuItem key={ind} selected={currentMenu === _.key} onClick={() => {
                     setCurrentMenu(_.key)
                 }}>
+                    <IconContainer>
+                        <Icon src={_.icon}/>
+                    </IconContainer>
                     {_.title}
                 </MenuItem>)
             }
@@ -53,6 +56,19 @@ const MenuItem = styled.div<{ selected: boolean }>`
     }
     font-weight: bold;
     font-size: 1rem;
-    padding: 0 12px;
     cursor: pointer;
+    margin-right: 8px;
+    display: inline-flex;
+`
+
+const IconContainer = styled.div`
+    width: 24px;
+    margin-right: 8px;
+    ${globalStyles.flex()}
+    height: 100%;
+`
+
+const Icon = styled.img`
+    width: 100%;
+    height: 100%;
 `
