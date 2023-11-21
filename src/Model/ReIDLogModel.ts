@@ -63,7 +63,10 @@ export const SearchReIDLogDatas = selectorFamily({
             ...params
         }) as ReIDLogApiResponseType
         console.debug("ReID Logs Get Success : ", temp)
-        return temp
+        return temp || {
+            results: [],
+            totalCount: 0
+        }
     },
     cachePolicy_UNSTABLE: {
         eviction: 'most-recent'

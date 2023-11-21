@@ -50,6 +50,13 @@ const getLocalIp = async () => {
   })
 }
 
+const msgByStatusCode = (code: number, msg?: string) => {
+  if(code === 500) {
+    return "서버 통신 에러"
+  }
+  return msg || '서버 상태를 확인해주세요.'
+}
+
 const App = () => {
   const [loginState, setLoginState] = useRecoilState(isLogin)
   const [handlerComplete, setHandlerComplete] = useState(false)
@@ -77,13 +84,13 @@ const App = () => {
     axios.interceptors.response.use(res => {
       return res;
     }, err => {
-      console.error(err)
+      console.error('Axios error : ' ,err)
       if (err.response) {
         const { status, data } = err.response
         const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
         _message.error({
           title: serverErrorTitleByStatusCode(status),
-          msg: status !== 502 ? (errorCode || message) : '서버 상태를 확인해주세요.'
+          msg: msgByStatusCode(status, (errorCode || message))
         })
         if (code === 401 || status === 502) {
           setLoginState(null)

@@ -3,7 +3,7 @@ import { globalStyles } from "../../../../styles/global-styled"
 import Input from "../../../Constants/Input"
 import Button from "../../../Constants/Button"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { ConditionDataSingleType, conditionData, conditionTargetDatasListByObjectType, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { ConditionDataSingleType, conditionAllData, conditionData, conditionTargetDatasListByObjectType, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import TargetSelectColumn from "./TargetSelectColumn"
 import ETCColumn from "./ETCColumn"
 import TimeBoundaryColumn from "./TimeBoundaryColumn"
@@ -15,6 +15,7 @@ import conditionDataUploadIcon from '../../../../assets/img/conditionDataUploadI
 import resetIcon from '../../../../assets/img/resetDisabledIcon.png'
 import useMessage from "../../../../Hooks/useMessage"
 import { ReIDObjectTypes } from "../../ConstantsValues"
+import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 
 let listId = 0
 
@@ -25,16 +26,17 @@ export const createConditionList = () => {
 const ReIDConditionForm = () => {
     const [title, setTitle] = useRecoilState(conditionTitleData)
     const [datas, setDatas] = useRecoilState(conditionData)
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const [allDatas, setAllDatas] = useRecoilState(conditionAllData)
+    const [currentObjectType, setCurrentObjectType] = useRecoilState(selectedConditionObjectType)
     const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(currentObjectType!))
     const message = useMessage()
     const { targets, rank, time, name, cctv, isRealTime, etc } = datas
     
     return <>
         <TopInputAndButtonsContainer>
-                <TitleInput placeholder={datas.isRealTime ? "실시간 검색 요청" : "타이틀을 입력해주세요."} value={title} onChange={value => {
-                    setTitle(value)
-                }} disabled={datas.isRealTime} maxLength={20}/>
+            <TitleInput placeholder={datas.isRealTime ? "실시간 검색 요청" : "타이틀을 입력해주세요."} value={datas.isRealTime ? "실시간 검색 요청" : title} onChange={value => {
+                setTitle(value)
+            }} disabled={datas.isRealTime} maxLength={20} />
             <TopButtonsContainer>
                 <TopButton hover icon={resetIcon} onClick={() => {
                     setDatas(createDefaultConditionData(currentObjectType!))
@@ -47,11 +49,16 @@ const ReIDConditionForm = () => {
                 </TopButton>
                 <TopButton hover icon={conditionDataUploadIcon} onClick={() => {
                     UploadSingleConditionJsonData((json: ConditionDataSingleType) => {
-                        if(json.targets.length > 0 && json.targets[0].type !== currentObjectType) return message.error({
+                        if (json.targets.length > 0 && !ReIDObjectTypeKeys.includes(json.targets[0].type)) return message.error({
                             title: "입력값 에러",
-                            msg: "불러온 데이터의 타입과 현재 선택한 타입이 일치하지 않습니다."
+                            msg: "올바르지 않은 객체 타입 입니다."
                         })
-                        setDatas(json)
+                        const type = json.targets[0].type
+                        setAllDatas({
+                            ...allDatas,
+                            [type]: json
+                        })
+                        setCurrentObjectType(json.targets[0].type)
                     }, () => {
                         message.error({
                             title: "입력값 에러",
@@ -66,8 +73,8 @@ const ReIDConditionForm = () => {
                 }}>
                     내보내기
                 </TopButton>
-                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({..._}) === JSON.stringify({...datas, selected: _.selected, id: _.id}))} onClick={() => {
-                    if(!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({title: "입력값 에러", msg:"조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다."})
+                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, selected: _.selected, id: _.id }))} onClick={() => {
+                    if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
                     let tempConditionData = { ...datas }
                     tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
                     tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
@@ -85,8 +92,8 @@ const ReIDConditionForm = () => {
         </TopInputAndButtonsContainer>
         <ConditionParamsInputContainer>
             <TargetSelectColumn />
-            <AreaBoundaryColumn/>
-            <TimeBoundaryColumn/>
+            <AreaBoundaryColumn />
+            <TimeBoundaryColumn />
             <ETCColumn />
         </ConditionParamsInputContainer>
     </>

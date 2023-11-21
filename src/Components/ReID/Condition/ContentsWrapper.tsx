@@ -8,13 +8,13 @@ import { conditionRoute } from "../../../Model/ConditionRouteModel"
 import { addConditionSingleTimeData, conditionAreaDatas, conditionData, conditionTargetDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, conditionTimeDatas, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
-import backIcon from '../../../assets/img/backIcon.png'
 import homeIcon from '../../../assets/img/homeIcon.png'
+import hoverHomeIcon from '../../../assets/img/hoverHomeIcon.png'
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { descriptionData } from "../../../Model/DescriptionDataModel"
 import { hasValuePersonDescription } from "./TargetSelect/PersonDescription/Functions"
 import { GetObjectIdByImage } from "../../../Functions/NetworkFunctions"
-import { ArrayDeduplication, DivToImg } from "../../../Functions/GlobalFunctions"
+import { DivToImg } from "../../../Functions/GlobalFunctions"
 import TimeModal from "./Constants/TimeModal"
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible } from "../../../Model/ConditionParamsModalModel"
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react"
@@ -28,6 +28,7 @@ import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 
 const ContentsWrapper = () => {
+    const [homeHover, setHomeHover] = useState(false)
     const routeInfo = useRecoilValue(conditionRoute)
     const progressStatus = useRecoilValue(ProgressStatus)
     const personDescriptionData = useRecoilValue(descriptionData)
@@ -106,7 +107,7 @@ const ContentsWrapper = () => {
                 if (isRealTime) {
                     if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
                     if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
-                    if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
+                    if (cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication().length === 0) {
                         return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
                     }
                     if (targets.filter(_ => _.selected).length === 0) {
@@ -118,7 +119,7 @@ const ContentsWrapper = () => {
                     if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
                         setRealTimeData({
                             type: currentObjectType,
-                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
                             objectId: targets.filter(_ => _.selected)[0].objectId,
                             threshHold: 1,
                             description: targets.filter(_ => _.selected)[0].description,
@@ -127,7 +128,7 @@ const ContentsWrapper = () => {
                     } else {
                         setRealTimeData({
                             type: currentObjectType!,
-                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
+                            cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
                             objectId: targets.filter(_ => _.selected)[0].objectId,
                             threshHold: 50,
                             src: targets.filter(_ => _.selected)[0].src
@@ -222,7 +223,12 @@ const ContentsWrapper = () => {
                 <HeaderSubContainer>
                     <BackButton onClick={() => {
                         routeJump(ObjectTypeSelectRoute.key)
-                    }} icon={homeIcon} />
+                    }} icon={homeHover ? hoverHomeIcon : homeIcon} 
+                    onMouseOver={() => {
+                        setHomeHover(true)
+                    }} onMouseLeave={() => {
+                        setHomeHover(false)
+                    }}/>
                     <HeaderHistories>
                         {
                             getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>

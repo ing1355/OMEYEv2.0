@@ -2,13 +2,12 @@ import styled from "styled-components"
 import { globalStyles } from "../../../styles/global-styled"
 import Button from "../Button"
 import ImageView from "../../ReID/Condition/Constants/ImageView"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import { useRecoilValue } from "recoil"
 import { conditionTargetDatas, conditionTargetDatasListByObjectType } from "../../../Model/ConditionDataModel"
 import { LeftArrow, RightArrow } from "../../Layout/Arrows"
-import { ArrayDeduplication } from "../../../Functions/GlobalFunctions"
-import { ReIDAllResultData, ReIDResultByObjectType } from "../../../Model/ReIdResultModel"
+import { ReIDResultByObjectType } from "../../../Model/ReIdResultModel"
 
 type TargetImageType = {
     src: string
@@ -44,7 +43,7 @@ const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContai
             type: ___.objectType,
             src: ___.objectUrl
         })))))
-        return ArrayDeduplication(temp, (a,b) => a.id === b.id)
+        return temp.deduplication((a,b) => a.id === b.id)
     }, [targetDatas, listDatas, reidResults])
 
     return <AddReIDObjectContainer>

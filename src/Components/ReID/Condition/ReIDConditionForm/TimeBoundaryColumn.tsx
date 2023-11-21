@@ -8,6 +8,7 @@ import Button from "../../../Constants/Button"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import IconBtn from "../../../Constants/IconBtn"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
+import checkIcon from '../../../../assets/img/checkIcon.png'
 
 const TimeBoundaryColumn = () => {
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
@@ -57,9 +58,16 @@ const TimeBoundaryColumn = () => {
                         } : __))
                     }}>
                         <TimeDataItemTitle>
-                            <div>
-                                그룹 {ind + 1}
-                            </div>
+                            <TitleContainer>
+                                <Check>
+                                    {_.selected && <img src={checkIcon}/>}
+                                </Check>
+                                <div style={{
+                                    fontSize: '1rem'
+                                }}>
+                                    그룹 {ind + 1}
+                                </div>
+                            </TitleContainer>
                             <HeaderBtnsContainer>
                                 <IconBtn disabled={isRealTime} type="edit" onClick={(e) => {
                                     e.stopPropagation()
@@ -74,11 +82,11 @@ const TimeBoundaryColumn = () => {
                         <ContentsContainer>
                             {convertFullTimeStringToHumanTimeFormat(_.time[0])}&nbsp;~&nbsp;{convertFullTimeStringToHumanTimeFormat(_.time[1])}
                         </ContentsContainer>
-                        <BtnsContainer>
+                        {/* <BtnsContainer>
                             <Btn disabled={isRealTime} activate={_.selected}>
                                 {_.selected ? '해제' : '선택'}
                             </Btn>
-                        </BtnsContainer>
+                        </BtnsContainer> */}
                     </TimeDataContainer>)
                 }
             </ConditionParamsInputColumnComponent>
@@ -93,7 +101,7 @@ const Container = styled.div`
 `
 
 const TimeDataContainer = styled.div<{ selected: boolean }>`
-    flex: 0 0 150px;
+    flex: 0 0 120px;
     color: white;
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     width: 100%;
@@ -124,7 +132,7 @@ const TimeDataItemTitle = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     & > div {
         font-size: 1.1rem;
-        padding-left: 10px;
+        padding-left: 4px;
     }
     padding: 1px;
 `
@@ -136,4 +144,21 @@ const HeaderBtnsContainer = styled.div`
 const Btn = styled(Button)`
     flex: 1;
     ${globalStyles.conditionDataItemBoxSelectBtn}
+`
+
+const TitleContainer = styled.div`
+    ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
+    height: 24px;
+`
+
+const Check = styled.div`
+    height: 20px;
+    width: 20px;
+    border: 1px solid ${ContentsActivateColor};
+    border-radius: 50%;
+    padding: 4px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `

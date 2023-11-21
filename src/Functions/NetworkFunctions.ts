@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
-import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType } from "../Constants/GlobalTypes";
-import { GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi } from "../Constants/ApiRoutes";
+import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
+import { GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -25,7 +25,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         options.params = bodyOrParams
     }
     return axios(options).then(res => {
-        if(res) {
+        if (res) {
             if (isFullResponse) return res
             return res.data.rows
         }
@@ -48,7 +48,7 @@ export async function GetReIDResultById(reidId: ReIDLogDataType['reidId']): Prom
     return await Axios('GET', GetReidDataApi(reidId))
 }
 
-export function StartPersonDescription(param: DescriptionRequestParamsType): Promise<{uuid: string}> {
+export function StartPersonDescription(param: DescriptionRequestParamsType): Promise<{ uuid: string }> {
     return Axios('POST', SubmitPersonDescriptionInfoApi, param)
 }
 
@@ -68,7 +68,7 @@ export async function GetObjectIdByImage(targets: {
             attribution?: CaptureResultListItemType['description']
         } = {
             type: _.type,
-            image: _.image.split(',')[1],
+            image: _.image.startsWith('/') ? _.image : _.image.split(',')[1],
             mask: _.mask,
             ocr: _.ocr,
             attribution: _.attribution
@@ -107,4 +107,10 @@ export const streamingStopRequest = async (uuids: string[]) => {
     return await Axios("POST", StopVMSVideoApi, {
         uuids
     })
+}
+
+export const GetAllSitesData = async () => {
+    const res = (await Axios("GET", GetAllSitesDataApi)) as SiteDataType[] || []
+    console.debug('Sites Data Get Success : ', res)
+    return res
 }

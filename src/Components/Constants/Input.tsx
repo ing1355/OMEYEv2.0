@@ -25,6 +25,7 @@ type InputProps = {
     onClick?: InputType['onClick']
     onlyNumber?: boolean
     autoComplete?: InputType['autoComplete']
+    autoFocus?: InputType['autoFocus']
     enableAsterisk?: boolean
     maxNumber?: number
 }
@@ -50,7 +51,8 @@ const _Input = (props?: InputProps) => {
         id: props?.id,
         disabled: props?.disabled,
         placeholder: props?.placeholder,
-        autoComplete: props?.autoComplete || 'off'
+        autoComplete: props?.autoComplete || 'off',
+        autoFocus: props?.autoFocus
     }
     const inputAttributes = {
         ...attributes,

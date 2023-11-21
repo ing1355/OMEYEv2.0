@@ -5,6 +5,7 @@ import { PlateStatusType } from "../TargetSelectColumn"
 import Button from "../../../../Constants/Button"
 import Input from "../../../../Constants/Input"
 import emptyIcon from '../../../../../assets/img/emptyPlateObjectIcon.png'
+import checkIcon from '../../../../../assets/img/checkIcon.png'
 import { useEffect, useRef, useState } from "react"
 import { useRecoilState } from "recoil"
 import { conditionTargetDatas } from "../../../../../Model/ConditionDataModel"
@@ -22,7 +23,7 @@ type PlateTargetProps = {
 let plateId = 1
 
 const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
-    const { src, ocr, id, selected } = data || {}
+    const { src, ocr, selected } = data || {}
     const [plateInput, setPlateInput] = useState('')
     const [globalData, setGlobalData] = useRecoilState(conditionTargetDatas(null))
     const imgRef = useRef<HTMLImageElement>(null)
@@ -79,7 +80,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
     }
 
     return <Container selected={selected || false} onClick={() => {
-        setGlobalData(globalData.map(_ => _.id === id ? ({
+        setGlobalData(globalData.map(_ => _.ocr === ocr ? ({
             ..._,
             selected: !_.selected
         }) : _))
@@ -90,8 +91,11 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
             }} style={{
                 position: 'absolute',
                 top: 4,
-                right: 4
+                right: 6
             }}/>}
+        <CheckIcon>
+            {selected && <img src={checkIcon}/>}
+        </CheckIcon>
         <PlateIcon src={src || emptyIcon} ref={imgRef} />
         <PlateDescription>
             <PlateDescriptionInputContainer>
@@ -101,7 +105,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                     번호판을 입력해주세요
                     <PlateDescriptionInput onlyNumber enableAsterisk maxLength={4} value={plateInput} onChange={(str) => {
                         setPlateInput(str)
-                    }} />
+                    }} autoFocus onEnter={addCompleteCallback}/>
                 </>}
             </PlateDescriptionInputContainer>
             {!data ? <PlateDescriptionBtnsContainer>
@@ -115,7 +119,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 </PlateDescriptionBtn>
             </PlateDescriptionBtnsContainer> : <PlateDescriptionBtnsContainer>
                 <PlateDescriptionBtn hover onClick={() => {
-                    setGlobalData(globalData.map(_ => _.id === id ? ({
+                    setGlobalData(globalData.map(_ => _.ocr === ocr ? ({
                         ..._,
                         selected: !_.selected
                     }) : _))
@@ -140,7 +144,7 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
 export default PlateTarget
 
 const Container = styled.div<{ selected: boolean }>`
-    height: 100px;
+    height: 120px;
     width: 100%;
     border-radius: 8px;
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
@@ -183,4 +187,19 @@ const PlateDescriptionBtnsContainer = styled.div`
 const PlateDescriptionBtn = styled(Button)`
     height: 100%;
     flex: 1;
+`
+
+const CheckIcon = styled.div`
+    position: absolute;
+    left: 11px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    border: 1px solid ${ContentsActivateColor};
+    border-radius: 50%;
+    padding: 4px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `

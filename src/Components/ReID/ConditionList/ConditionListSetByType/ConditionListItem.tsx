@@ -7,6 +7,8 @@ import ArrowIcon from '../../../../assets/img/downArrowIcon.png'
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import Button from "../../../Constants/Button"
 import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
+import startTimeIcon from '../../../../assets/img/startTimeIcon.png'
+import endTimeIcon from '../../../../assets/img/endTimeIcon.png'
 import TargetDescriptionByType from "../../Condition/Constants/TargetDescriptionByType"
 
 type ConditionListItemProps = {
@@ -75,7 +77,18 @@ const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemPro
                 </ETCTitle>
                 <CCTVContents>
                     {time.map((_, ind) => <TimeRow key={ind}>
-                        {convertFullTimeStringToHumanTimeFormat(_.time[0])}<br />~<br />{convertFullTimeStringToHumanTimeFormat(_.time[1])}
+                        <TimeCol>
+                            <TimeIcon>
+                                <img src={startTimeIcon}/>
+                            </TimeIcon>
+                            {convertFullTimeStringToHumanTimeFormat(_.time[0])}
+                        </TimeCol>
+                        <TimeCol>
+                            <TimeIcon>
+                                <img src={endTimeIcon}/>
+                            </TimeIcon>
+                            {convertFullTimeStringToHumanTimeFormat(_.time[1])}
+                        </TimeCol>
                     </TimeRow>)}
                 </CCTVContents>
             </TimesContainer>
@@ -226,13 +239,28 @@ const TimesContainer = styled.div`
 `
 
 const TimeRow = styled.div`
-    ${globalStyles.flex()}
+    ${globalStyles.flex({gap: '4px'})}
     width: 100%;
     text-align: center;
     font-size: .9rem;
     padding: 4px;
     background-color: ${GlobalBackgroundColor};
     border-radius: 8px;
+`
+
+const TimeCol = styled.div`
+    ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
+    font-size: 1.1rem;
+    height: 22px;
+    font-family: NanumGothicLight;
+`
+
+const TimeIcon = styled.div`
+    height: 100%;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
 const LastContainer = styled.div`

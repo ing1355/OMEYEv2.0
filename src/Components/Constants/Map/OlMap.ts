@@ -18,7 +18,6 @@ import 'ol/ol.css'
 import { DragBoxEvent } from "ol/interaction/DragBox";
 import { DragBox } from "ol/interaction.js";
 import { platformModifierKeyOnly } from "ol/events/condition";
-import { ArrayDeduplication } from "../../../Functions/GlobalFunctions";
 import { Circle, Geometry, LineString } from "ol/geom";
 import { Overlay } from "ol";
 import { getPointResolution, METERS_PER_UNIT } from "ol/proj";
@@ -517,7 +516,7 @@ export class OlMap extends CustomMap<Map> {
                 let featuresArray = clusters.flatMap(cluster => cluster.get("features"));
                 const currentFeatureIds = this.map.get(selectedMarkerDataKey) as SelectedMarkersType;
                 const targetIds = featuresArray.map(_ => _.getId());
-                let result = ArrayDeduplication((currentFeatureIds.filter(_ => !targetIds.includes(_))).concat(targetIds.filter(_ => !currentFeatureIds.includes(_))))
+                let result = (currentFeatureIds.filter(_ => !targetIds.includes(_))).concat(targetIds.filter(_ => !currentFeatureIds.includes(_))).deduplication()
                 this.dispatchSelectedMarkerChangeEvent(result)
             }
         });
@@ -596,11 +595,13 @@ export class OlMap extends CustomMap<Map> {
     createPathLines(cctvIds: CameraDataType['cameraId'][], color?: CSSProperties['color']): void {
         // this.arrowVS.clear()
         this.trafficInputOverlay?.setPosition(undefined)
+        console.debug("cctvIds : " , cctvIds, this.VS.getFeatures().map(_ => _.getId()))
         if (cctvIds.length >= 2) {
-            this.pathMarkers = cctvIds
+            this.pathMarkers = [...cctvIds]
             cctvIds.forEach((_, ind, arr) => {
                 if (ind !== arr.length - 1) {
                     const targetFeature = this.VS.getFeatureById(_)
+                    console.debug(targetFeature)
                     const nextTargetFeature = this.VS.getFeatureById(arr[ind + 1])
                     const resultFeature = new Feature({
                         geometry: new LineString([
@@ -747,7 +748,6 @@ export class OlMap extends CustomMap<Map> {
     }
 
     dispatchSelectedMarkerChangeEvent = (data: (CameraDataType['cameraId'] | string | undefined)[]) => {
-        console.debug("test!!")
         this.map.set(selectedMarkerTempDataKey, data)
         this.map.dispatchEvent(selectedMarkerDataChange)
     }

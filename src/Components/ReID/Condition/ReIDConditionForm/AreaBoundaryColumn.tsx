@@ -7,12 +7,13 @@ import { AreaSelectIndex, AreaSelectVisible } from "../../../../Model/ConditionP
 import Button from "../../../Constants/Button"
 import IconBtn from "../../../Constants/IconBtn"
 import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
+import checkIcon from '../../../../assets/img/checkIcon.png'
 
 const AreaBoundaryColumn = () => {
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
     const setAreaIndex = useSetRecoilState(AreaSelectIndex)
     const setAreaVisible = useSetRecoilState(AreaSelectVisible)
-    
+
     const initAction = () => {
         setAreaData([])
     }
@@ -47,9 +48,16 @@ const AreaBoundaryColumn = () => {
                     } : __))
                 }}>
                     <AreaDataItemTitle>
-                        <div>
-                            그룹 {ind + 1}
-                        </div>
+                        <TitleContainer>
+                            <Check>
+                                {_.selected && <img src={checkIcon} />}
+                            </Check>
+                            <div style={{
+                                fontSize: '1rem'
+                            }}>
+                                그룹 {ind + 1}
+                            </div>
+                        </TitleContainer>
                         <HeaderBtnsContainer>
                             <IconBtn type="edit" onClick={(e) => {
                                 e.stopPropagation()
@@ -64,11 +72,11 @@ const AreaBoundaryColumn = () => {
                     <AreaDataItemContents>
                         {_.cctvList.length}대
                     </AreaDataItemContents>
-                    <BtnsContainer>
+                    {/* <BtnsContainer>
                         <Btn activate={_.selected}>
                             {_.selected ? '해제' : '선택'}
                         </Btn>
-                    </BtnsContainer>
+                    </BtnsContainer> */}
                 </AreaDataItem>)
             }
         </ConditionParamsInputColumnComponent>
@@ -84,7 +92,7 @@ const Container = styled.div`
 const AreaDataItem = styled.div<{ selected: boolean }>`
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     width: 100%;
-    flex: 0 0 150px;
+    flex: 0 0 120px;
     ${globalStyles.conditionDataItemBox}
     ${globalStyles.flex({ gap: '8px', justifyContent: 'space-between' })}
     cursor: pointer;
@@ -99,7 +107,7 @@ const AreaDataItemTitle = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     & > div {
         font-size: 1.1rem;
-        padding-left: 10px;
+        padding-left: 4px;
     }
     padding: 1px;
 `
@@ -109,8 +117,10 @@ const HeaderBtnsContainer = styled.div`
 `
 
 const AreaDataItemContents = styled.div`
-    font-size: 1rem;
-    color: white;
+    flex: 1;
+    padding: 28px 0;
+    text-align: center;
+    ${globalStyles.flex()}
 `
 
 const BtnsContainer = styled.div`
@@ -121,4 +131,21 @@ const BtnsContainer = styled.div`
 const Btn = styled(Button)`
     flex: 1;
     ${globalStyles.conditionDataItemBoxSelectBtn}
+`
+
+const TitleContainer = styled.div`
+    ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
+    height: 24px;
+`
+
+const Check = styled.div`
+    height: 20px;
+    width: 20px;
+    border: 1px solid ${ContentsActivateColor};
+    border-radius: 50%;
+    padding: 4px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `

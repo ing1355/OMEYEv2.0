@@ -10,10 +10,10 @@ export const OptionTags = ({ options }: {
     const { masking, password, description } = options
     return <>
         {/* {description && <CategoryTag selected title="비고" description={description}/>} */}
-        {masking.includes('area') && <CategoryTag selected title="영역 비식별화"/>}
-        {masking.includes('head') && <CategoryTag selected title="얼굴 비식별화"/>}
-        {masking.includes('carplate') && <CategoryTag selected title="번호판 비식별화"/>}
-        {password && <CategoryTag selected title="암호화"/>}
+        {masking.includes('area') && <CategoryTag title="영역 비식별화"/>}
+        {masking.includes('head') && <CategoryTag title="얼굴 비식별화"/>}
+        {masking.includes('carplate') && <CategoryTag title="번호판 비식별화"/>}
+        {password && <CategoryTag title="암호화"/>}
     </>
 }
 

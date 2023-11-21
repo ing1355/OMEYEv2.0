@@ -12,6 +12,7 @@ import { MonitoringAllData } from "./MonitoringDataModel";
 import { PROGRESS_STATUS, ProgressData, ProgressRequestParams, ProgressRequestType, ProgressStatus, ProgressStatusType, defaultProgressRequestParams } from "./ProgressModel";
 import { realTimeData, realTimeStatus } from "./RealTimeDataModel";
 import { AdditionalReIDTimeValue, ReIDResultSelectedCondition, ReIDResultSelectedView, ReIDSelectedData, _reidResultDatas, globalCurrentReidId } from "./ReIdResultModel";
+import { SitesState } from "./SiteDataModel";
 
 const loginToken = atom<string | null>({
     key: "isLogin",
@@ -108,6 +109,10 @@ export const isLogin = selector<string | null>({
                 set(AdditionalReIDTimeValue, undefined)
                 // 분석 결과 데이터 초기화
 
+                set(SitesState, {
+                    state: 'IDLE',
+                    data: []
+                })
                 // 사이트 데이터 초기화 - 분석 로그 데이터랑 동일
 
                 // 영상 반출 데이터 초기화 - 반출 이력 제외 로컬 데이터라 초기화 필요 X

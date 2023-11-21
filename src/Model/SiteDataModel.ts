@@ -1,21 +1,32 @@
-import { atom, selector, selectorFamily } from "recoil";
+import { atom, selector, selectorFamily, useRecoilState } from "recoil";
 import { GetAllSitesDataApi } from "../Constants/ApiRoutes";
 import { CameraDataType, SiteDataType } from "../Constants/GlobalTypes";
-import { Axios } from "../Functions/NetworkFunctions";
+import { Axios, GetAllSitesData } from "../Functions/NetworkFunctions";
 import { MakeVMSCameraSitesForTreeView } from "../Functions/GlobalFunctions";
+import { LoadableDataType } from "../Constants/NetworkTypes";
+import { useMemo, useState } from "react";
 
-const _SitesData = selector<SiteDataType[]>({
-    key: "SiteData/selector",
-    get: async ({get}) => {
-        const res = await Axios("GET", GetAllSitesDataApi) as SiteDataType[] || []
-        console.debug('Sites Data Get Success : ', res)
-        return res
+const _SitesData = atom({
+    key: "SiteData",
+    default: {
+        state: 'IDLE',
+        data: []
+    } as LoadableDataType<SiteDataType[]>
+})
+
+export const SitesState = selector({
+    key: "SiteState/selector",
+    get: ({get}) => get(_SitesData),
+    set: ({set}, newValue) => {
+        set(_SitesData, newValue)
     }
 })
 
-export const SitesData = atom<SiteDataType[]>({
-    key: "SiteData",
-    default: _SitesData
+export const SitesData = selector({
+    key: "SiteData/selector",
+    get: ({get}) => {
+        return get(_SitesData).data
+    }
 })
 
 export const SitesDataForTreeView = selector({
@@ -31,3 +42,20 @@ export const GetCameraById = selectorFamily({
         return get(SitesData).flatMap(_ => _.cameras).find(_ => _.cameraId === cctvId)
     }
 })
+
+export const useSites = () => {
+    const [sites, setSites] = useRecoilState(SitesState)
+    const refresh = async () => {
+        setSites({
+            state: 'RUNNING',
+            data: []
+        })
+        const res = await GetAllSitesData()
+        setSites({
+            state: 'IDLE',
+            data: res
+        })
+    }
+
+    return {refresh, sitesData: sites.data}
+}

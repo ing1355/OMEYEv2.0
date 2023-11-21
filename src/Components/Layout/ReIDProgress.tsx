@@ -3,7 +3,7 @@ import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, Sect
 import React, { Suspense, useEffect, useRef, useState } from "react"
 import Button from "../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { useRecoilState, useSetRecoilState } from "recoil"
 import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../Model/ReIdResultModel"
 import ProgressTimeIcon from '../../assets/img/ProgressTimeIcon.png'
 import ProgressVideoIcon from '../../assets/img/ProgressVideoIcon.png'
@@ -25,6 +25,7 @@ import { menuState } from "../../Model/MenuModel"
 
 type ReIDProgressProps = {
     visible: boolean
+    close: () => void
 }
 
 const REID_START_MSG = 'REID_START'
@@ -196,7 +197,7 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
     </Contents>
 }
 
-const ReIDProgress = ({ visible }: ReIDProgressProps) => {
+const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const [loadingTime, setLoadingTime] = useState(0)
     const [isProgress, setIsProgress] = useState(false)
     const [progressStatus, setProgressStatus] = useRecoilState(ProgressStatus)
@@ -379,9 +380,9 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
             };
             sseRef.current.onmessage = (res: MessageEvent) => {
                 try {
+                    const { type } = _progressRequestParams
                     const data = JSON.parse(res.data.replace(/\\/gi, '')) as SSEProgressResponseType
                     const { conditionIndex, timeIndex, cctvId, aiPercent, videoPercent, status, reIdId, errorCode } = data
-                    const { type } = _progressRequestParams
 
                     if (aiPercent || videoPercent) {
                         console.debug(`${type} type sse percent message : `, data)
@@ -403,7 +404,6 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                     }
 
                     if (status === REID_COMPLETE_MSG) {
-                        console.debug(`${type} complete event : `, data)
                         setProgressStatus({ type: type, status: PROGRESS_STATUS['COMPLETE'] })
                         let callback;
                         switch (type) {
@@ -601,6 +601,7 @@ const ReIDProgress = ({ visible }: ReIDProgressProps) => {
                         if (progressStatus.status === PROGRESS_STATUS['COMPLETE']) {
                             const targetResult = reidResult.find(_ => _.reIdId === globalCurrentReIdId)
                             if (targetResult) {
+                                close()
                                 setReidResultSelectedView([reidResult[reidResult.length - 1].reIdId])
                                 if (_progressRequestParams.type === 'ADDITIONALREID') setSelectedResultCondition(targetResult.data.length - 1)
                                 setGlobalMenu(ReIdMenuKey)
@@ -646,10 +647,12 @@ const ProgressContainer = styled.div<{ visible: boolean }>`
     max-height: 800px;
     right: -23px;
     padding: 8px 12px;
+    border-radius: 12px;
     background-color: ${progressContainerBackgroundColor};
     ${globalStyles.zoomIn()}
     z-index: 9998;
-    display: ${({ visible }) => visible ? 'block' : 'none'}
+    display: ${({ visible }) => visible ? 'block' : 'none'};
+    box-shadow: 0 0 20px #060607;
 `
 
 const Arrow = styled.div`
@@ -784,12 +787,13 @@ const CCTVProgressDataIconContents = styled.img`
 `
 
 const CCTVProgressDataTitleContainer = styled.div`
-    font-size: 1.1rem;
+    font-size: .8rem;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     flex: 0 0 calc(90% - 16px)%;
     font-weight: 300;
+    font-family: NanumGothicLight;
 `
 
 const CCTVProgressDataLabelContainer = styled.div`
@@ -835,7 +839,7 @@ const TimeGroupCollapse = styled(CollapseArrow)`
 `
 
 const TimeGroupProgress = styled.div`
-    flex: 0 0 160px;
+    flex: 0 0 200px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '12px' })}
 `
 

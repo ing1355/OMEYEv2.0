@@ -26,7 +26,7 @@ const ReIDResult = () => {
     const [resultDatas, setResultDatas] = useRecoilState(ReIDAllResultData)
     const reIDResultKeys = useRecoilValue(ReIDResultDataKeys)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
-
+    
     const mapViewToggle = () => {
         setIsMapView(!isMapView)
     }
@@ -62,14 +62,12 @@ const ReIDResult = () => {
                                 width: '30px'
                             }}/>
                             {ind+1}
-                            {!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING'])) ? <DeleteIconContainer onClick={(e) => {
+                            <DeleteIconContainer onClick={(e) => {
                                 e.stopPropagation()
                                 setModalVisible(_.reIdId)
                             }}>
-                                <DeleteIcon src={deleteIcon} />
-                            </DeleteIconContainer> : <div style={{
-                                width: '26px'
-                            }}/>}
+                                {!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING'])) && <DeleteIcon src={deleteIcon} />}
+                            </DeleteIconContainer>
                         </Title>)
                     }
                 </TitleContainer>

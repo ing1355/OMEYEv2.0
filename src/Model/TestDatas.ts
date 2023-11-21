@@ -7,25 +7,17 @@ export const PersonConditionTestData: ConditionDataSingleType = {
     "targets": [
         {
             "id": 0,
-            "objectId": 392,
+            "objectId": 550,
             "type": "PERSON",
-            "src": "/file/target/1129e4ca-c507-4bbc-8d15-9fbc8aca3a71_1700120439702.png",
+            "src": "/file/target/62cacd6a-aeb9-4b17-8f1f-e9c6ca341d4d_1700440175280.png",
             "method": "JSONUPLOAD",
             "selected": true
         },
         {
             "id": 0,
-            "objectId": 393,
+            "objectId": 551,
             "type": "PERSON",
-            "src": "/file/target/99fac297-72c3-4019-ae65-2a7810610c10_1700120439703.png",
-            "method": "JSONUPLOAD",
-            "selected": true
-        },
-        {
-            "id": 0,
-            "objectId": 394,
-            "type": "PERSON",
-            "src": "/file/target/ba1897fb-2969-4b99-8eda-8195b3f1d3ec_1700120439703.png",
+            "src": "/file/target/1939f0a7-2649-4af5-85df-f5000369ed4c_1700440175294.png",
             "method": "JSONUPLOAD",
             "selected": true
         }

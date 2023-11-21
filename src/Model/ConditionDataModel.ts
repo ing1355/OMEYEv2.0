@@ -132,7 +132,7 @@ export const selectedConditionObjectType = selector({
         if (!(newValue instanceof DefaultValue)) {
             const _route = get(conditionRoute)
             if (newValue) {
-                set(conditionRoute, _route.concat(ReIDConditionFormRoute.key))
+                set(conditionRoute, [_route[0], ReIDConditionFormRoute.key])
             } else {
                 set(conditionRoute, _route.slice(0, -1))
             }

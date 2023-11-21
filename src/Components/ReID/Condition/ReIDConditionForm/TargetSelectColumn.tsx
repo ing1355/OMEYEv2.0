@@ -14,6 +14,7 @@ import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 import useMessage from "../../../../Hooks/useMessage"
+import checkIcon from '../../../../assets/img/checkIcon.png'
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
@@ -69,7 +70,16 @@ const TargetSelectColumn = () => {
                 }
             }}>
                 <ItemSubContainer>
-                    <ItemImage src={_.src} />
+                    <ItemImageContainer>
+                        <ItemImage>
+                            <ItemHeader>
+                                <Check>
+                                    {_.selected && <img src={checkIcon}/>}
+                                </Check>
+                            </ItemHeader>
+                            <ImageView src={_.src} />
+                        </ItemImage>
+                    </ItemImageContainer>
                     <ItemDescription>
                         <ItemDescriptionHeader>
                             <IconBtn type="delete" onClick={(e) => {
@@ -82,9 +92,9 @@ const TargetSelectColumn = () => {
                         </ItemDescriptionContents>
                     </ItemDescription>
                 </ItemSubContainer>
-                <ItemSelectBtn hover activate={_.selected}>
+                {/* <ItemSelectBtn hover activate={_.selected}>
                     {_.selected ? '해제' : '선택'}
-                </ItemSelectBtn>
+                </ItemSelectBtn> */}
             </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
     </Container>
@@ -122,10 +132,8 @@ const ItemSubContainer = styled.div`
     flex: 1;
 `
 
-const ItemImage = styled(ImageView)`
-    flex: 0 0 40%;
-    height: 100%;
-    padding: 4px;
+const ItemImage = styled.div`
+    height: calc(100% - 32px);
 `
 
 const ItemDescription = styled.div`
@@ -151,4 +159,27 @@ const ItemDescriptionContents = styled.div`
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '8px' })}
     overflow-wrap: anywhere;
+`
+
+const ItemImageContainer = styled.div`
+    flex: 0 0 40%;
+    height: 100%;
+    padding: 4px;
+`
+
+const ItemHeader = styled.div`
+    height: 20px;
+    margin-bottom: 8px;
+`
+
+const Check = styled.div`
+    height: 100%;
+    width: 20px;
+    border: 1px solid ${ContentsActivateColor};
+    border-radius: 50%;
+    padding: 4px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `

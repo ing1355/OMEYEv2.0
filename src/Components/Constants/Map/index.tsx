@@ -10,7 +10,7 @@ import { CustomMap } from './CustomMap';
 import Input from "../../Constants/Input"
 import { ButtonDefaultHoverColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
 import Button from "../Button";
-import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
+import { convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
 import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel";
 import useMessage from "../../../Hooks/useMessage";
@@ -106,7 +106,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 break;
         }
         map.current.init()
-        if (!cameras && !(singleCamera && forSingleCamera)) map.current.createMarkersBySites(sitesData)
         if (forAddtraffic) {
             map.current?.addTrafficOverlayViewChangeListener((view, targetId) => {
                 if (targetId) {
@@ -190,7 +189,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [trafficOverlayView, circleSelectOverlayView, r, rUnit])
 
     const selectCCTVsInCircle = () => {
-        selectedChange!(ArrayDeduplication(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || [])))
+        selectedChange!(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || []).deduplication())
         map.current?.closeOverlayView()
     }
 
@@ -215,9 +214,17 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (initEvent && selectedChange) selectedChange([])
     }, [initEvent])
 
+    useEffect(() => {
+        if (!cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
+    },[sitesData])
+
     const duplicatedCCTVSelect = useMemo(() => {
         return findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData)
     }, [duplicatedCCTVs, treeData])
+
+    const duplicatedCCTVSelectView = useMemo(() => {
+        return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
+    },[duplicatedCCTVSelect])
 
     // const createSiteRowByCollapse = (data: SiteDataType) => {
     //     const isOpened = collapseOpen.includes(data.fullName)
@@ -302,7 +309,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         CCTV
                     </CCTVListHeader>
                     <CCTVContentsContainer>
-                        {ArrayDeduplication(duplicatedCCTVSelect.flatMap(_ => _.cameras), (a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))}
+                        {duplicatedCCTVSelectView}
                     </CCTVContentsContainer>
                 </CCTVListContainer>}
             </ControlsContainer>

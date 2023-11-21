@@ -8,7 +8,7 @@ import { useRecoilState, useRecoilValue } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { conditionData, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
-import { ArrayDeduplication, getColorByScore } from "../../../Functions/GlobalFunctions"
+import { getColorByScore } from "../../../Functions/GlobalFunctions"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
@@ -156,7 +156,7 @@ const RealTimeReID = () => {
     useEffect(() => {
         console.debug("RealTime Status Change : ", rtStatus)
         if (rtStatus === PROGRESS_STATUS['RUNNING']) {
-            if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
+            if (cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication().length === 0) {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
                 return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
             }
