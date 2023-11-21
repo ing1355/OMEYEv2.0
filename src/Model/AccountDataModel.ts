@@ -1,8 +1,10 @@
 import { atom } from "recoil";
 
+export type roleType = 'USER' | 'ADMIN' | 'DEVELOPER';
 export type selectMemberType = {
   id: string;
   username: string;
+  role: roleType;
   name: string;
   email: string;
   phoneNumber: string;
@@ -21,6 +23,7 @@ export const IsModifyMember = atom<boolean>({
 export const modifySelectMemberInit = {
   id: '',
   username: '',
+  role: 'USER' as roleType,
   name: '',
   email: '',
   phoneNumber: '',

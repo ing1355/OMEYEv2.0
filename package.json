@@ -35,6 +35,7 @@
     "eject": "react-scripts eject",
     "deploy": "scp -P 9992 -r ./build/* omeye@125.138.98.82:/usr/local/oms/ReID/Front_2.0",
     "deploy2": "scp -P 9922 -r ./build/* oms@125.138.98.82:/usr/local/oms/ReID/Front_2.0",
+    "deploy3": "scp -r ./build/* oms@192.168.182.54:/usr/local/oms/ReID/Front_2.0",
     "deployAll": "npm run deploy&npm run deploy2"
   },
   "eslintConfig": {

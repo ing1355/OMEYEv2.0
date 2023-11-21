@@ -8,6 +8,9 @@ import OMEYESettings from "./OMEYESettings";
 import ServerManagement from "./ServerManagement";
 import OMEYESidebar from "./OMEYESettings/OMEYESidebar/OMEYESidebar";
 import ServerMgmtSidebar from "./ServerManagement/ServerMgmtSidebar/ServerMgmtSidebar";
+import { useRecoilState } from "recoil";
+import { isLogin } from "../../Model/LoginModel";
+import { decodedJwtToken } from "../Layout/Header/UserMenu";
 
 type settingsCategoryType = 'account' | 'vms' | 'omeye' | 'server';
 
@@ -46,6 +49,9 @@ const ViewByCategory = ({ type }: {
 
 const Settings = () => {
   const [category, setCategory] = useState<settingsCategoryType>('account')
+  const [login, setIsLogin] = useRecoilState(isLogin)
+  const userInfo = decodedJwtToken(login!)
+
   return (
     <Container>
       <Header>
@@ -59,11 +65,13 @@ const Settings = () => {
         }}>
           VMS 설정
         </CategoryBtn>
-        <CategoryBtn selected={category === 'omeye'} onClick={() => {
-          setCategory('omeye')
-        }}>
-          OMEYE 설정
-        </CategoryBtn>
+        {userInfo.user.role === 'DEVELOPER' &&
+          <CategoryBtn selected={category === 'omeye'} onClick={() => {
+            setCategory('omeye')
+          }}>
+            OMEYE 설정
+          </CategoryBtn>
+        }
         <CategoryBtn selected={category === 'server'} onClick={() => {
           setCategory('server')
         }}>

@@ -10,7 +10,7 @@ import { Axios } from "../../../Functions/NetworkFunctions"
 import { LogoutApi } from "../../../Constants/ApiRoutes"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-const decodedJwtToken = (token: string) => {
+export const decodedJwtToken = (token: string) => {
     return jwtDecode(token) as {
         user: {
             email: string
@@ -19,7 +19,7 @@ const decodedJwtToken = (token: string) => {
             isLock: boolean
             name: string
             phoneNumber: string
-            role: 'ADMIN'
+            role: 'USER' | 'ADMIN' | 'DEVELOPER'
             username: string
         }
     }

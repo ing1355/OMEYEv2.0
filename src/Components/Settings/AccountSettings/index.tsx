@@ -15,6 +15,8 @@ import Modal from "../../Layout/Modal"
 import AddAccount from "./AddAccount"
 import ModifyAccount from "./ModifyAccount"
 import resetIcon from "../../../assets/img/resetIcon.png"
+import { isLogin } from "../../../Model/LoginModel"
+import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 
 const AccountSearchDropdownList = [
   {
@@ -62,6 +64,19 @@ export const RoleSearchDropdownList = [
   }
 ];
 
+export const AdminRoleSearchDropdownList = [
+  {
+    key: 'USER',
+    value: 'USER',
+    label: 'USER'
+  }, 
+  {
+    key: 'ADMIN',
+    value: 'ADMIN',
+    label: 'ADMIN'
+  }
+];
+
 type usersType = {
   id: string;
   username: string;
@@ -93,11 +108,13 @@ const AccountSettings = () => {
   const [searchValue, setSearchValue] = useState<AccountSearchValues>('username');
   const [searchInputValue, setSearchInputValue] = useState<string>('');
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
+  const [login, setIsLogin] = useRecoilState(isLogin)
+  const userInfo = decodedJwtToken(login!)
 
   const getUsersAccountList = async () => {
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,
-      page: currentPage,
+      page: currentPage + 1,
       username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
       role: searchValue === 'role' ? searchRoleValue : null,
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
@@ -110,7 +127,7 @@ const AccountSettings = () => {
   const getUsersAccountListReset = async () => {
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,
-      page: 0,
+      page: 1,
     })
     if (res) setUsersAccountRows(res);
   }
@@ -127,8 +144,14 @@ const AccountSettings = () => {
 
   const allCheckFun = () => {
     let isAll = false;
-    if(usersAccountRows.results.length > 0) {
-      isAll = usersAccountRows.results.every((_) => selectUsers.includes(_.id));
+    let usersAccountAllTemp = usersAccountRows.results;
+
+    if(userInfo.user.role === 'ADMIN') {
+      usersAccountAllTemp = usersAccountRows.results.filter((_)=>_.role !== 'DEVELOPER')
+    }
+
+    if(usersAccountAllTemp.length > 0) {
+      isAll = usersAccountAllTemp.every((_) => selectUsers.includes(_.id));
     } else {
       isAll = false
     }
@@ -177,7 +200,7 @@ const AccountSettings = () => {
             onClick={async () => {
               const res:ResType = await Axios('GET', UserAccountApi, {
                 size: 10,
-                page: 0,
+                page: 1,
                 username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
                 role: searchValue === 'role' ? searchRoleValue : null,
                 name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
@@ -209,43 +232,50 @@ const AccountSettings = () => {
             />
           </div>
         </div>
-        <div style={{display: 'flex', gap: '8px'}}>
-          <TopButton 
-            hover 
-            disabled={!(selectUsers.length > 0)}
-            onClick={() => {
-              if(selectUsers.length > 0) setIsDeleteMember(true);
-            }}
-          >
-            멤버 삭제
-          </TopButton>
-          <TopButton hover onClick={() => {
-            setIsAddMember(true);
-          }}>멤버 추가</TopButton>
-        </div>
+        {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') &&
+          <div style={{display: 'flex', gap: '8px'}}>
+            <TopButton 
+              hover 
+              disabled={!(selectUsers.length > 0)}
+              onClick={() => {
+                if(selectUsers.length > 0) setIsDeleteMember(true);
+              }}
+            >
+              멤버 삭제
+            </TopButton>
+            <TopButton hover onClick={() => {
+              setIsAddMember(true);
+            }}>멤버 추가</TopButton>
+          </div>
+        }
       </div>
       {/* content */}
       <div style={{width: '100%', textAlign: 'center', marginTop: '15px'}}>
         <div style={{display: 'flex', backgroundColor: `${ButtonBackgroundColor}`, padding: '10px 0'}}>
-          <div style={{width: '5%'}}
-            onClick={() => {
-              let userUuidAllTemp:string[] = [];
-
-              if(!allCheckFun()) {
-                userUuidAllTemp = usersAccountRows.results.map((_) => _.id);
-              }
-              
-              setSelectUsers(userUuidAllTemp);
-            }}
-          >
-            <input type="checkbox" checked={allCheckFun()}/>
-          </div>
-          <div style={{width: '15%'}}>아이디</div>
-          <div style={{width: '15%'}}>등급</div>
-          <div style={{width: '15%'}}>이름</div>
-          <div style={{width: '25%'}}>이메일</div>
-          <div style={{width: '20%'}}>전화번호</div>
-          <div style={{width: '5%'}}>수정</div>
+          {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
+            <div style={{width: '2%'}}
+              onClick={() => {
+                let userUuidAllTemp:string[] = [];
+  
+                if(!allCheckFun()) {
+                  if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = usersAccountRows.results.map((_) => _.id);
+                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = usersAccountRows.results.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id);
+                }
+                
+                setSelectUsers(userUuidAllTemp);
+              }}
+            >
+              <input type="checkbox" checked={allCheckFun()}/>
+            </div>
+          :
+            <div style={{width: '2%'}}></div>
+          }
+          <div style={{width: '15%', lineHeight: '20px'}}>아이디</div>
+          <div style={{width: '15%', lineHeight: '20px'}}>등급</div>
+          <div style={{width: '15%', lineHeight: '20px'}}>이름</div>
+          <div style={{width: '28%', lineHeight: '20px'}}>이메일</div>
+          <div style={{width: '20%', lineHeight: '20px'}}>전화번호</div>
+          <div style={{width: '5%', lineHeight: '20px'}}>수정</div>
         </div>
         <div>
           {usersAccountRows && usersAccountRows.results.length > 0 ?
@@ -257,34 +287,46 @@ const AccountSettings = () => {
                       key={'usersAccountRows' + index}
                       style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
                       onClick={() => {
-                        const isDelete = selectUsers.find((_) => _ === data.id);
-                        let selectTemp:string[] = [];
-
-                        if(isDelete) {
-                          selectTemp = selectUsers.filter((_) => _ !== data.id);
-                        } else {
-                          selectTemp = selectUsers.concat(data.id)
+                        if(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) {
+                          const isDelete = selectUsers.find((_) => _ === data.id);
+                          let selectTemp:string[] = [];
+  
+                          if(isDelete) {
+                            selectTemp = selectUsers.filter((_) => _ !== data.id);
+                          } else {
+                            selectTemp = selectUsers.concat(data.id)
+                          }
+                          setSelectUsers(selectTemp);
                         }
-
-                        setSelectUsers(selectTemp);
                       }}
                     >
-                      <div style={{width: '5%'}}><input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/></div>
-                      <div style={{width: '15%'}}>{data.username}</div>
-                      <div style={{width: '15%'}}>{data.role}</div>
-                      <div style={{width: '15%'}}>{data.name}</div>
-                      <div style={{width: '25%'}}>{data.email}</div>
-                      <div style={{width: '20%'}}>{data.phoneNumber}</div>
-                      <div style={{width: '5%'}} onClick={() => {
+                      <div style={{width: '2%'}}>
+                        {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) ?
+                          <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/>
+                        :
+                          <></>
+                        }
+                      </div>
+                      <div style={{width: '15%', lineHeight: '20px'}}>{data.username}</div>
+                      <div style={{width: '15%', lineHeight: '20px'}}>{data.role}</div>
+                      <div style={{width: '15%', lineHeight: '20px'}}>{data.name}</div>
+                      <div style={{width: '28%', lineHeight: '20px'}}>{data.email}</div>
+                      <div style={{width: '20%', lineHeight: '20px'}}>{data.phoneNumber}</div>
+                      {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
+                      <div style={{width: '5%', lineHeight: '20px'}} onClick={() => {
                         setIsModifyMember(true);
                         setModifySelectMember({
                           id: data.id,
                           username: data.username,
+                          role: data.role,
                           name: data.name,
                           email: data.email,
                           phoneNumber: data.phoneNumber,
                         })
                       }}><img src={edit} style={{height: '15px'}}/></div>
+                      :
+                      <div style={{width: '5%'}}></div>
+                      }
                     </div>
                   )
                 })}
