@@ -1,23 +1,24 @@
 import { useRecoilState } from "recoil"
-import { ConditionListType, conditionTargetDatasListByObjectType } from "../../../../Model/ConditionDataModel"
+import { ConditionListType, conditionListDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
 import ConditionListItem from "./ConditionListItem"
 import { globalStyles } from "../../../../styles/global-styled"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 
 type ConditionListSetByTypeProps = {
-    type: ReIDObjectTypeKeys
+    type: ReIDObjectTypeKeys|'ALL'
 }
 
 const ConditionListSetByType = ({ type }: ConditionListSetByTypeProps) => {
-    const [datas, setDatas] = useRecoilState(conditionTargetDatasListByObjectType(type))
+    const [globalDatas, setGlobalDatas] = useRecoilState(conditionListDatas)
+    const datas = globalDatas.filter(_ => type === 'ALL' ? true : _.targets.some(__ => __.type === type))
     
     const changeSingleData = (data: ConditionListType) => {
-        setDatas(datas.map(_ => _.id === data.id ? data : _))
+        setGlobalDatas(datas.map(_ => _.id === data.id ? data : _))
     }
 
     const deleteSingleData = (id: ConditionListType['id']) => {
-        setDatas(datas.filter(_ => _.id !== id))
+        setGlobalDatas(datas.filter(_ => _.id !== id))
     }
 
     return <Container>
@@ -25,7 +26,7 @@ const ConditionListSetByType = ({ type }: ConditionListSetByTypeProps) => {
             datas.length > 0 ? <ListContainer>
                 {datas.map((_, ind) => <ConditionListItem key={ind} data={_} setData={changeSingleData} deleteAction={deleteSingleData} />)}
             </ListContainer> : <NoDataContainer>
-                저장한 검색 조건이 존재하지 않습니다.<br />
+                검색 조건이 존재하지 않습니다.<br />
                 검색 조건 설정 메뉴에서 검색 조건을 저장해주세요.
             </NoDataContainer>
         }

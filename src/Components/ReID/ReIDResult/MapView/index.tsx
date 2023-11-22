@@ -81,10 +81,8 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                     onlyMap>
                 </MapComponent>
                 <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {
-                    // console.debug('추가 동선 conditions 변경 : ', conditions)
                     setSelectedCondition(conditions)
                 }} targetChange={targets => {
-                    // console.debug('추가 동선 targets 변경 : ', targets)
                     setSelectedTarget(targets)
                 }} />
             </MapContainer>

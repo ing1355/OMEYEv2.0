@@ -90,7 +90,14 @@ const _Input = (props?: InputProps) => {
             }
         }}
         onFocus={props?.onFocus}
-        onBlur={props?.onBlur}
+        onBlur={(e) => {
+            if(props) {
+                if(props.onBlur) props.onBlur(e)
+                if(props.onlyNumber && props.onChange) {
+                    if(e.currentTarget.value.length === 0) props.onChange('1')
+                }
+            }
+        }}
         onInput={e => {
             if (props?.onlyNumber) {
                 if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
@@ -99,6 +106,8 @@ const _Input = (props?: InputProps) => {
                     if (props.maxNumber) {
                         if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
                     }
+                    console.debug(temp)
+                    // if(temp.length === 0) temp = '0'
                     e.currentTarget.value = temp
                 }
             }

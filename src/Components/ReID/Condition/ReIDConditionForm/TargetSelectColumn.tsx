@@ -1,10 +1,10 @@
 import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
-import { conditionIsRealTimeData, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionIsRealTimeData, conditionTargetDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
 import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
-import { ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
+import { ObjectTypeSelectRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
 import Button from "../../../Constants/Button"
 import { useState } from "react"
@@ -20,8 +20,7 @@ export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
     const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
-    const [datas, setDatas] = useRecoilState(conditionTargetDatas(null))
-    const selectedType = useRecoilValue(selectedConditionObjectType)
+    const [datas, setDatas] = useRecoilState(conditionTargetDatas)
     const isRealTime = useRecoilValue(conditionIsRealTimeData)
     const { routePush } = useConditionRoutes()
     const message = useMessage()
@@ -32,9 +31,10 @@ const TargetSelectColumn = () => {
     }
 
     const addAction = () => {
-        if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
-        else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
-        else routePush(ReIDConditionTargetSelectMethodRoute.key)
+        routePush(ObjectTypeSelectRoute.key)
+        // if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
+        // else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
+        // else routePush(ReIDConditionTargetSelectMethodRoute.key)
     }
 
     const allSelectAction = () => {
@@ -44,18 +44,18 @@ const TargetSelectColumn = () => {
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
-            titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
+            // titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
             isTarget
             initAction={initAction}
             dataAddAction={addAction}
             noDataText="대상 추가"
-            isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
-            dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
-            disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
+            isDataExist={datas.length > 0}
+            // isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
+            // dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
+            // disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
-            {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
-            {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+            {datas.map((_, ind) => <ItemContainer key={ind} selected={_.selected || false} onClick={() => {
                 if (_.selected) {
                     setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
                         ..._,

@@ -1,11 +1,11 @@
 import styled from "styled-components"
-import { GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
+import { SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import { useEffect, useRef, useState } from "react"
 import { CameraDataType } from "../../../../../Constants/GlobalTypes"
 import SelectedCCTVListItem from "./SelectedCCTVListItem"
 import SelectedCCTVDetailContainer from "./SelectedCCTVDetailContainer"
 import { useRecoilValue, useSetRecoilState } from "recoil"
-import { conditionTargetDatasCCTVTemp, selectedConditionObjectType } from "../../../../../Model/ConditionDataModel"
+import { conditionSelectedType, conditionTargetDatasCCTVTemp } from "../../../../../Model/ConditionDataModel"
 import TreeAndMapComponent from "../../../../Constants/TreeAndMapComponent"
 import TimeModal, { TimeModalDataType } from "../../Constants/TimeModal"
 import useMessage from "../../../../../Hooks/useMessage"
@@ -15,7 +15,7 @@ const CCTVVideo = () => {
     const [selectedVideo, setSelectedVideo] = useState<CameraDataType | null>(null)
     const [timeOpened, setTimeOpened] = useState(false)
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const currentObjectType = useRecoilValue(conditionSelectedType)
     const setCctvDatasTemp = useSetRecoilState(conditionTargetDatasCCTVTemp)
     const [grabbed, setGrabbed] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)

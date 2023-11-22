@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../styles/global-styled"
-import { CSSProperties, useCallback, useEffect, useRef, useState } from "react"
+import { CSSProperties } from "react"
 
 type SliderProps = {
     min: number
@@ -11,70 +11,27 @@ type SliderProps = {
 }
 
 const Slider = ({ min, max, value, onChange, step }: SliderProps) => {
-    const [currValue, setCurrValue] = useState(value);
-    // const [clicked, setClicked] = useState(false)
-
-    // const mouseUpCallback = useCallback(() => {
-    //     setClicked(false)
-    // }, [])
-
-    // const mouseMoveCallback = useCallback((e: MouseEvent) => {
-    //     const ratio = (max-min+1) / containerRef.current!.clientWidth
-    //     const distance = (e.screenX - mouseX.current) * ratio
-    //     console.debug('distance : ' ,distance, Math.floor(valueRef.current + distance > max ? max : (valueRef.current + distance < min ? min : valueRef.current + distance)))
-    //     setValue(_ => _ + distance > max ? max : (_ + distance < min ? min : _ + distance))
-    //     mouseX.current = e.screenX
-    // }, [])
-
-    // useEffect(() => {
-    //     if (clicked) {
-    //         document.addEventListener('mouseup', mouseUpCallback)
-    //         document.addEventListener('mousemove', mouseMoveCallback)
-    //     } else {
-    //         document.removeEventListener('mouseup', mouseUpCallback)
-    //         document.removeEventListener('mousemove', mouseMoveCallback)
-    //     }
-    // }, [clicked])
-
-    useEffect(() => {
-        setCurrValue(value)
-    },[value])
+    const tick = 100 / (max - min)
+    const percent = value === max ? 100 : (tick * (value - 1))
 
     return <Container>
         <SliderContainer>
             <SliderRail />
             <SliderFillTrack fill={
-                `${((currValue / (max - min)) * 100 - 1) > 100 ? 100 : (currValue / (max - min)) * 100 - 1}%`
+                `${percent}%`
             } />
             <RangeInput
                 type={'range'}
                 value={value}
+                step={step || 1}
                 min={min}
                 max={max}
                 onChange={e => {
                     const newValue = parseInt(e.target.value);
-                    setCurrValue(newValue);
                     onChange(newValue);
                 }}
             />
         </SliderContainer>
-        {/* <MinNumber>
-            {min}
-        </MinNumber>
-        <RangeInput type="range" min={min} max={max} step={step || 1} value={value} onChange={(e) => {
-            onChange(Number(e.target.value))
-        }}/> */}
-        {/* <InnerContainer ref={containerRef}>
-            <Background value={_value}>
-                <Circle onMouseDown={(e) => {
-                    setClicked(true)
-                    mouseX.current = e.screenX
-                }} />
-            </Background>
-        </InnerContainer> */}
-        {/* <MaxNumber>
-            {max}
-        </MaxNumber> */}
     </Container>
 }
 
@@ -113,57 +70,6 @@ const RangeInput = styled.input`
         top: 50%;
     };
 `
-
-const InnerContainer = styled.div`
-    height: 100%;
-    background-color: ${ContentsActivateColor};
-    border-radius: 8px;
-    flex: 1;
-    position: relative;
-`
-
-const MinNumber = styled.div`
-    font-size: 1.1rem;
-    position: absolute;
-    top: 130%;
-    left: 8px;
-    text-align: center;
-`
-
-const MaxNumber = styled.div`
-    font-size: 1.1rem;
-    position: absolute;
-    top: 130%;
-    right: 0px;
-    text-align: center;
-`
-
-const Circle = styled.div`
-    position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    height: ${containerHeight + 10}px;
-    width: ${containerHeight + 10}px;
-    background-color: white;
-    border-radius: 50%;
-    cursor: pointer;
-`
-
-const Background = styled.div<{ value: number }>`
-    background-color: ${ContentsBorderColor};
-    position: absolute;
-    height: 100%;
-    left: 0;
-    top: 0;
-    max-width: 100%;
-    border-radius: 8px;
-    width: calc(${({ value }) => value}% + 10px);
-    transition: width .1s ease;
-`
-
-// left: ${({ value }) => value}%;
-//     transition: left .1s ease;
 
 const SliderContainer = styled.div`
   width: 100%;

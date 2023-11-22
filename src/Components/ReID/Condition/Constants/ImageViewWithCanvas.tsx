@@ -4,7 +4,7 @@ import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType, R
 import ImageView from "./ImageView"
 import { ObjectTypes } from "../../ConstantsValues"
 import { useRecoilValue } from "recoil"
-import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
 
 type ImageViewProps = {
     src?: string
@@ -84,7 +84,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const mouseX = useRef(0)
     const mouseY = useRef(0)
     const clickTemp = useRef<number[]>([])
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const currentObjectType = useRecoilValue(conditionSelectedType)
     const [imgSize, setImgSize] = useState<number[]>([])
 
     useEffect(() => {
@@ -117,7 +117,6 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             temp.push({
                 type: _.type,
                 mask: false,
-                id: getLastTargetListId(),
                 src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y)
             })
         })
@@ -221,9 +220,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
                             const isMoved = !(clickTemp.current[0] === _e.screenX || clickTemp.current[1] === _e.screenY)
                             if (isMoved && captureCallback) {
                                 captureCallback([{
-                                    type: currentObjectType!,
+                                    type: currentObjectType,
                                     mask: false,
-                                    id: getLastTargetListId(),
                                     src: getImageByCanvas(_x, _y, imgRef.current!, mouseX.current > downMouseX.current ? downMouseX.current : mouseX.current, mouseY.current > downMouseY.current ? downMouseY.current : mouseY.current)
                                 }])
                             }

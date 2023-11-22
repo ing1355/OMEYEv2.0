@@ -5,7 +5,7 @@ import ImageView from "../../ReID/Condition/Constants/ImageView"
 import { useMemo, useState } from "react"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import { useRecoilValue } from "recoil"
-import { conditionTargetDatas, conditionTargetDatasListByObjectType } from "../../../Model/ConditionDataModel"
+import { conditionListDatas, conditionTargetDatas } from "../../../Model/ConditionDataModel"
 import { LeftArrow, RightArrow } from "../../Layout/Arrows"
 import { ReIDResultByObjectType } from "../../../Model/ReIdResultModel"
 
@@ -24,8 +24,8 @@ type AdditionalReIDContainerProps = {
 
 const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContainerProps) => {
     const [selectedView, setSelectedView] = useState(0)
-    const targetDatas = useRecoilValue(conditionTargetDatas(type)) // 현재 선택한 object type의 대상들
-    const listDatas = useRecoilValue(conditionTargetDatasListByObjectType(type || 'PERSON')) // 검색 조건 저장해놓은 object들
+    const targetDatas = useRecoilValue(conditionTargetDatas) // 현재 선택한 object type의 대상들
+    const listDatas = useRecoilValue(conditionListDatas) // 검색 조건 저장해놓은 object들
     const reidResults = useRecoilValue(ReIDResultByObjectType(type || 'PERSON')) // 현재 검색 결과의 object들
 
     const targetImages: TargetImageType[] = useMemo(() => {

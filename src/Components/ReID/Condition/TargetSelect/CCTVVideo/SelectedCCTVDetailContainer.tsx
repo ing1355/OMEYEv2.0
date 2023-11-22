@@ -169,7 +169,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
             </DetailTitle>
             <CaptureResultListItemsContainer>
                 {
-                    targetList.map(_ => <CaptureResultListItemBox key={_.id} selected={_.selected!}>
+                    targetList.map((_, ind) => <CaptureResultListItemBox key={ind} selected={_.selected!}>
                         <CaptureResultListItemImageContainer>
                             <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} style={{
                                 height: _.time ? 'calc(100% - 24px)' : '100%'
@@ -180,7 +180,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                         </CaptureResultListItemImageContainer>
                         <CaptureResultListItemFaceSelectContainer>
                             {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hover activate={_.mask || false} onClick={() => {
-                                setTargetList(targetList.map(__ => __.id === _.id ? ({
+                                setTargetList(targetList.map((__, _ind) => ind === _ind ? ({
                                     ...__,
                                     mask: !__.mask
                                 }) : __))
@@ -188,8 +188,8 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                                 <img src={maskIcon} />
                             </MaskSelect>}
                             <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
-                                setTargetList(targetList.map(__ => {
-                                    return __.id === _.id ? {
+                                setTargetList(targetList.map((__, _ind) => {
+                                    return ind === _ind ? {
                                         ...__,
                                         selected: !__.selected
                                     } : __

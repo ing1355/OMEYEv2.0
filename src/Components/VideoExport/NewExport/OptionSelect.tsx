@@ -130,7 +130,6 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                 ctx.fillStyle = "black"
                 submitPoints.forEach(_ => {
                     _.forEach((__, ind) => {
-                        console.debug("submitPoint : ", __)
                         if (ind === 0) {
                             ctx.moveTo(__[0], __[1])
                         } else {

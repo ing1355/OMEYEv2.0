@@ -3,7 +3,7 @@ import { globalStyles } from "../../../../styles/global-styled"
 import Input from "../../../Constants/Input"
 import Button from "../../../Constants/Button"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { ConditionDataSingleType, conditionAllData, conditionData, conditionTargetDatasListByObjectType, conditionTitleData, createDefaultConditionData, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { ConditionDataType, ConditionListType, conditionData, conditionListDatas, conditionSelectedType, conditionTitleData, createDefaultConditionData } from "../../../../Model/ConditionDataModel"
 import TargetSelectColumn from "./TargetSelectColumn"
 import ETCColumn from "./ETCColumn"
 import TimeBoundaryColumn from "./TimeBoundaryColumn"
@@ -26,9 +26,9 @@ export const createConditionList = () => {
 const ReIDConditionForm = () => {
     const [title, setTitle] = useRecoilState(conditionTitleData)
     const [datas, setDatas] = useRecoilState(conditionData)
-    const [allDatas, setAllDatas] = useRecoilState(conditionAllData)
-    const [currentObjectType, setCurrentObjectType] = useRecoilState(selectedConditionObjectType)
-    const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(currentObjectType!))
+    const [allDatas, setAllDatas] = useRecoilState(conditionData)
+    const [currentObjectType, setCurrentObjectType] = useRecoilState(conditionSelectedType)
+    const [conditionList, setConditionList] = useRecoilState(conditionListDatas)
     const message = useMessage()
     const { targets, rank, time, name, cctv, isRealTime, etc } = datas
     
@@ -39,7 +39,7 @@ const ReIDConditionForm = () => {
             }} disabled={datas.isRealTime} maxLength={20} />
             <TopButtonsContainer>
                 <TopButton hover icon={resetIcon} onClick={() => {
-                    setDatas(createDefaultConditionData(currentObjectType!))
+                    setDatas(createDefaultConditionData())
                     message.success({
                         title: '데이터 초기화',
                         msg: `${ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title} 타입 검색 조건 초기화 되었습니다.`
@@ -48,7 +48,7 @@ const ReIDConditionForm = () => {
                     전체 초기화
                 </TopButton>
                 <TopButton hover icon={conditionDataUploadIcon} onClick={() => {
-                    UploadSingleConditionJsonData((json: ConditionDataSingleType) => {
+                    UploadSingleConditionJsonData((json: ConditionDataType) => {
                         if (json.targets.length > 0 && !ReIDObjectTypeKeys.includes(json.targets[0].type)) return message.error({
                             title: "입력값 에러",
                             msg: "올바르지 않은 객체 타입 입니다."
@@ -75,12 +75,12 @@ const ReIDConditionForm = () => {
                 </TopButton>
                 <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, selected: _.selected, id: _.id }))} onClick={() => {
                     if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
-                    let tempConditionData = { ...datas }
+                    let tempConditionData: ConditionListType = { ...datas, selected: false, id: createConditionList() }
                     tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
                     tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
                     tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
                     tempConditionData.name = tempConditionData.name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색"
-                    setConditionList(conditionList.concat({ ...tempConditionData, selected: false, id: createConditionList() }))
+                    setConditionList(conditionList.concat(tempConditionData))
                     message.success({
                         title: "저장 성공",
                         msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "조건 목록" 메뉴에서 확인할 수 있습니다.'

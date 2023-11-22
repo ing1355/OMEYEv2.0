@@ -109,7 +109,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (forAddtraffic) {
             map.current?.addTrafficOverlayViewChangeListener((view, targetId) => {
                 if (targetId) {
-                    console.log(selectedReIdResultDataRef.current)
                     const temp = selectedReIdResultDataRef.current?.flatMap(_ => Object.keys(_).flatMap(__ => _[Number(__)])).sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1)
                     if (temp && temp.length > 0) {
                         setTimeValue({
@@ -436,7 +435,11 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                 setR(val)
                             }} style={{
                                 paddingRight: '60px'
-                            }} onEnter={selectCCTVsInCircle} />
+                            }} onEnter={selectCCTVsInCircle} onBlur={() => {
+                                if(!r) {
+                                    setR('1')
+                                }
+                            }}/>
                             <AddReIDInputContentLabel>
                                 <AddReIDInputContentLabelItem selected={rUnit === 'm'} onClick={() => {
                                     setRUnit('m')

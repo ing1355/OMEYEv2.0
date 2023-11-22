@@ -3,9 +3,9 @@ import { AuthorizationKey } from "../Constants/GlobalConstantsValues";
 import { menuState } from "./MenuModel";
 import { conditionRoute } from "./ConditionRouteModel";
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible, _areaIndex, _areaVisible, _timeIndex, _timeVisible } from "./ConditionParamsModalModel";
-import { conditionAllData, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, createDefaultConditionData, selectedConditionObjectType } from "./ConditionDataModel";
+import { conditionData, conditionListDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, createDefaultConditionData } from "./ConditionDataModel";
 import { conditionMenu } from "./ConditionMenuModel";
-import { ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
+import { ObjectTypes, ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
 import { descriptionData, descriptionInitialData } from "./DescriptionDataModel";
 import { GlobalSettingType, globalSettings } from "./GlobalSettingsModel";
 import { MonitoringAllData } from "./MonitoringDataModel";
@@ -13,6 +13,7 @@ import { PROGRESS_STATUS, ProgressData, ProgressRequestParams, ProgressRequestTy
 import { realTimeData, realTimeStatus } from "./RealTimeDataModel";
 import { AdditionalReIDTimeValue, ReIDResultSelectedCondition, ReIDResultSelectedView, ReIDSelectedData, _reidResultDatas, globalCurrentReidId } from "./ReIdResultModel";
 import { SitesState } from "./SiteDataModel";
+import { ReIDObjectTypeKeys } from "../Constants/GlobalTypes";
 
 const loginToken = atom<string | null>({
     key: "isLogin",
@@ -28,16 +29,9 @@ export const isLogin = selector<string | null>({
 
                 localStorage.removeItem(AuthorizationKey)
 
-                set(selectedConditionObjectType, null)
                 set(conditionTargetDatasImageTemp, [])
                 set(conditionTargetDatasCCTVTemp, [])
-                set(conditionAllData, {
-                    selectedType: null,
-                    FACE: createDefaultConditionData('FACE'),
-                    PERSON: createDefaultConditionData('PERSON'),
-                    CARPLATE: createDefaultConditionData('CARPLATE'),
-                    ATTRIBUTION: createDefaultConditionData('ATTRIBUTION')
-                })
+                set(conditionData, createDefaultConditionData())
                 // 검색 조건 설정 데이터 초기화
 
                 set(AreaSelectVisible, false)
@@ -55,10 +49,7 @@ export const isLogin = selector<string | null>({
                 set(descriptionData, descriptionInitialData)
                 // 인상착의 대상 추가 데이터 설정 초기화
 
-                set(conditionTargetDatasListByObjectType('FACE'), [])
-                set(conditionTargetDatasListByObjectType('CARPLATE'), [])
-                set(conditionTargetDatasListByObjectType('ATTRIBUTION'), [])
-                set(conditionTargetDatasListByObjectType('PERSON'), [])
+                set(conditionListDatas, [])
                 // 검색 조건 목록 데이터 초기화
 
                 set(globalSettings, {
@@ -90,7 +81,7 @@ export const isLogin = selector<string | null>({
                 // 진행상황 데이터 초기화
 
                 set(realTimeData, {
-                    type: undefined,
+                    type: ReIDObjectTypeKeys[ObjectTypes['PERSON']],
                     cameraIdList: [],
                     objectId: 0,
                     threshHold: 50,

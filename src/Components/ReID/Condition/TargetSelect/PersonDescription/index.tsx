@@ -31,8 +31,6 @@ const PersonDescription = () => {
             }} onMouseLeave={() => {
                 setHover(false)
             }} onClick={() => {
-                console.debug(descriptionInitialData)
-                console.debug(category)
                 setSingleData(descriptionInitialData[category])
             }}/>
             <DescriptionSelectContents type={category} />

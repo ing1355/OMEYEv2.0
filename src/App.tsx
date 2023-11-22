@@ -11,6 +11,7 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
 import { IS_PRODUCTION } from './Constants/GlobalConstantsValues';
+import { getLocalIp } from './Functions/NetworkFunctions';
 
 type ServerErrorDataType = {
   code: number
@@ -34,21 +35,7 @@ const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
   }
 }
 
-const getLocalIp = async () => {
-  const conn = new RTCPeerConnection()
-  conn.createDataChannel('')
-  conn.setLocalDescription(await conn.createOffer())
-  return await new Promise((resolve, reject) => {
-    conn.onicecandidate = ice => {
-      if (ice && ice.candidate && ice.candidate.candidate) {
-        resolve(ice.candidate.candidate.split(' ')[4])
-        conn.close()
-      } else {
-        reject('ip connection fail')
-      }
-    }
-  })
-}
+
 
 const msgByStatusCode = (code: number, msg?: string) => {
   if(code === 500) {

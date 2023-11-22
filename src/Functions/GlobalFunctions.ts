@@ -1,7 +1,7 @@
 import CryptoJS from "crypto-js";
 import { SavedJSONType, SiteDataType } from "../Constants/GlobalTypes";
 import { ReIDRequestGroupDataType } from "../Model/ReIDLogModel";
-import { ConditionDataSingleType } from "../Model/ConditionDataModel";
+import { ConditionDataType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
 import { toPng } from "html-to-image";
 
@@ -150,7 +150,7 @@ export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string =>
 
 export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
     const isRealTime = data.timeGroups[0].startTime === 'live'
-    let _: ConditionDataSingleType = {
+    let _: ConditionDataType = {
         name: isRealTime ? '' : data.title,
         etc: isRealTime ? '' : data.etc,
         rank: isRealTime ? 10 : data.rank,
@@ -175,7 +175,7 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
     DownloadSingleConditionJsonData(_)
 }
 
-export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataSingleType) => void, errCallback?: (error: unknown) => void) {
+export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataType) => void, errCallback?: (error: unknown) => void) {
     const upload = document.createElement('input')
     upload.type = "file"
     upload.accept = ".json"
@@ -203,7 +203,7 @@ export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDat
     upload.click()
 }
 
-export function DownloadSingleConditionJsonData(data: ConditionDataSingleType) {
+export function DownloadSingleConditionJsonData(data: ConditionDataType) {
     let output = JSON.stringify(data, null, 4);
     const blob = new Blob([output]);
     const fileDownlaoadUrl = URL.createObjectURL(blob);

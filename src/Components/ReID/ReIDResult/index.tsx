@@ -37,7 +37,7 @@ const ReIDResult = () => {
     }, [selectedView, reidSelectedCondition])
 
     const test = async () => {
-        setResultDatas(ReIDResultTestData)
+        // setResultDatas(ReIDResultTestData)
         // const res = await GetReIDResultById(170)
         // if (res) setResultDatas([res])
     }

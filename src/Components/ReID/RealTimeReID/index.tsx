@@ -7,7 +7,7 @@ import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThre
 import { useRecoilState, useRecoilValue } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
-import { conditionData, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
+import { conditionData } from "../../../Model/ConditionDataModel"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import Video from "../../Constants/Video"
@@ -24,10 +24,11 @@ import CCTVNameById from "../../Constants/CCTVNameById"
 const imageBoxHeight = 200
 const maxItemNum = 50
 
-const existValueNumsInDescription = (data: descriptionDataType) => {
+const existValueNumsInDescription = (data?: descriptionDataType) => {
+    if(!data) return 0;
     return Object.keys(data).map(_ => {
         const subItem = data[_ as DescriptionCategoryKeyType]
-        return Object.keys(subItem).flatMap(__ => subItem[__ as descriptionSubDataKeys<keyof descriptionDataType>]).filter(_ => (_ as string|string[]).length > 0).length
+        return Object.keys(subItem).flatMap(__ => subItem[__ as descriptionSubDataKeys<keyof descriptionDataType>]).filter(_ => _ && (_ as string|string[]).length > 0).length
     }).reduce((pre, cur) => pre + cur, 0)
 }
 
@@ -94,6 +95,14 @@ type RealTimeDataType = {
     cameraId: number
     error?: string
     status?: SSEResponseStatusType
+    min?: number
+    max?: number
+}
+
+const convertThreshHoldToDescriptionPercent = (threshHold: number, descriptionNums: number) => {
+    const tick = 100 / descriptionNums
+    const percent = threshHold === descriptionNums ? 100 : (tick * threshHold)
+    return percent
 }
 
 let timerId: NodeJS.Timer
@@ -107,7 +116,6 @@ const RealTimeReID = () => {
     const [images, setImages] = useState<RealTimeDataType[]>([])
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const [rtData, setRtData] = useRecoilState(realTimeData)
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const { cctv, targets } = useRecoilValue(conditionData)
     const message = useMessage()
     const sseRef = useRef<EventSource>()
@@ -183,7 +191,7 @@ const RealTimeReID = () => {
             const res = await Axios("POST", RealTimeReidApi, {
                 cameraIdList: rtData.cameraIdList,
                 objectId: rtData.objectId,
-                threshHold: rtData.threshHold,
+                threshHold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold,
             })
             if (res) {
                 setImages([])
@@ -204,7 +212,7 @@ const RealTimeReID = () => {
                 const data: RealTimeDataType = JSON.parse(
                     res.data.replace(/\\/gi, "")
                 );
-                // console.debug("sse message realtime : ", data)
+                console.debug("sse message realtime : ", data)
                 const { imageURL, timestamp, cameraId, accuracy, status } = data
                 if (imageURL) {
                     const image = new Image();
@@ -252,7 +260,7 @@ const RealTimeReID = () => {
             if (changeTimer.current) clearTimeout(changeTimer.current)
             changeTimer.current = setTimeout(() => {
                 Axios("PUT", UpdateRealTimeThresholdApi, {
-                    threshold: rtData.threshHold || 1
+                    threshold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold || 1
                 })
             }, 300);
         }
@@ -262,7 +270,7 @@ const RealTimeReID = () => {
         <InputRow>
             <GlobalParamsContainer>
                 <div>
-                    대상 타입 : <TypeTag activate={!(!rtData.type)} disabled={!rtData.type}>
+                    대상 타입 : <TypeTag activate={!(!rtData.objectId)} disabled={!rtData.objectId}>
                         {ReIDObjectTypes.find(_ => _.key === rtData.type)?.title || '선택한 대상 없음'}
                     </TypeTag>
                 </div>
@@ -282,7 +290,7 @@ const RealTimeReID = () => {
             </GlobalParamsContainer>
             <LocalParamsContainer>
                 {
-                    currentObjectType && [ReIDObjectTypes[ObjectTypes['PERSON']].key, ReIDObjectTypes[ObjectTypes['FACE']].key].includes(currentObjectType) && <>
+                    [ReIDObjectTypes[ObjectTypes['PERSON']].key, ReIDObjectTypes[ObjectTypes['FACE']].key].includes(rtData.type) && <>
                         최소 유사율(%) : <Slider min={1} max={100} value={rtData.threshHold} onChange={val => {
                             setRtData({
                                 ...rtData,
@@ -292,14 +300,14 @@ const RealTimeReID = () => {
                         <AccuracyInput onlyNumber maxNumber={100} value={rtData.threshHold} onChange={(val) => {
                             setRtData({
                                 ...rtData,
-                                threshHold: Number(val) || 1
+                                threshHold: Number(val)
                             })
                         }} maxLength={3} />
                     </>
                 }
                 {
-                    currentObjectType && currentObjectType === ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && rtData.description && <>
-                        최소 유사율(개수) : <Slider min={1} max={existValueNumsInDescription(rtData.description)} value={rtData.threshHold} onChange={val => {
+                    rtData.type === ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && rtData.description && <>
+                        최소 탐지 개수 : <Slider min={1} max={existValueNumsInDescription(rtData.description)} value={rtData.threshHold} onChange={val => {
                             setRtData({
                                 ...rtData,
                                 threshHold: val
@@ -322,7 +330,7 @@ const RealTimeReID = () => {
                 </RequestBtn> */}
                 <RequestBtn disabled={!rtData.type} hover onClick={async () => {
                     if (rtStatus === PROGRESS_STATUS['IDLE']) {
-                        if (currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
+                        // if (rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
                         setRtStatus(PROGRESS_STATUS['RUNNING'])
                     } else {
                         cancelFunc()
@@ -390,7 +398,7 @@ const RealTimeReID = () => {
                                     유사율
                                 </ResultDetailDescriptionCol>
                                 <ResultDetailDescriptionCol>
-                                    {selected?.accuracy || 0}%
+                                    {selected?.accuracy || (selected?.max && selected.min ? `${selected.min} ~ ${selected.max}` : 0)}%
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>

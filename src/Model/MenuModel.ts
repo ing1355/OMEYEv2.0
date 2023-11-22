@@ -3,5 +3,5 @@ import { AreaAnalyzeMenuKey, IS_PRODUCTION, MenuKeys, MonitoringMenuKey, ReIdMen
 
 export const menuState = atom<MenuKeys>({
     key: "menuState",
-    default: IS_PRODUCTION ? null : ReIdMenuKey
+    default: IS_PRODUCTION ? null : VideoExportMenuKey
 })

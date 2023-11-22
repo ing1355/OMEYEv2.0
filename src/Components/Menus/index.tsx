@@ -8,7 +8,7 @@ import MenuItemList from "../../Constants/MenuItemList";
 import { useEffect } from "react";
 import useConditionRoutes from "../ReID/Condition/Hooks/useConditionRoutes";
 import { conditionRoute } from "../../Model/ConditionRouteModel";
-import { ObjectTypeSelectRoute } from "../ReID/Condition/Constants/RouteInfo";
+import { ReIDConditionFormRoute } from "../ReID/Condition/Constants/RouteInfo";
 
 const Menus = () => {
     const currentMenu = useRecoilValue(menuState)
@@ -21,7 +21,7 @@ const Menus = () => {
 
     useEffect(() => {
         if (currentMenu === ReIdMenuKey && _conditionRoute.length === 0) {
-            routePush(ObjectTypeSelectRoute.key)
+            routePush(ReIDConditionFormRoute.key)
         }
     }, [currentMenu, _conditionRoute])
     

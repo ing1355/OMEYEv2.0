@@ -595,13 +595,11 @@ export class OlMap extends CustomMap<Map> {
     createPathLines(cctvIds: CameraDataType['cameraId'][], color?: CSSProperties['color']): void {
         // this.arrowVS.clear()
         this.trafficInputOverlay?.setPosition(undefined)
-        console.debug("cctvIds : " , cctvIds, this.VS.getFeatures().map(_ => _.getId()))
         if (cctvIds.length >= 2) {
             this.pathMarkers = [...cctvIds]
             cctvIds.forEach((_, ind, arr) => {
                 if (ind !== arr.length - 1) {
                     const targetFeature = this.VS.getFeatureById(_)
-                    console.debug(targetFeature)
                     const nextTargetFeature = this.VS.getFeatureById(arr[ind + 1])
                     const resultFeature = new Feature({
                         geometry: new LineString([

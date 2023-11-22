@@ -8,8 +8,7 @@ import ImageView from "../../Condition/Constants/ImageView"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import CCTVNameById from "../../../Constants/CCTVNameById"
 import LazyVideo from "../LazyVideo"
-import { ReIDObjectTypeKeys, ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes"
-import { contextMenuVisible } from "../../../../Model/ContextMenuModel"
+import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ForLog from "../../../Constants/ForLog"
 import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressStatus } from "../../../../Model/ProgressModel"
 import { ObjectTypes } from "../../ConstantsValues"
@@ -19,7 +18,7 @@ import Progress from "../../../Layout/Progress"
 import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
 import { getLastTargetListId } from "../../Condition/Constants/ImageViewWithCanvas"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
-import { conditionAllData } from "../../../../Model/ConditionDataModel"
+import { conditionTargetDatas } from "../../../../Model/ConditionDataModel"
 import useMessage from "../../../../Hooks/useMessage"
 
 type ResultcontainerProps = {
@@ -107,7 +106,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
     const [selectedCondition, setSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
     const [selectedTarget, setSelectedTarget] = useState<number>(0)
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reidId))
-    const [conditionDatas, setConditionDatas] = useRecoilState(conditionAllData)
+    const [globalTargetDatas, setGlobalTargetDatas] = useRecoilState(conditionTargetDatas)
     const selectedView = useRecoilValue(ReIDResultSelectedView)
     const progressStatus = useRecoilValue(ProgressStatus)
     const progressData = useRecoilValue(ProgressData)
@@ -198,25 +197,15 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                     }])
                                                     if (res) {
                                                         const { cctvId, imgUrl, accuracy } = { ...result, cctvId: key }
-                                                        setConditionDatas({
-                                                            ...conditionDatas,
-                                                            [type]: {
-                                                                ...conditionDatas[type],
-                                                                targets: [
-                                                                    ...conditionDatas[type]['targets'],
-                                                                    {
-                                                                        type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
-                                                                        cctvId,
-                                                                        selected: false,
-                                                                        src: imgUrl,
-                                                                        objectId: res[0],
-                                                                        accuracy,
-                                                                        id: getLastTargetListId(),
-                                                                        method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
-                                                                    }
-                                                                ]
-                                                            }
-                                                        })
+                                                        setGlobalTargetDatas([...globalTargetDatas, {
+                                                            type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
+                                                            cctvId,
+                                                            selected: false,
+                                                            src: imgUrl,
+                                                            objectId: res[0],
+                                                            accuracy,
+                                                            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']] 
+                                                        }])
                                                         message.success({ title: "등록 성공", msg: "현재 결과를 대상으로 추가 성공하였습니다." })
                                                     }
                                                 }}>

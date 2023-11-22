@@ -20,12 +20,10 @@ type PlateTargetProps = {
     setStatus: setStateType<PlateStatusType>
 }
 
-let plateId = 1
-
 const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
     const { src, ocr, selected } = data || {}
     const [plateInput, setPlateInput] = useState('')
-    const [globalData, setGlobalData] = useRecoilState(conditionTargetDatas(null))
+    const [globalData, setGlobalData] = useRecoilState(conditionTargetDatas)
     const imgRef = useRef<HTMLImageElement>(null)
     const message = useMessage()
 
@@ -68,7 +66,6 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
                 ocr: plateInput
             }]))[0]
             setGlobalData(globalData.concat({
-                id: plateId++,
                 src: imgRef.current!.src,
                 ocr: plateInput,
                 type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],

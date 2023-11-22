@@ -148,7 +148,6 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
             }}
             onEnter={(e) => {
                 const target = viewList[selectedIndex]
-                console.debug(target)
                 if (target) {
                     onChange(target)
                     // setSearchInputValue(target.name)

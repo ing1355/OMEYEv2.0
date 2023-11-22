@@ -6,10 +6,8 @@ import { ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute
 import CCTVMethodIcon from '../../../../assets/img/CCTVMethodIcon.png'
 import ImageUploadMethodIcon from '../../../../assets/img/ImageUploadMethodIcon.png'
 import { useRecoilValue } from "recoil"
-import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 
 const ReIDConditionTargetSelect = () => {
-    const objectType = useRecoilValue(selectedConditionObjectType)
     const { routePush } = useConditionRoutes()
     return <Container>
         <Item onClick={() => {

@@ -17,7 +17,7 @@ import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
 import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
-import { CustomEventSource, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
+import { CustomEventSource, IS_PRODUCTION, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
 import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
 import { ReIDMenuKeys } from "../ReID/ConstantsValues"
@@ -217,7 +217,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const additinoalReidResultTimer = useRef<NodeJS.Timer>()
     
     useEffect(() => {
-        setProgressData([
+        if(!IS_PRODUCTION) setProgressData([
             {
                 "times": [
                     {
@@ -706,7 +706,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
             }
         ])
     },[])
-    console.debug(progressData)
+    
     useEffect(() => {
         reidResultRef.current = reidResult
         reidResultTempRef.current = reidResult

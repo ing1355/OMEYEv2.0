@@ -8,6 +8,22 @@ import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE"
 
+export const getLocalIp = async () => {
+    const conn = new RTCPeerConnection()
+    conn.createDataChannel('')
+    conn.setLocalDescription(await conn.createOffer())
+    return await new Promise((resolve, reject) => {
+      conn.onicecandidate = ice => {
+        if (ice && ice.candidate && ice.candidate.candidate) {
+          resolve(ice.candidate.candidate.split(' ')[4])
+          conn.close()
+        } else {
+          reject('ip connection fail')
+        }
+      }
+    })
+  }
+
 export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['url'], bodyOrParams?: CreateAxiosDefaults['data'] | CreateAxiosDefaults['params'], isFullResponse?: boolean): Promise<any> {
     const options: AxiosRequestConfig<any> = {
         method,

@@ -47,6 +47,11 @@ export type ProgressDataPercentType = {
   errReason?: string
 }
 
+export type ProgressDataVideoExportPercentType = ProgressDataPercentType & {
+  deIdentificationPercent?: number
+  encodingPercent?: number
+}
+
 export type ProgressDataParamsTimesDataType = {
   time: string
   data: {
