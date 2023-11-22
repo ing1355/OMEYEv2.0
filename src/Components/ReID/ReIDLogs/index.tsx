@@ -1,14 +1,14 @@
 import styled from "styled-components"
-import { ReIDLogDataType, ReIDSearchParamsType, SearchReIDLogDatas, useReIDLogDatas } from "../../../Model/ReIDLogModel"
+import { ReIDLogDataType, ReIDSearchParamsType, useReIDLogDatas } from "../../../Model/ReIDLogModel"
 import { ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
 import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
 import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Button from "../../Constants/Button"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ReIDLogDataSaveToJSON, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
 import ImageView from "../Condition/Constants/ImageView"
-import { useRecoilRefresher_UNSTABLE, useRecoilState, useSetRecoilState } from "recoil"
+import { useRecoilState, useSetRecoilState } from "recoil"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import TimeModal, { TimeModalDataType } from "../Condition/Constants/TimeModal"
 import Form from "../../Constants/Form"
@@ -18,8 +18,7 @@ import clearIcon from '../../../assets/img/rankUpIcon.png'
 import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
-import { Axios, GetReIDResultById } from "../../../Functions/NetworkFunctions"
-import { GetReidDataApi } from "../../../Constants/ApiRoutes"
+import { GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import Pagination from "../../Layout/Pagination"
 
 const bottomColStyle = {
@@ -35,13 +34,12 @@ type ObjectTypeSearchValues = ReIDObjectTypeKeys | 'all'
 const ReIDLogs = () => {
     // const setReIDResultData = useSetRecoilState(ReIDResultData)
     const [menu, setMenu] = useRecoilState(conditionMenu)
-    const [currentPage, setCurrentPage] = useState(0)
     const [opened, setOpened] = useState<ReIDLogDataType['reidId']>(0)
     const [timeVisible, setTimeVisible] = useState(false)
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
     const [searchValue, setSearchValue] = useState<ObjectTypeSearchValues>('all')
-    const params = useRef<ReIDSearchParamsType>({
-        page: currentPage + 1
+    const [params, _setParams] = useState({
+        page: 1
     })
 
     const titleInputRef = useRef<HTMLInputElement>()
@@ -49,18 +47,16 @@ const ReIDLogs = () => {
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
     const setReIDSelectedcondition = useSetRecoilState(ReIDResultSelectedCondition)
     const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
-    const logs = useReIDLogDatas(params.current)
-    const refresh = useRecoilRefresher_UNSTABLE(SearchReIDLogDatas(params.current))
-
-    useEffect(() => {
-        refresh()
-        params.current = { ...params.current, page: currentPage + 1 }
-    }, [currentPage])
-
+    const {logs, setParams, refresh} = useReIDLogDatas(params)
+    
     useEffect(() => {
         if (menu === ReIDMenuKeys['REIDLOGS']) refresh()
         else setOpened(0)
     }, [menu])
+
+    useEffect(() => {
+        if (menu === ReIDMenuKeys['REIDLOGS']) setParams(params)
+    },[params])
 
     return <Container>
         <TimeModal visible={timeVisible} close={() => {
@@ -77,8 +73,7 @@ const ReIDLogs = () => {
                     _.from = timeValue.startTime
                     _.to = timeValue.endTime!
                 }
-                params.current = _
-                refresh()
+                _setParams(_)
             }}>
                 <SearchContainer>
                     <DropdownContainer>
@@ -112,10 +107,10 @@ const ReIDLogs = () => {
                 </SearchContainer>
             </Form>
             {
-                logs && logs.totalCount > 0 ? <>
+                logs.data.totalCount > 0 ? <>
                     <ContentsContainer>
                         {
-                            logs.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId}>
+                            logs.data.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId}>
                                 <ContentsItemTitleContainer onClick={() => {
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
@@ -272,7 +267,9 @@ const ReIDLogs = () => {
                             </ContentsItemContainer>)
                         }
                     </ContentsContainer>
-                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs} dataPerPage={10}/>
+                    <Pagination currentPage={params.page} setCurrentPage={(page) => {
+                        _setParams({...params, page})
+                    }} totalCount={logs.data.totalCount} dataPerPage={10}/>
                 </> : <NoDataContentsContainer>
                     서버에 저장된 분석 결과가 존재하지 않습니다.
                 </NoDataContentsContainer>

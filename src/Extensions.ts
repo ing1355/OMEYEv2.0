@@ -13,10 +13,6 @@ declare global {
     // }
 }
 
-// if (!Object.prototype.testFunc) {
-//     Object.prototype.testFunc = () => []
-// }
-
 function arrayDistinct<T>(list: T[]): T[] {
     const result = [];
     for (var i = 0; i < list.length; i++) {

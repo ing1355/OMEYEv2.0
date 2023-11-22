@@ -218,6 +218,25 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (!cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
     },[sitesData])
 
+    const createCameraRow = (camera: CameraDataType) => {
+        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
+            if(map.current) {
+                if(forAddtraffic) {
+                    closeOverlayWrapper()
+                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
+                } else {
+                    if(selectedCCTVs?.includes(camera.cameraId)) {
+                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
+                    } else {
+                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
+                    }
+                }
+            }
+        }}>
+            {camera.name}
+        </CCTVItemContainer>
+    }
+
     const duplicatedCCTVSelect = useMemo(() => {
         return findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData)
     }, [duplicatedCCTVs, treeData])
@@ -249,25 +268,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     //         </CCTVRowContentsContainer>
     //     </CCTVRowContainer>
     // }
-
-    const createCameraRow = (camera: CameraDataType) => {
-        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
-            if(map.current) {
-                if(forAddtraffic) {
-                    closeOverlayWrapper()
-                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
-                } else {
-                    if(selectedCCTVs?.includes(camera.cameraId)) {
-                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
-                    } else {
-                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
-                    }
-                }
-            }
-        }}>
-            {camera.name}
-        </CCTVItemContainer>
-    }
 
     return <>
         <MapContainer ref={mapElement} 

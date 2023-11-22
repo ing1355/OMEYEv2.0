@@ -348,3 +348,7 @@ export const getLoadingTimeString = (time: number) => {
     str += `${second}초 경과`
     return str
 }
+
+export const ObjectKeyMaps = (obj: Object) => {
+    return Object.keys(obj).map
+}

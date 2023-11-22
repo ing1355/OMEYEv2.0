@@ -55,6 +55,8 @@ export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
 // VMS 설정
 export const GetVmsListApi = '/api/v2/settings/vms/list'
 export const GetVmsInfoApi = (siteName: string) => `/api/v2/settings/vms/${siteName}`
+export const PutVmsInfoApi = '/api/v2/settings/vms'
+export const SyncVmsApi = '/api/v2/settings/vms/synchronization'
 
 // OMEYE 설정
 export const getSettingsInfoApi = '/api/v2/settings'
@@ -67,3 +69,6 @@ export const maxCCTVCountApi = '/api/v2/settings/analyze/max-count'
 export const maxAnalyzeDurationApi = (duration: number) => `/api/v2/settings/analyze/duration/${duration}`
 
 // 서버 관리
+export const serverMgmtInfoApi = '/sse/mgmt/info'
+export const serverRebootApi = '/api/v2/mgmt/reboot'
+export const serverControlApi = '/api/v2/mgmt/servicectrl'

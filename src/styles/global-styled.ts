@@ -167,6 +167,7 @@ const GlobalStyle = createGlobalStyle`
       font-family: NanumGothic;
       &::-webkit-scrollbar {
         width: 14px;
+        height: 14px;
         overflow: hidden;
       }
       &::-webkit-scrollbar-thumb {

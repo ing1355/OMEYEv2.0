@@ -1,10 +1,8 @@
 import { atom, selector, selectorFamily, useRecoilState } from "recoil";
-import { GetAllSitesDataApi } from "../Constants/ApiRoutes";
 import { CameraDataType, SiteDataType } from "../Constants/GlobalTypes";
-import { Axios, GetAllSitesData } from "../Functions/NetworkFunctions";
+import { GetAllSitesData } from "../Functions/NetworkFunctions";
 import { MakeVMSCameraSitesForTreeView } from "../Functions/GlobalFunctions";
 import { LoadableDataType } from "../Constants/NetworkTypes";
-import { useMemo, useState } from "react";
 
 const _SitesData = atom({
     key: "SiteData",

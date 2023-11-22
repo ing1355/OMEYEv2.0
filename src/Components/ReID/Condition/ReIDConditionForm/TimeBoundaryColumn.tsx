@@ -2,7 +2,7 @@ import { useRecoilState, useSetRecoilState } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
 import { conditionIsRealTimeData, conditionTimeDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import { TimeSelectIndex, TimeSelectVisible } from "../../../../Model/ConditionParamsModalModel"
 import Button from "../../../Constants/Button"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
@@ -110,7 +110,7 @@ const TimeDataContainer = styled.div<{ selected: boolean }>`
     position: relative;
     cursor: pointer;
     &:hover {
-        border: 1px solid ${ContentsActivateColor};
+        background-color: ${ButtonBackgroundColor};
     }
 `
 

@@ -16,7 +16,7 @@ import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "..
 import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, defaultProgressRequestParams } from "../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
 import { CustomEventSource, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
 import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
@@ -27,11 +27,6 @@ type ReIDProgressProps = {
     visible: boolean
     close: () => void
 }
-
-const REID_START_MSG = 'REID_START'
-const REID_COMPLETE_MSG = 'REID_COMPLETE'
-const REID_CANCEL_MSG = 'REID_CANCEL'
-export const SSE_DESTORY_MSG = 'SSE_DESTROY'
 
 const getAllProgressPercent = (data: ProgressDataType[]) => {
     return Math.floor(data.reduce((pre, cur) => pre + getConditionPercent(cur.times), 0) / data.length)
@@ -48,30 +43,29 @@ const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
 
 const getSuccessByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
     const cctvIds = Object.keys(data)
-    const success = cctvIds.filter(_ => data[Number(_)].aiPercent === 100 && data[Number(_)].videoPercent === 100).length
+    const success = cctvIds.filter(_ => data[Number(_)].status === 'SUCCESS').length
     return success
 }
 
 const getFailByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
     const cctvIds = Object.keys(data)
-    const fail = cctvIds.filter(_ => data[Number(_)].aiPercent === -1 || data[Number(_)].videoPercent === -1).length
+    const fail = cctvIds.filter(_ => data[Number(_)].status === 'FAIL').length
     return fail
 }
 
 let intervalId: NodeJS.Timer
 
-const CCTVProgressRow = React.memo(({ videoPercent, aiPercent, cctvId }: {
-    videoPercent: number | string
-    aiPercent: number | string
+const CCTVProgressRow = ({ data, cctvId }: {
     cctvId: CameraDataType['cameraId']
+    data: ProgressDataPercentType
 }) => {
-    
+    const { aiPercent, videoPercent, status, errReason } = data
     return <CCTVProgressContainer>
         <CCTVProgressDataContainer>
             <CCTVProgressDataIconContainer>
                 <CCTVProgressDataIconContents src={ProgressLocationIcon} />
             </CCTVProgressDataIconContainer>
-            <CCTVProgressDataTitleContainer>
+            <CCTVProgressDataTitleContainer isFail={status === 'FAIL'} data-tooltip={errReason}>
                 <Suspense fallback={<></>}>
                     <CCTVNameById cctvId={cctvId} />
                 </Suspense>
@@ -96,10 +90,8 @@ const CCTVProgressRow = React.memo(({ videoPercent, aiPercent, cctvId }: {
             </CCTVProgressDataLabelContainer>
         </CCTVProgressDataContainer>
     </CCTVProgressContainer>
-}, (prev, next) => {
-    if (prev.videoPercent !== next.videoPercent || prev.aiPercent !== next.aiPercent) return false;
-    return true;
-})
+}
+
 const ConditionGroupContainer = ({ num, progressData, visible }: {
     num: number
     progressData: ProgressDataType
@@ -190,7 +182,7 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
                     }} />
                 </TimeGroupHeader>
                 <TimeGroupContents>
-                    {progressData && Object.keys(__.data).map((___, __ind) => <CCTVProgressRow key={__ind} cctvId={Number(___)} videoPercent={__.data[Number(___)].videoPercent} aiPercent={__.data[Number(___)].aiPercent} />)}
+                    {progressData && Object.keys(__.data).map((___, __ind) => <CCTVProgressRow key={__ind} cctvId={Number(___)} data={__.data[Number(___)]} />)}
                 </TimeGroupContents>
             </TimeGroupContainer>)
         }
@@ -224,6 +216,497 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const reidResultTimer = useRef<NodeJS.Timer>()
     const additinoalReidResultTimer = useRef<NodeJS.Timer>()
     
+    useEffect(() => {
+        setProgressData([
+            {
+                "times": [
+                    {
+                        "time": "2023-11-21 00:00:00 ~ 2023-11-21 00:05:00",
+                        "data": {
+                            "5925": {
+                                "aiPercent": 20,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5926": {
+                                "aiPercent": 20,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5927": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5928": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5929": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5930": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5931": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5932": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5933": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5934": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5935": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5936": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5937": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5938": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5939": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5940": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5941": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5942": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5943": {
+                                "aiPercent": 0,
+                                "videoPercent": 100,
+                                "status": "RUNNING"
+                            },
+                            "5944": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5945": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6293": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "FAIL",
+                                "errReason": "LOCAL_DOWNLOAD_FAIL"
+                            },
+                            "6419": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6420": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6421": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6422": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6423": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6424": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6425": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6426": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6427": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            }
+                        }
+                    },
+                    {
+                        "time": "2023-11-21 00:05:00 ~ 2023-11-21 00:15:00",
+                        "data": {
+                            "5925": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5926": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5927": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5928": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5929": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5930": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5931": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5932": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5933": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5934": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5935": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5936": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5937": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5938": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5939": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5940": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5941": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5942": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5943": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5944": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5945": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6293": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6419": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6420": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6421": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6422": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6423": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6424": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6425": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6426": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6427": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            }
+                        }
+                    },
+                    {
+                        "time": "2023-11-21 00:15:00 ~ 2023-11-21 00:20:00",
+                        "data": {
+                            "5925": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5926": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5927": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5928": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5929": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5930": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5931": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5932": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5933": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5934": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5935": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5936": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5937": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5938": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5939": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5940": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5941": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5942": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5943": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5944": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "5945": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6293": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6419": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6420": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6421": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6422": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6423": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6424": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6425": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6426": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            },
+                            "6427": {
+                                "aiPercent": 0,
+                                "videoPercent": 0,
+                                "status": "WAIT"
+                            }
+                        }
+                    }
+                ],
+                "title": "사람(전신) 검색"
+            }
+        ])
+    },[])
+    console.debug(progressData)
     useEffect(() => {
         reidResultRef.current = reidResult
         reidResultTempRef.current = reidResult
@@ -370,7 +853,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                 }))
                             }]
                         } else {
-                            setProgressRequestParams(defaultProgressRequestParams)
+                            // setProgressRequestParams(defaultProgressRequestParams)
                         }
                         break;
                     }
@@ -393,7 +876,8 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                     ...__.data,
                                     [cctvId]: {
                                         aiPercent,
-                                        videoPercent
+                                        videoPercent,
+                                        status: __.data[cctvId].status === 'WAIT' ? 'RUNNING' : ((aiPercent === 100 && videoPercent === 100) ? 'SUCCESS' : __.data[cctvId].status)
                                     }
                                 }
                             }) : __),
@@ -401,9 +885,26 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         }) : _)
                     } else {
                         console.debug(`${type} type sse data message : `, data)
+                        if(SSEResponseSingleProgressErrorMsg.includes(status)) {
+                            console.debug(`${type} sse fail event`)
+                            progressDataRef.current = progressDataRef.current.map((_, ind) => ind === conditionIndex ? ({
+                                times: _.times.map((__, _ind) => _ind === timeIndex ? ({
+                                    time: __.time,
+                                    data: {
+                                        ...__.data,
+                                        [cctvId]: {
+                                            ...__.data[cctvId],
+                                            status: 'FAIL',
+                                            errReason: status
+                                        }
+                                    }
+                                }) : __),
+                                title: _.title
+                            }) : _)
+                        }
                     }
 
-                    if (status === REID_COMPLETE_MSG) {
+                    if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_COMPLETE']]) {
                         setProgressStatus({ type: type, status: PROGRESS_STATUS['COMPLETE'] })
                         let callback;
                         switch (type) {
@@ -421,11 +922,11 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                             default: break;
                         }
                         message.preset('REIDCOMPLETE', '', callback)
-                    } else if (status === REID_CANCEL_MSG) {
+                    } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_CANCEL']]) {
                         console.debug(`${type} cancel event`)
                         message.preset('REIDCANCEL')
                         setProgressStatus({ type, status: PROGRESS_STATUS['CANCELD'] })
-                    } else if (status === REID_START_MSG) {
+                    } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_START']]) {
                         console.debug(`${type} start event`)
                         message.preset('REIDSTART')
                         if(reIdId) {
@@ -436,7 +937,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         setGlobalMenu(ReIdMenuKey)
                         setMenu(ReIDMenuKeys['REIDRESULT'])
                         setProgressStatus({ type, status: PROGRESS_STATUS['RUNNING'] })
-                    } else if (status === SSE_DESTORY_MSG) {
+                    } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                         console.debug(`${type} sse destroy event`)
                         if (errorCode) {
                             message.preset('REIDERROR', errorCode)
@@ -445,6 +946,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         sseRef.current?.close()
                         sseRef.current = undefined
                     }
+
                     switch (type) {
                         case 'ADDITIONALREID': {
                             const { results, objectId } = data
@@ -514,8 +1016,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
             };
             sseRef.current.onerror = async (e: any) => {
                 console.debug(`${_progressRequestParams.type} sse object delete`)
-                e.target.close();
                 clearInterval(intervalId)
+                e.target.close();
+                sseRef.current = undefined
             };
         } catch (err) {
             console.error(err)
@@ -523,7 +1026,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     }
 
     useEffect(() => {
-        console.debug('Request Params 변경 : ', _progressRequestParams)
+        console.debug('Request Params 변경 : ', _progressRequestParams, requestFlag)
         if(requestFlag) {
             if (_progressRequestParams.type) {
                 let temp: typeof progressData = [];
@@ -543,8 +1046,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                     return {
                                         ...accumulator, [value]: {
                                             aiPercent: 0,
-                                            videoPercent: 0
-                                        }
+                                            videoPercent: 0,
+                                            status: 'WAIT'
+                                        } as ProgressDataPercentType
                                     };
                                 }, {})
                             }
@@ -565,8 +1069,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                     return {
                                         ...acc, [value]: {
                                             aiPercent: 0,
-                                            videoPercent: 0
-                                        }
+                                            videoPercent: 0,
+                                            status: 'WAIT'
+                                        } as ProgressDataPercentType
                                     };
                                 }, {})
                             }]
@@ -773,6 +1278,8 @@ const CCTVProgressContainer = styled.div`
 
 const CCTVProgressDataContainer = styled.div`
     width: 100%;
+    z-index: 9999;
+    position: relative;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '4px' })}
 `
 
@@ -786,7 +1293,7 @@ const CCTVProgressDataIconContents = styled.img`
     height: 100%;
 `
 
-const CCTVProgressDataTitleContainer = styled.div`
+const CCTVProgressDataTitleContainer = styled.div<{isFail: boolean}>`
     font-size: .8rem;
     overflow: hidden;
     white-space: nowrap;
@@ -794,6 +1301,49 @@ const CCTVProgressDataTitleContainer = styled.div`
     flex: 0 0 calc(90% - 16px)%;
     font-weight: 300;
     font-family: NanumGothicLight;
+    ${({isFail}) => isFail && `
+        color: red;
+        cursor: pointer;
+        &:before,&:after {
+            visibility:hidden;
+            opacity:0;
+            position:absolute;
+            left:50%;
+            transform:translateX(-50%);
+            white-space:nowrap;
+            transition:all .2s ease;
+            font-size:11px;
+            letter-spacing:-1px;
+        }
+        &:before {
+            content:attr(data-tooltip);
+            height:13px;
+            position:absolute;
+            top:-20px;
+            padding:5px 10px;
+            border-radius:5px;
+            color:#fff;
+            background: ${SectionBackgroundColor};
+            box-shadow:0 3px 8px rgba(165, 165, 165, 0.5);
+        }
+        &:after {
+            content: '';
+            border-left:5px solid transparent;
+            top:2px;
+            border-right:5px solid transparent;
+            border-top:5px solid ${SectionBackgroundColor};
+        }
+        &:hover:before {
+            visibility:visible;
+            opacity:1;
+            top:-30px
+        }
+        &:hover:after {
+            visibility:visible;
+            opacity:1;
+            top:-8px
+        }
+    `}
 `
 
 const CCTVProgressDataLabelContainer = styled.div`

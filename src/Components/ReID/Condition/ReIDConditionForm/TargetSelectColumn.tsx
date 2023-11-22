@@ -2,7 +2,7 @@ import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
 import { conditionIsRealTimeData, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
 import { ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
@@ -122,7 +122,7 @@ const ItemContainer = styled.div<{ selected: boolean }>`
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     cursor: pointer;
     &:hover {
-        border: 1px solid ${ContentsActivateColor};
+        background-color: ${ButtonBackgroundColor};
     }
 `
 

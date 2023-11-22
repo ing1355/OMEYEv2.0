@@ -4,8 +4,9 @@ import Button from "../../Constants/Button"
 import Dropdown, { DropdownItemType } from "../../Layout/Dropdown"
 import { useEffect, useState } from "react"
 import { Axios } from "../../../Functions/NetworkFunctions"
-import { GetVmsInfoApi, GetVmsListApi } from "../../../Constants/ApiRoutes"
+import { GetVmsInfoApi, GetVmsListApi, PutVmsInfoApi, SyncVmsApi } from "../../../Constants/ApiRoutes"
 import { InputBackgroundColor } from "../../../styles/global-styled"
+import useMessage from "../../../Hooks/useMessage"
 
 type getVmsListType = {
   siteList: string[];
@@ -35,7 +36,9 @@ const VMSSettings = () => {
   }]);
   const [selectedSiteName, setSelectedSiteName] = useState<string>('');
   const [vmsInfo, setVmsInfo] = useState<vmsInfoType | null>(null);
-console.log('vmsInfo',vmsInfo)
+  const [isAgree, setIsAgree] = useState<boolean>(false);
+
+  const message = useMessage();
 
   const GetVmsList = async () => {
     const res:getVmsListType = await Axios('GET', GetVmsListApi)
@@ -63,6 +66,18 @@ console.log('vmsInfo',vmsInfo)
     }
   }
 
+  const PutVmsInfoFun = async () => {
+    const res = await Axios('PUT', PutVmsInfoApi, vmsInfo);
+    GetVmsInfoFun()
+  }
+
+  const SyncVmsApiFun = async () => {
+    const res = await Axios('GET', SyncVmsApi)
+    if (res) {
+      console.log('res', res);
+    }
+  }
+
   useEffect(() => {
     GetVmsList();
   },[])
@@ -70,8 +85,8 @@ console.log('vmsInfo',vmsInfo)
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
       <div style={{display: 'flex'}}>
-        <div style={{width: '9%'}}>사이트 이름</div>
-        <div style={{display: 'flex', flexDirection: 'row'}}>
+        <div style={{width: '9%', lineHeight: '30px'}}>사이트 이름</div>
+        <div style={{display: 'flex', flexDirection: 'row', gap: '10px'}}>
           <SiteDropdown 
             itemList={vmsDropdownList}
             bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1, width: '120px'}}
@@ -79,96 +94,141 @@ console.log('vmsInfo',vmsInfo)
               setSelectedSiteName(val.value as string);
             }}
           />
-          <VMSButton 
-            hover
-            onClick={GetVmsInfoFun}
-          >
-            확인
-          </VMSButton>
+          <div>
+            <VMSButton 
+              hover
+              onClick={GetVmsInfoFun}
+            >
+              확인
+            </VMSButton>
+          </div>
+          {vmsInfo &&
+            <div>
+              <VMSButton 
+                hover
+                onClick={PutVmsInfoFun}
+              >
+                수정
+              </VMSButton>
+            </div>
+          }
         </div>
-
-        {/* <SiteInput placeholder="사이트 이름을 입력해주세요."/> */}
-        {/* <div style={{marginLeft: '15px'}}>
-          <VMSButton hover>확인</VMSButton>
-        </div> */}
       </div>
 
       {vmsInfo ?
         <>
-         {vmsInfo?.vmsType === 'vurix' ?
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>VMS 타입</div>
+            <div style={{lineHeight: '30px'}}>{vmsInfo.vmsType}</div>
+          </div>
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>API 서버 IP</div>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+              {vmsInfo.vmsServerIp.map((data, index) => (
+                <IPInput 
+                  key={'vurix_vmsServerIp' + index}
+                  value={data}
+                  onChange={(e) => {
+                    const ipTemp = [...vmsInfo.vmsServerIp];
+                    ipTemp[index] = e;
+
+                    setVmsInfo((pre) => ({
+                      ...pre!,
+                      vmsServerIp: ipTemp,
+                    }))
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{marginLeft: '15px'}}>
+              <VMSButton 
+                hover
+                onClick={() => {
+                  setVmsInfo((pre) => ({
+                    ...pre!,
+                    vmsServerIp: vmsInfo.vmsServerIp.concat('')
+                  }))
+                }}
+              >
+                추가
+              </VMSButton>
+            </div>
+          </div>
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>ID</div>
+            <SiteInput 
+              value={vmsInfo.vmsId} 
+              onChange={(e) => {
+                setVmsInfo((pre) => ({
+                  ...pre!,
+                  vmsId: e
+                }))
+              }}
+            />
+          </div>     
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>PW</div>
+            <SiteInput 
+              value={vmsInfo.vmsPw}
+              onChange={(e) => {
+                setVmsInfo((pre) => ({
+                  ...pre!,
+                  vmsPw: e
+                }))
+              }}
+            />
+          </div> 
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>최대 저장 기간</div>
+            <SiteInput 
+              value={vmsInfo.maxStoredDay}
+              onChange={(e) => {
+                setVmsInfo((pre) => ({
+                  ...pre!,
+                  maxStoredDay: parseInt(e)
+                }))
+              }}                  
+            />
+          </div> 
+
+         {vmsInfo?.vmsType === 'vurix' &&
             <>
               <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>VMS 타입</div>
-                <div>{vmsInfo.vmsType}</div>
+                <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>그룹 ID</div>
+                <SiteInput 
+                  value={vmsInfo.vmsGroup}
+                  onChange={(e) => {
+                    setVmsInfo((pre) => ({
+                      ...pre!,
+                      vmsGroup: e
+                    }))
+                  }}        
+                />
               </div>
               <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>API 서버 IP</div>
-                {vmsInfo.vmsServerIp.map((data) => (
-                  <SiteInput value={data}/>
-                ))}
-                <div style={{marginLeft: '15px'}}>
-                  <VMSButton hover>추가</VMSButton>
-                </div>
-              </div>
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>ID</div>
-                <SiteInput value={vmsInfo.vmsId}/>
-              </div>     
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>PW</div>
-                <SiteInput value={vmsInfo.vmsPw}/>
-              </div> 
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>최대 저장 기간</div>
-                <SiteInput value={vmsInfo.maxStoredDay}/>
-              </div> 
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>그룹 ID</div>
-                <SiteInput value={vmsInfo.vmsGroup}/>
-              </div>
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>라이센스</div>
-                <SiteInput value={vmsInfo.vmsLic}/>
-              </div> 
-            </>
-          :
-            <>
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>VMS 타입</div>
-                <div>{vmsInfo.vmsType}</div>
-              </div>
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>API 서버 IP</div>
-                {vmsInfo.vmsServerIp.map((data) => (
-                  <SiteInput value={data}/>
-                ))}
-                <div style={{marginLeft: '15px'}}>
-                  <VMSButton hover>추가</VMSButton>
-                </div>
-              </div>
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>ID</div>
-                <SiteInput value={vmsInfo.vmsId}/>
-              </div>     
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>PW</div>
-                <SiteInput value={vmsInfo.vmsPw}/>
-              </div>  
-              <div style={{display: 'flex'}}>
-                <div style={{width: '9%', paddingLeft: '15px'}}>최대 저장 기간</div>
-                <SiteInput value={vmsInfo.maxStoredDay}/>
+                <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>라이센스</div>
+                <SiteInput 
+                  maxLength={48}
+                  value={vmsInfo.vmsLic}
+                  onChange={(e) => {
+                    setVmsInfo((pre) => ({
+                      ...pre!,
+                      vmsLic: e
+                    }))
+                  }} 
+                />
               </div> 
             </>
           }
           <div style={{display: 'flex'}}>
-            <div style={{width: '9%', paddingLeft: '15px'}}>엑셀 업로드</div>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>엑셀 업로드</div>
             <VMSButton hover>업로드</VMSButton>
             {/* <div>text.xsl</div> */}
           </div>
           <div style={{display: 'flex'}}>
-            <div style={{width: '9%', paddingLeft: '15px'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>
               <div>동기화</div>
-              <div>아이콘</div>
+              {/* <div>아이콘</div> */}
             </div>
             <div>
               연동될 VMS 내의 사이트 및 CCTV 정보를 원모어아이의 데이터베이스에 동기화하는 과정입니다. 
@@ -181,10 +241,24 @@ console.log('vmsInfo',vmsInfo)
 
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <div style={{marginBottom: '15px'}}>
-                  <input type="checkbox" />
+                  <input type="checkbox" 
+                    checked={isAgree} 
+                    onChange={() => {setIsAgree(!isAgree)}}
+                  />
                   예, 동의합니다. 
                 </div>
-                <VMSButton hover>동기화</VMSButton>
+                <VMSButton 
+                  hover
+                  onClick={() => {
+                    if(!isAgree) {
+                      message.error({ title: '동기화 에러', msg: '동기화 동의를 체크해주세요.' })
+                    } else {
+                      SyncVmsApiFun();
+                    }
+                  }}  
+                >
+                  동기화
+                </VMSButton>
               </div>
             </div>
           </div>
@@ -220,5 +294,18 @@ const SiteInput = styled(Input)`
 const VMSButton = styled(Button)`
   height: 30px;
   width: 100px;
+`
+
+const IPInput = styled(Input)`
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  border-radius: 10px
+  font-size: 2.3rem;
+  text-align: center;
+  flex: 0 0 30px;
+  color: white;
+  width: 480px;
 `
 

@@ -2,7 +2,7 @@ import { useRecoilState, useSetRecoilState } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
 import { conditionAreaDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import { AreaSelectIndex, AreaSelectVisible } from "../../../../Model/ConditionParamsModalModel"
 import Button from "../../../Constants/Button"
 import IconBtn from "../../../Constants/IconBtn"
@@ -97,7 +97,7 @@ const AreaDataItem = styled.div<{ selected: boolean }>`
     ${globalStyles.flex({ gap: '8px', justifyContent: 'space-between' })}
     cursor: pointer;
     &:hover {
-        border: 1px solid ${ContentsActivateColor};
+        background-color: ${ButtonBackgroundColor};
     }
 `
 

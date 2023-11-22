@@ -15,7 +15,7 @@ import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
 import useMessage from "../../../Hooks/useMessage"
 import { CustomEventSource, GetAuthorizationToken } from "../../../Constants/GlobalConstantsValues"
-import { PROGRESS_STATUS, SSEResponseStatusType } from "../../../Model/ProgressModel"
+import { PROGRESS_STATUS, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseStatusType } from "../../../Model/ProgressModel"
 import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
 import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys } from "../Condition/TargetSelect/PersonDescription/DescriptionType"
@@ -231,7 +231,7 @@ const RealTimeReID = () => {
                             });
                     }
                 }
-                if (status === 'SSE_DESTROY') {
+                if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                     console.debug('realtime sse end')
                     setRtStatus(PROGRESS_STATUS['IDLE'])
                     clearInterval(timerId)

@@ -19,8 +19,16 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
     const escKeydownCallback = useCallback((e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             close()
+        } else if(e.key === 'Enter') {
+            if(isConfirm) {
+                if(complete) {
+                    if(!complete()) {
+                        close()
+                    }
+                }
+            }
         }
-    }, [])
+    }, [complete])
 
     const mouseDownCallback = useCallback((e: MouseEvent) => {
         if (containerRef.current) {

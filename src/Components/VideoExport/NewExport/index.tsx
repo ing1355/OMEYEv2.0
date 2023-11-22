@@ -22,7 +22,7 @@ import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
 import useMessage from "../../../Hooks/useMessage"
-import { SSEResponseErrorMsg } from "../../../Model/ProgressModel"
+import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
 import { useRecoilValue } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
 
@@ -216,7 +216,8 @@ const defaultExportRowData: VideoExportRowDataType = {
     },
     progress: {
         aiPercent: 0,
-        videoPercent: 0
+        videoPercent: 0,
+        status: "WAIT"
     }
 }
 
@@ -274,7 +275,8 @@ const NewExport = () => {
                 },
                 "progress": {
                     "aiPercent": 0,
-                    "videoPercent": 0
+                    "videoPercent": 0,
+                    "status": "WAIT"
                 }
             },
             {
@@ -292,7 +294,8 @@ const NewExport = () => {
                 },
                 "progress": {
                     "aiPercent": 0,
-                    "videoPercent": 0
+                    "videoPercent": 0,
+                    "status": "WAIT"
                 }
             }
         ])
@@ -354,7 +357,8 @@ const NewExport = () => {
                         ...currentData.current,
                         progress: {
                             aiPercent,
-                            videoPercent
+                            videoPercent,
+                            status: 'RUNNING'
                         }
                     }
                     if (tempTimer.current) clearTimeout(tempTimer.current)
@@ -387,7 +391,7 @@ const NewExport = () => {
                     status: 'cancel'
                 }) : _))
             }
-            if (status === 'SSE_DESTROY') {
+            if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                 sseRef.current!.close()
                 sseRef.current = undefined
             }
