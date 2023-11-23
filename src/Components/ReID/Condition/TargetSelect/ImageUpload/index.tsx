@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import ImageDetailContainer from "./ImageDetailContainer"
 import ImageListContainer from "./ImageListContainer"
 import { useRecoilValue, useSetRecoilState } from "recoil"
-import { conditionTargetDatasImageTemp, selectedConditionObjectType } from "../../../../../Model/ConditionDataModel"
+import { conditionSelectedType, conditionTargetDatasImageTemp } from "../../../../../Model/ConditionDataModel"
 
 export type ImageUploadImagesType = {
     name: string
@@ -18,7 +18,7 @@ export type ImageUploadImagesType = {
 const ImageUpload = () => {
     const [images, setImages] = useState<ImageUploadImagesType[]>([])
     const [selected, setSelected] = useState<number | null>(null)
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const currentObjectType = useRecoilValue(conditionSelectedType)
     const setImageDatasTemp = useSetRecoilState(conditionTargetDatasImageTemp)
     
     useEffect(() => {

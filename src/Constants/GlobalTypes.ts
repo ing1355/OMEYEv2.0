@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react'
-import { ConditionDataSingleType } from '../Model/ConditionDataModel';
+import { ConditionDataType } from '../Model/ConditionDataModel';
 import { ReIDMenuKeys } from '../Components/ReID/ConstantsValues';
 import { ConditionDataTargetSelectMethodTypeKeys } from '../Components/ReID/Condition/Constants/Params';
 import { descriptionParamType } from '../Components/ReID/Condition/TargetSelect/PersonDescription/DescriptionType';
@@ -87,12 +87,9 @@ export type ReIDResultConditionDataType = {
   }[]
 }
 
-export type SavedJSONType = { selectedType: ReIDObjectTypeKeys } & {
-  [key in ReIDObjectTypeKeys]?: ConditionDataSingleType
-}
+export type SavedJSONType = ConditionDataType
 
 export type CaptureResultListItemType = {
-  id: number
   src: string
   type: ReIDObjectTypeKeys
   accuracy?: number

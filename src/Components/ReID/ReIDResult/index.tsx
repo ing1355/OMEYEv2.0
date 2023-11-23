@@ -15,6 +15,7 @@ import { ReIDObjectTypeEmptyIcons } from "../ConstantsValues"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
 import ForLog from "../../Constants/ForLog"
+import { ReIDResultTestData } from "../../../Model/TestDatas"
 
 const ReIDResult = () => {
     const [isMapView, setIsMapView] = useState(false)
@@ -26,7 +27,7 @@ const ReIDResult = () => {
     const [resultDatas, setResultDatas] = useRecoilState(ReIDAllResultData)
     const reIDResultKeys = useRecoilValue(ReIDResultDataKeys)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
-
+    
     const mapViewToggle = () => {
         setIsMapView(!isMapView)
     }
@@ -36,12 +37,13 @@ const ReIDResult = () => {
     }, [selectedView, reidSelectedCondition])
 
     const test = async () => {
-        const res = await GetReIDResultById(170)
-        if (res) setResultDatas([res])
+        // setResultDatas(ReIDResultTestData)
+        // const res = await GetReIDResultById(170)
+        // if (res) setResultDatas([res])
     }
 
     useEffect(() => {
-        // if(process.env.NODE_ENV === 'development') test()
+        if(process.env.NODE_ENV === 'development') test()
     }, [])
 
     return <>
@@ -62,14 +64,12 @@ const ReIDResult = () => {
                                 width: '30px'
                             }}/>
                             {ind+1}
-                            {!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING'])) ? <DeleteIconContainer onClick={(e) => {
+                            <DeleteIconContainer onClick={(e) => {
                                 e.stopPropagation()
                                 setModalVisible(_.reIdId)
                             }}>
-                                <DeleteIcon src={deleteIcon} />
-                            </DeleteIconContainer> : <div style={{
-                                width: '26px'
-                            }}/>}
+                                {!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING'])) && <DeleteIcon src={deleteIcon} />}
+                            </DeleteIconContainer>
                         </Title>)
                     }
                 </TitleContainer>
@@ -108,7 +108,7 @@ const ReIDResult = () => {
 
 export default ReIDResult
 
-const innerHeaderHeight = 45
+const innerHeaderHeight = 60
 
 const Container = styled.div`
     height: 100%;
@@ -123,19 +123,19 @@ const Header = styled.div`
 
 const TitleContainer = styled.div`
     flex: 1;
-    max-width: calc(100% - 560px);
+    max-width: calc(100% - 520px);
     overflow: auto;
     height: 100%;
     padding: 6px 0;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '6px' })}
     position: relative;
 `
-
-const Title = styled.div<{ isSelected: boolean }>`
+    
+    const Title = styled.div<{ isSelected: boolean }>`
     color: white;
     font-size: 1.1rem;
     cursor: pointer;
-    height: 100%;
+    height: 30px;
     padding: 0;
     z-index: ${({ isSelected }) => isSelected ? 10 : 9};
     border-radius: 6px;

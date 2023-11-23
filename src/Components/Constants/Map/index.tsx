@@ -10,7 +10,7 @@ import { CustomMap } from './CustomMap';
 import Input from "../../Constants/Input"
 import { ButtonDefaultHoverColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
 import Button from "../Button";
-import { ArrayDeduplication, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
+import { convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 import TimeModal from "../../ReID/Condition/Constants/TimeModal";
 import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel";
 import useMessage from "../../../Hooks/useMessage";
@@ -106,11 +106,9 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 break;
         }
         map.current.init()
-        if (!cameras && !(singleCamera && forSingleCamera)) map.current.createMarkersBySites(sitesData)
         if (forAddtraffic) {
             map.current?.addTrafficOverlayViewChangeListener((view, targetId) => {
                 if (targetId) {
-                    console.log(selectedReIdResultDataRef.current)
                     const temp = selectedReIdResultDataRef.current?.flatMap(_ => Object.keys(_).flatMap(__ => _[Number(__)])).sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1)
                     if (temp && temp.length > 0) {
                         setTimeValue({
@@ -190,7 +188,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [trafficOverlayView, circleSelectOverlayView, r, rUnit])
 
     const selectCCTVsInCircle = () => {
-        selectedChange!(ArrayDeduplication(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || [])))
+        selectedChange!(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || []).deduplication())
         map.current?.closeOverlayView()
     }
 
@@ -215,9 +213,36 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         if (initEvent && selectedChange) selectedChange([])
     }, [initEvent])
 
+    useEffect(() => {
+        if (!cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
+    },[sitesData])
+
+    const createCameraRow = (camera: CameraDataType) => {
+        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
+            if(map.current) {
+                if(forAddtraffic) {
+                    closeOverlayWrapper()
+                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
+                } else {
+                    if(selectedCCTVs?.includes(camera.cameraId)) {
+                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
+                    } else {
+                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
+                    }
+                }
+            }
+        }}>
+            {camera.name}
+        </CCTVItemContainer>
+    }
+
     const duplicatedCCTVSelect = useMemo(() => {
         return findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData)
     }, [duplicatedCCTVs, treeData])
+
+    const duplicatedCCTVSelectView = useMemo(() => {
+        return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
+    },[duplicatedCCTVSelect])
 
     // const createSiteRowByCollapse = (data: SiteDataType) => {
     //     const isOpened = collapseOpen.includes(data.fullName)
@@ -242,25 +267,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     //         </CCTVRowContentsContainer>
     //     </CCTVRowContainer>
     // }
-
-    const createCameraRow = (camera: CameraDataType) => {
-        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
-            if(map.current) {
-                if(forAddtraffic) {
-                    closeOverlayWrapper()
-                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
-                } else {
-                    if(selectedCCTVs?.includes(camera.cameraId)) {
-                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
-                    } else {
-                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
-                    }
-                }
-            }
-        }}>
-            {camera.name}
-        </CCTVItemContainer>
-    }
 
     return <>
         <MapContainer ref={mapElement} 
@@ -302,7 +308,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         CCTV
                     </CCTVListHeader>
                     <CCTVContentsContainer>
-                        {ArrayDeduplication(duplicatedCCTVSelect.flatMap(_ => _.cameras), (a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))}
+                        {duplicatedCCTVSelectView}
                     </CCTVContentsContainer>
                 </CCTVListContainer>}
             </ControlsContainer>
@@ -429,7 +435,11 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                 setR(val)
                             }} style={{
                                 paddingRight: '60px'
-                            }} onEnter={selectCCTVsInCircle} />
+                            }} onEnter={selectCCTVsInCircle} onBlur={() => {
+                                if(!r) {
+                                    setR('1')
+                                }
+                            }}/>
                             <AddReIDInputContentLabel>
                                 <AddReIDInputContentLabelItem selected={rUnit === 'm'} onClick={() => {
                                     setRUnit('m')

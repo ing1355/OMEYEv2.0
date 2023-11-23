@@ -10,8 +10,8 @@ import { ConvertWebImageSrcToServerBase64ImageSrc } from "../../../../Functions/
 import ImageViewWithCanvas from "./ImageViewWithCanvas"
 import searchIcon from "../../../../assets/img/searchIcon.png"
 import { useRecoilValue } from "recoil"
-import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
 import useMessage from "../../../../Hooks/useMessage"
+import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
 
 type CaptureContainerProps = {
     src?: string
@@ -23,7 +23,7 @@ const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) 
     const [userCaptureOn, setUserCaptureOn] = useState(false)
     const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
     const [loading, setLoading] = useState(false)
-    const objType = useRecoilValue(selectedConditionObjectType)
+    const objType = useRecoilValue(conditionSelectedType)
     const message = useMessage()
 
     return <DetailMiddleContainer>

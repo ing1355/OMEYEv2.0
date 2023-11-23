@@ -11,6 +11,7 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
 import { IS_PRODUCTION } from './Constants/GlobalConstantsValues';
+import { getLocalIp } from './Functions/NetworkFunctions';
 
 type ServerErrorDataType = {
   code: number
@@ -34,20 +35,13 @@ const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
   }
 }
 
-const getLocalIp = async () => {
-  const conn = new RTCPeerConnection()
-  conn.createDataChannel('')
-  conn.setLocalDescription(await conn.createOffer())
-  return await new Promise((resolve, reject) => {
-    conn.onicecandidate = ice => {
-      if (ice && ice.candidate && ice.candidate.candidate) {
-        resolve(ice.candidate.candidate.split(' ')[4])
-        conn.close()
-      } else {
-        reject('ip connection fail')
-      }
-    }
-  })
+
+
+const msgByStatusCode = (code: number, msg?: string) => {
+  if(code === 500) {
+    return "서버 통신 에러"
+  }
+  return msg || '서버 상태를 확인해주세요.'
 }
 
 const App = () => {
@@ -77,13 +71,13 @@ const App = () => {
     axios.interceptors.response.use(res => {
       return res;
     }, err => {
-      console.error(err)
+      console.error('Axios error : ' ,err)
       if (err.response) {
         const { status, data } = err.response
         const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
         _message.error({
           title: serverErrorTitleByStatusCode(status),
-          msg: status !== 502 ? (errorCode || message) : '서버 상태를 확인해주세요.'
+          msg: msgByStatusCode(status, (errorCode || message))
         })
         if (code === 401 || status === 502) {
           setLoginState(null)

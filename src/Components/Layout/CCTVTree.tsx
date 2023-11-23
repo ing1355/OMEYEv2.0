@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { CameraDataType, SiteDataType } from "../../Constants/GlobalTypes"
 import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ContentsBorderColor, globalStyles } from "../../styles/global-styled"
 import CCTVIcon from '../../assets/img/treeCCTVIcon.png'
-import { ArrayDeduplication } from "../../Functions/GlobalFunctions"
 import CollapseArrow from "../Constants/CollapseArrow"
 import Button from "../Constants/Button"
 
@@ -37,7 +36,7 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
     const sitesData = useRecoilValue(SitesDataForTreeView)
     const lastClickedCCTV = useRef<CameraDataType['cameraId']>(0)
     const shiftKeyClicked = useRef(false)
-
+    
     const keyDownCallback = useCallback((e: KeyboardEvent) => {
         if(e.key === 'Shift') {
             shiftKeyClicked.current = true
@@ -62,7 +61,7 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
 
     useEffect(() => {
         if (searchCCTVId && searchCCTVId) {
-            selectedChange(ArrayDeduplication([...selectedCCTVs, searchCCTVId]))
+            selectedChange([...selectedCCTVs, searchCCTVId].deduplication())
         }
     }, [searchCCTVId])
 
@@ -99,9 +98,9 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
                                 const s_ind = parent.cameras.findIndex(_ => _.cameraId === data.cameraId)
                                 if(l_ind !== -1 && s_ind !== -1) {
                                     if(l_ind > s_ind) {
-                                        selectedChange(ArrayDeduplication(selectedCCTVs.concat(parent.cameras.filter((_, i) => i <= l_ind && i >= s_ind).map(_ => _.cameraId))))
+                                        selectedChange(selectedCCTVs.concat(parent.cameras.filter((_, i) => i <= l_ind && i >= s_ind).map(_ => _.cameraId)).deduplication())
                                     } else {
-                                        selectedChange(ArrayDeduplication(selectedCCTVs.concat(parent.cameras.filter((_, i) => i >= l_ind && i <= s_ind).map(_ => _.cameraId))))
+                                        selectedChange(selectedCCTVs.concat(parent.cameras.filter((_, i) => i >= l_ind && i <= s_ind).map(_ => _.cameraId)).deduplication())
                                     }
                                 }
                             } else {
@@ -125,7 +124,7 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
     }
 
     const createSiteNode = (data: SiteDataType, depth: number, parentHasCameras: boolean) => {
-        const allCameraIds = ArrayDeduplication(getCameraIdsInNode(data))
+        const allCameraIds = getCameraIdsInNode(data).deduplication()
         return <NodeContainer depth={depth} opened={opened.includes(data.fullName)} key={data.siteId}>
             <NodeContentsContainer isCamera={false}>
                 {

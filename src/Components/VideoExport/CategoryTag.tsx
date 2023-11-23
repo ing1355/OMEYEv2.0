@@ -2,13 +2,13 @@ import styled from "styled-components"
 import { ButtonActiveBackgroundColor, ButtonInActiveBackgroundColor, InputBackgroundColor } from "../../styles/global-styled"
 
 type CategoryTagProps = {
-    selected: boolean
+    selected?: boolean
     title: string
     onClick?: () => void
     description?: string
 }
 
-const CategoryTag = ({ title, selected, onClick, description }: CategoryTagProps) => {
+const CategoryTag = ({ title, selected=false, onClick, description }: CategoryTagProps) => {
     return <Tag selected={selected} onClick={onClick}>
         {title}
         {description && <DescriptionContainer>

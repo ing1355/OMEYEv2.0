@@ -2,19 +2,19 @@ import styled from "styled-components"
 import { GlobalBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import useConditionRoutes from "./Hooks/useConditionRoutes"
 import Button from "../../Constants/Button"
-import { ConditionRouteInfo, ConditionRouteType, ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
+import { ConditionRouteInfo, ConditionRouteType, ReIDConditionFormRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "./Constants/RouteInfo"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { conditionRoute } from "../../../Model/ConditionRouteModel"
-import { addConditionSingleTimeData, conditionAreaDatas, conditionData, conditionTargetDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTargetDatasListByObjectType, conditionTimeDatas, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
+import { addConditionSingleTimeData, conditionAreaDatas, conditionData, conditionSelectedType, conditionTargetDatas, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp, conditionTimeDatas } from "../../../Model/ConditionDataModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
-import backIcon from '../../../assets/img/backIcon.png'
 import homeIcon from '../../../assets/img/homeIcon.png'
+import hoverHomeIcon from '../../../assets/img/hoverHomeIcon.png'
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { descriptionData } from "../../../Model/DescriptionDataModel"
 import { hasValuePersonDescription } from "./TargetSelect/PersonDescription/Functions"
 import { GetObjectIdByImage } from "../../../Functions/NetworkFunctions"
-import { ArrayDeduplication, DivToImg } from "../../../Functions/GlobalFunctions"
+import { DivToImg } from "../../../Functions/GlobalFunctions"
 import TimeModal from "./Constants/TimeModal"
 import { AreaSelectIndex, AreaSelectVisible, TimeSelectIndex, TimeSelectVisible } from "../../../Model/ConditionParamsModalModel"
 import { Fragment, useEffect, useLayoutEffect, useMemo, useState } from "react"
@@ -28,12 +28,12 @@ import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 
 const ContentsWrapper = () => {
+    const [homeHover, setHomeHover] = useState(false)
     const routeInfo = useRecoilValue(conditionRoute)
     const progressStatus = useRecoilValue(ProgressStatus)
     const personDescriptionData = useRecoilValue(descriptionData)
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
     const _conditionData = useRecoilValue(conditionData)
-    const [targetDatas, setTargetDatas] = useRecoilState(conditionTargetDatas(currentObjectType))
+    const [targetDatas, setTargetDatas] = useRecoilState(conditionTargetDatas)
     const targetDatasCCTVTemp = useRecoilValue(conditionTargetDatasCCTVTemp)
     const targetDatasImageTemp = useRecoilValue(conditionTargetDatasImageTemp)
     const setCurrentMenu = useSetRecoilState(conditionMenu)
@@ -48,6 +48,7 @@ const ContentsWrapper = () => {
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
+    const currentObjectType = useRecoilValue(conditionSelectedType)
     const { routePop, routeJump, routePush, getAllRoutes, getRouteName, getCurrentRoute } = useConditionRoutes()
     const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
@@ -102,43 +103,38 @@ const ContentsWrapper = () => {
     const completeCallback = async () => {
         console.debug('route : ', routeInfo.at(-1))
         switch (routeInfo.at(-1)) {
-            case ReIDConditionFormRoute.key:
+            case ReIDConditionFormRoute.key: {
+                const filteredTarget = targets.filter(_ => _.selected)
+                if(filteredTarget.length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
+                    if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간 그룹을 1개 이상 선택해주세요."})
+                    if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV 그룹을 1대 이상 선택해주세요."})
+                    if(filteredTarget.some(_ => filteredTarget.find(__ => __.type !== _.type))) return message.error({title: "입력값 에러", msg:`여러 타입의 대상을 선택하셨습니다.\n하나의 타입만 선택해주세요.\n선택된 타입 : ${targets.map(_ => ReIDObjectTypes.find(__ => __.key === _.type)?.title).deduplication().join(',')}`})
                 if (isRealTime) {
                     if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
-                    if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
-                    if (ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)).length === 0) {
-                        return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
-                    }
-                    if (targets.filter(_ => _.selected).length === 0) {
-                        return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' })
-                    }
-                    if (targets.filter(_ => _.selected).length > 1) {
+                    if (filteredTarget.length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
-                    if(currentObjectType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
+                    if(filteredTarget[0].type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
                         setRealTimeData({
-                            type: currentObjectType,
-                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
-                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            type: filteredTarget[0].type,
+                            cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
+                            objectId: filteredTarget[0].objectId,
                             threshHold: 1,
-                            description: targets.filter(_ => _.selected)[0].description,
-                            src: targets.filter(_ => _.selected)[0].src
+                            description: filteredTarget[0].description,
+                            src: filteredTarget[0].src
                         })
                     } else {
                         setRealTimeData({
-                            type: currentObjectType!,
-                            cameraIdList: ArrayDeduplication(cctv.filter(_ => _.selected).flatMap(_ => _.cctvList)),
-                            objectId: targets.filter(_ => _.selected)[0].objectId,
+                            type: filteredTarget[0].type,
+                            cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
+                            objectId: filteredTarget[0].objectId,
                             threshHold: 50,
-                            src: targets.filter(_ => _.selected)[0].src
+                            src: filteredTarget[0].src
                         })
                     }
                     setRtStatus(PROGRESS_STATUS['RUNNING'])
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
                 } else {
-                    if(targets.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
-                    if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간을 1개 이상 선택해주세요."})
-                    if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV를 1개 이상 선택해주세요."})
                     setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
@@ -152,7 +148,7 @@ const ContentsWrapper = () => {
                                 cctvIds: cctv.filter(_ => _.selected).map(_ => _.cctvList),
                                 rank,
                                 etc,
-                                objects: targets.filter(_ => _.selected).map(_ => ({
+                                objects: filteredTarget.map(_ => ({
                                     id: _.objectId!,
                                     src: _.src,
                                     type: _.type
@@ -162,6 +158,7 @@ const ContentsWrapper = () => {
                     })
                 }
                 break;
+            }
             case ReIDConditionTargetSelectPersonDescriptionRoute.key:
                 const target = document.getElementById(PersonDescriptionResultImageID) as HTMLDivElement
                 if(!target) return message.error({title: "입력값 에러", msg:"인상착의 이미지를 설정하지 않았습니다."})
@@ -171,16 +168,18 @@ const ContentsWrapper = () => {
                     image,
                     attribution: personDescriptionData
                 }]))
-                setTargetDatas(targetDatas.concat({
-                    id: getLastTargetListId(),
-                    type: 'ATTRIBUTION',
-                    src: image,
-                    selected: false,
-                    objectId: objectIds4[0],
-                    method: 'Description',
-                    description: personDescriptionData
-                }))
-                return routeJump(ReIDConditionFormRoute.key)
+                if(objectIds4) {
+                    setTargetDatas(targetDatas.concat({
+                        type: 'ATTRIBUTION',
+                        src: image,
+                        selected: false,
+                        objectId: objectIds4[0],
+                        method: 'Description',
+                        description: personDescriptionData
+                    }))
+                    return routeJump(ReIDConditionFormRoute.key)
+                }
+                break;
             case ReIDConditionTargetSelectCCTVRoute.key:
                 const targets1 = targetDatasCCTVTemp.filter(_ => _.selected)
                 if (targets1.length > 0) {
@@ -189,13 +188,16 @@ const ContentsWrapper = () => {
                         image: _.src,
                         mask: _.mask
                     })))).map(_ => _)
-                    setTargetDatas(targetDatas.concat(targets1.map((_, ind) => ({
-                        ..._,
-                        selected: false,
-                        objectId: objectIds1[ind]
-                    }))))
+                    if(objectIds1) {
+                        setTargetDatas(targetDatas.concat(targets1.map((_, ind) => ({
+                            ..._,
+                            selected: false,
+                            objectId: objectIds1[ind]
+                        }))))
+                    }
+                    return routeJump(ReIDConditionFormRoute.key)
                 }
-                return routeJump(ReIDConditionFormRoute.key)
+                break;
             case ReIDConditionTargetSelectImageRoute.key:
                 const targets2 = targetDatasImageTemp.filter(_ => _.selected)
                 if (targets2.length > 0) {
@@ -204,13 +206,16 @@ const ContentsWrapper = () => {
                         image: _.src,
                         mask: _.mask
                     })))).map(_ => _)
-                    setTargetDatas(targetDatas.concat(targets2.map((_, ind) => ({
-                        ..._,
-                        selected: false,
-                        objectId: objectIds2[ind]
-                    }))))
+                    if(objectIds2) {
+                        setTargetDatas(targetDatas.concat(targets2.map((_, ind) => ({
+                            ..._,
+                            selected: false,
+                            objectId: objectIds2[ind]
+                        }))))
+                        return routeJump(ReIDConditionFormRoute.key)
+                    }
                 }
-                return routeJump(ReIDConditionFormRoute.key)
+                break;
             default:
                 return routeJump(ReIDConditionFormRoute.key)
         }
@@ -218,11 +223,16 @@ const ContentsWrapper = () => {
 
     return <>
         <Container>
-            <Header noHeader={routeInfo.length < 2}>
+            <Header noHeader={false}>
                 <HeaderSubContainer>
-                    <BackButton onClick={() => {
-                        routeJump(ObjectTypeSelectRoute.key)
-                    }} icon={homeIcon} />
+                    {routeInfo.length > 1 && <BackButton onClick={() => {
+                        routeJump(ReIDConditionFormRoute.key)
+                    }} icon={homeHover ? hoverHomeIcon : homeIcon} 
+                    onMouseOver={() => {
+                        setHomeHover(true)
+                    }} onMouseLeave={() => {
+                        setHomeHover(false)
+                    }}/>}
                     <HeaderHistories>
                         {
                             getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>
@@ -237,7 +247,7 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 2 && <CompleteButton hover disabled={(isRealTime && targets.length > 1) || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
+                    {routeInfo.length === 1 && <CompleteButton hover disabled={(isRealTime && targets.length > 1) || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,
@@ -268,7 +278,7 @@ const ContentsWrapper = () => {
                     }}>
                         전체 선택{allSelected && ' 해제'}
                     </CompleteButton>}
-                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && routeInfo.length === 3) && <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
+                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && (routeInfo.length === 2 || routeInfo.length === 3)) && <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
                         completeCallback()
                     }} icon={routeInfo.length === 2 ? reidReqIcon : ''}>
                         {getCompleteButtonTextByRoute()}

@@ -75,13 +75,13 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
         </DetailTitle>
         <CaptureResultListItemsContainer>
             {
-                targetList.map(_ => <CaptureResultListItemBox key={_.id} selected={_.selected!}>
+                targetList.map((_, ind) => <CaptureResultListItemBox key={ind} selected={_.selected!}>
                     <CaptureResultListItemImageContainer>
                         <CaptureResultListItemImage src={_.src} isFace={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} />
                     </CaptureResultListItemImageContainer>
                     <CaptureResultListItemFaceSelectContainer>
                         {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hoverBorder activate={_.mask || false} onClick={() => {
-                                setTargetList(targetList.map(__ => __.id === _.id ? ({
+                                setTargetList(targetList.map((__, _ind) => ind === _ind ? ({
                                     ...__,
                                     mask: !__.mask
                                 }) : __))
@@ -92,7 +92,7 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
                                 }}/>
                             </MaskSelect>}
                         <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
-                            setTargetList(targetList.map(__ => __.id === _.id ? {
+                            setTargetList(targetList.map((__, _ind) => ind === _ind ? {
                                 ...__,
                                 selected: !__.selected
                             } : __))

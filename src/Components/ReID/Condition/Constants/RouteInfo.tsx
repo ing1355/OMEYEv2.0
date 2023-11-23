@@ -6,16 +6,16 @@ import CCTVVideo from '../TargetSelect/CCTVVideo'
 import ImageUpload from '../TargetSelect/ImageUpload'
 import PersonDescription from '../TargetSelect/PersonDescription'
 
-export const ObjectTypeSelectRoute: ConditionRouteType = {
-    key: 'OBJECTTYPESELECTROUTE',
-    title: "타입 설정",
-    Component: <ObjectTypeSelect/>,
-    pageNum: 0
-}
 export const ReIDConditionFormRoute: ConditionRouteType = {
     key: 'REIDCONDITIONFORMROUTE',
     title: "조건 설정",
     Component: <ReIDConditionForm/>,
+    pageNum: 0
+}
+export const ObjectTypeSelectRoute: ConditionRouteType = {
+    key: 'OBJECTTYPESELECTROUTE',
+    title: "타입 설정",
+    Component: <ObjectTypeSelect/>,
     pageNum: 1
 }
 export const ReIDConditionTargetSelectMethodRoute: ConditionRouteType = {
@@ -64,4 +64,4 @@ const createRouteInfo = (...routeInfo: ConditionRouteType[]) => {
 
 export const ConditionRouteInfo: {
     [key: string] : ConditionRouteType
-} = createRouteInfo(ObjectTypeSelectRoute, ReIDConditionFormRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectPersonDescriptionRoute)
+} = createRouteInfo(ReIDConditionFormRoute, ObjectTypeSelectRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectCCTVRoute, ReIDConditionTargetSelectImageRoute, ReIDConditionTargetSelectPersonDescriptionRoute)

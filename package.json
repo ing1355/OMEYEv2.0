@@ -1,8 +1,8 @@
 {
   "name": "omeye_renewal",
-  "version": "2.0(31)",
+  "version": "2.0(35)",
   "private": true,
-  "proxy": "https://192.168.182.54:8082",
+  "proxy": "https://omsecurity.kr:58082",
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
@@ -38,7 +38,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "scp -P 9992 -r ./build/* omeye@125.138.98.82:/usr/local/oms/ReID/Front_2.0",
-    "deploy2": "scp -P 9922 -r ./build/* oms@125.138.98.82:/usr/local/oms/ReID/Front_2.0",
+    "deploy2": "scp -P 9922 -r ./build/* oms@125.138.98.82:/usr/local/oms/omeye/omeye2/front",
     "deploy3": "scp -r ./build/* oms@192.168.182.54:/usr/local/oms/ReID/Front_2.0",
     "deployAll": "npm run deploy&npm run deploy2"
   },

@@ -15,6 +15,6 @@ const Contents = ({children}: ContentsProps) => {
 export default Contents;
 
 const ContentsContainer = styled.section`
-    height: calc(100% - ${HeaderHeight}px);
+    height: calc(100% - ${HeaderHeight + 24}px);
     width: 100%;
 `

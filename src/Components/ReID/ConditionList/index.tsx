@@ -5,23 +5,28 @@ import { useEffect, useState } from "react"
 import ConditionListSetByType from "./ConditionListSetByType"
 import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { conditionTargetDatasListByObjectType, selectedConditionObjectType } from "../../../Model/ConditionDataModel"
 import reidReqIcon from '../../../assets/img/reidReqIcon.png'
 import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag } from "../../../Model/ProgressModel"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import filterIcon from '../../../assets/img/filterIcon.png'
+import { conditionListDatas } from "../../../Model/ConditionDataModel"
+
+const ListFilterItems: {
+    key: ReIDObjectTypeKeys | 'ALL'
+    title: string
+    icon: string
+}[] = [{
+    title: '전체',
+    key: 'ALL',
+    icon: ''
+}, ...ReIDObjectTypes]
 
 const ConditionList = () => {
-    const [selectedTab, setSelectedTab] = useState<ReIDObjectTypeKeys>(ReIDObjectTypeKeys[ObjectTypes['PERSON']])
-    const [conditionList, setConditionList] = useRecoilState(conditionTargetDatasListByObjectType(selectedTab))
-    const currentObjectType = useRecoilValue(selectedConditionObjectType)
+    const [selectedTab, setSelectedTab] = useState<ReIDObjectTypeKeys|'ALL'>('ALL')
+    const conditionList = useRecoilValue(conditionListDatas)
     const progressStatus = useRecoilValue(ProgressStatus)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
-    
-    useEffect(() => {
-        if(currentObjectType) setSelectedTab(currentObjectType)
-    },[currentObjectType])
 
     return <Container>
         <Header>
@@ -30,7 +35,7 @@ const ConditionList = () => {
                     <Icon src={filterIcon}/>
                 </IconContainer>
                 {
-                    ReIDObjectTypes.map((_, ind) => <Tab hover key={ind} activate={selectedTab === _.key} onClick={() => {
+                    ListFilterItems.map((_, ind) => <Tab hover key={ind} activate={selectedTab === _.key} onClick={() => {
                         setSelectedTab(_.key)
                     }}>
                         {_.title}

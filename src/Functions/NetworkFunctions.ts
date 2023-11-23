@@ -1,12 +1,29 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
-import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
+import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
+import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
+// import { CCTVIconUploadApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE"
+
+export const getLocalIp = async () => {
+    const conn = new RTCPeerConnection()
+    conn.createDataChannel('')
+    conn.setLocalDescription(await conn.createOffer())
+    return await new Promise((resolve, reject) => {
+      conn.onicecandidate = ice => {
+        if (ice && ice.candidate && ice.candidate.candidate) {
+          resolve(ice.candidate.candidate.split(' ')[4])
+          conn.close()
+        } else {
+          reject('ip connection fail')
+        }
+      }
+    })
+  }
 
 export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['url'], bodyOrParams?: CreateAxiosDefaults['data'] | CreateAxiosDefaults['params'], isFullResponse?: boolean): Promise<any> {
     const options: AxiosRequestConfig<any> = {
@@ -25,7 +42,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         options.params = bodyOrParams
     }
     return axios(options).then(res => {
-        if(res) {
+        if (res) {
             if (isFullResponse) return res
             return res.data.rows
         }
@@ -48,7 +65,7 @@ export async function GetReIDResultById(reidId: ReIDLogDataType['reidId']): Prom
     return await Axios('GET', GetReidDataApi(reidId))
 }
 
-export function StartPersonDescription(param: DescriptionRequestParamsType): Promise<{uuid: string}> {
+export function StartPersonDescription(param: DescriptionRequestParamsType): Promise<{ uuid: string }> {
     return Axios('POST', SubmitPersonDescriptionInfoApi, param)
 }
 
@@ -68,7 +85,7 @@ export async function GetObjectIdByImage(targets: {
             attribution?: CaptureResultListItemType['description']
         } = {
             type: _.type,
-            image: _.image.split(',')[1],
+            image: _.image.startsWith('/') ? _.image : _.image.split(',')[1],
             mask: _.mask,
             ocr: _.ocr,
             attribution: _.attribution
@@ -107,4 +124,10 @@ export const streamingStopRequest = async (uuids: string[]) => {
     return await Axios("POST", StopVMSVideoApi, {
         uuids
     })
+}
+
+export const GetAllSitesData = async () => {
+    const res = (await Axios("GET", GetAllSitesDataApi)) as SiteDataType[] || []
+    console.debug('Sites Data Get Success : ', res)
+    return res
 }

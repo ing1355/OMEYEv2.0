@@ -2,13 +2,12 @@ import styled from "styled-components"
 import { globalStyles } from "../../../styles/global-styled"
 import Button from "../Button"
 import ImageView from "../../ReID/Condition/Constants/ImageView"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import { useRecoilValue } from "recoil"
-import { conditionTargetDatas, conditionTargetDatasListByObjectType } from "../../../Model/ConditionDataModel"
+import { conditionListDatas, conditionTargetDatas } from "../../../Model/ConditionDataModel"
 import { LeftArrow, RightArrow } from "../../Layout/Arrows"
-import { ArrayDeduplication } from "../../../Functions/GlobalFunctions"
-import { ReIDAllResultData, ReIDResultByObjectType } from "../../../Model/ReIdResultModel"
+import { ReIDResultByObjectType } from "../../../Model/ReIdResultModel"
 
 type TargetImageType = {
     src: string
@@ -25,8 +24,8 @@ type AdditionalReIDContainerProps = {
 
 const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContainerProps) => {
     const [selectedView, setSelectedView] = useState(0)
-    const targetDatas = useRecoilValue(conditionTargetDatas(type)) // 현재 선택한 object type의 대상들
-    const listDatas = useRecoilValue(conditionTargetDatasListByObjectType(type || 'PERSON')) // 검색 조건 저장해놓은 object들
+    const targetDatas = useRecoilValue(conditionTargetDatas) // 현재 선택한 object type의 대상들
+    const listDatas = useRecoilValue(conditionListDatas) // 검색 조건 저장해놓은 object들
     const reidResults = useRecoilValue(ReIDResultByObjectType(type || 'PERSON')) // 현재 검색 결과의 object들
 
     const targetImages: TargetImageType[] = useMemo(() => {
@@ -44,7 +43,7 @@ const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContai
             type: ___.objectType,
             src: ___.objectUrl
         })))))
-        return ArrayDeduplication(temp, (a,b) => a.id === b.id)
+        return temp.deduplication((a,b) => a.id === b.id)
     }, [targetDatas, listDatas, reidResults])
 
     return <AddReIDObjectContainer>

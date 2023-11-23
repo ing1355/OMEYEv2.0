@@ -26,7 +26,6 @@ const Login = () => {
                     </LogoTextImgContainer>
                 </LogoContainer>
                 <LoginForm onSubmit={async e => {
-                    console.log('submit')
                     const { userId, password } = e.currentTarget.elements as any;
                     const res = await Axios("POST", LoginApi, {
                         username: userId.value,

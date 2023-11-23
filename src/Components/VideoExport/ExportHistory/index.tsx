@@ -2,10 +2,9 @@ import styled from "styled-components"
 import { globalStyles } from "../../../styles/global-styled"
 import CategoryTag from "../CategoryTag"
 import { useEffect, useRef, useState } from "react"
-import { VideoExportCategoryType, VideoExportHistories, VideoExportSearchParamsType, useVideoExportLogDatas } from "../../../Model/VideoExportDataModel"
+import { VideoExportCategoryType, VideoExportSearchParamsType, useVideoExportHistories } from "../../../Model/VideoExportDataModel"
 import HistoryItem from "./HistoryItem"
 import Pagination from "../../Layout/Pagination"
-import { useRecoilRefresher_UNSTABLE } from "recoil"
 
 const categories: VideoExportCategoryType[] = ["영역 비식별화", "얼굴 비식별화", "번호판 비식별화"]
 
@@ -13,21 +12,19 @@ const ExportHistory = ({visible}: {
     visible: boolean
 }) => {
     const [category, setCategory] = useState<VideoExportCategoryType[]>([])
-    const [currentPage, setCurrentPage] = useState(0)
-    
-    const params = useRef<VideoExportSearchParamsType>({
-        page: currentPage + 1
+    const [params, _setParams] = useState<VideoExportSearchParamsType>({
+        page: 1,
+        size: 9
     })
-    const logs = useVideoExportLogDatas(params.current)
-    
-    const refresh = useRecoilRefresher_UNSTABLE(VideoExportHistories(params.current))
+    const {logs, refresh, setParams} = useVideoExportHistories(params)
 
     useEffect(() => {
-        if(visible) {
-            refresh()
-            params.current = { ...params.current, page: currentPage + 1 }
-        }
-    }, [currentPage, visible])
+        if (visible) setParams(params)
+    },[params])
+
+    useEffect(() => {
+        if(visible) refresh()
+    },[visible])
 
     return <Container>
         {/* <Header>
@@ -46,11 +43,13 @@ const ExportHistory = ({visible}: {
         </Header> */}
         <Contents>
             {
-                logs && logs?.totalCount > 0 ? <>
+                logs.data.totalCount > 0 ? <>
                     <ListContainer>
-                        {logs.results.map((_, ind) => <HistoryItem item={_} key={ind}/>)}
+                        {logs.data.results.map((_, ind) => <HistoryItem item={_} key={ind}/>)}
                     </ListContainer>
-                    <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={logs} dataPerPage={9}/>
+                    <Pagination currentPage={params.page} setCurrentPage={page => {
+                        _setParams({...params, page})
+                    }} totalCount={logs.data.totalCount} dataPerPage={params.size}/>
                 </> : <NoDataTitle>
                     반출 영상 이력이 존재하지 않습니다.
                 </NoDataTitle>

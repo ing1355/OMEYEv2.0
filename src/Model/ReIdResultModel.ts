@@ -1,14 +1,15 @@
 import { DefaultValue, atom, selector, selectorFamily } from "recoil";
 import { CameraDataType, ReIDObjectTypeKeys, ReIDResultDataResultListDataType, ReIDResultType, TimeDataType } from "../Constants/GlobalTypes";
-import { ConditionDataSingleType } from "./ConditionDataModel";
 import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
+import { ReIDResultTestData } from "./TestDatas";
+import { ConditionDataType } from "./ConditionDataModel";
 
 export type ReIDRequestParamsType = {
-  title: ConditionDataSingleType['name']
+  title: ConditionDataType['name']
   timeGroups: TimeDataType[]
   cctvIds: CameraDataType['cameraId'][][]
-  rank: ConditionDataSingleType['rank']
-  etc: ConditionDataSingleType['etc']
+  rank: ConditionDataType['rank']
+  etc: ConditionDataType['etc']
   objects: {
     id: number
     type: ReIDObjectTypeKeys
@@ -23,6 +24,7 @@ export type AdditionalReIDRequestParamsType = ReIDRequestParamsType & {
 export const _reidResultDatas = atom<ReIDResultType[]>({
   key: "reidResult/data",
   default: []
+  // default: ReIDResultTestData
 })
 
 const _reidSelectedDatas = atom<{

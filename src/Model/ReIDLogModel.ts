@@ -1,7 +1,11 @@
-import { selectorFamily, useRecoilValueLoadable } from "recoil";
+import { atom, useRecoilState, useRecoilValue } from "recoil";
 import { GetReIDLogs } from "../Constants/ApiRoutes";
 import { Axios } from "../Functions/NetworkFunctions";
 import { BasicLogDataType, CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, TimeDataType } from "../Constants/GlobalTypes";
+import { LoadableDataType } from "../Constants/NetworkTypes";
+import { useEffect, useState } from "react";
+import { ReIDMenuKeys } from "../Components/ReID/ConstantsValues";
+import { conditionMenu } from "./ConditionMenuModel";
 
 export type ReIDRequestGroupDataType = {
     title: string
@@ -42,53 +46,49 @@ export type ReIDSearchParamsType = {
     from?: string
     to?: string
     page: number
+    size?: number
 }
 
 type ReIDLogApiResponseType = BasicLogDataType<ReIDLogDataType[]>
 
-// const _ReIDLog = atom<SiteDataType[]>({
-//     key: "ReIDLog",
-//     default: []
-// })
-
-export const SearchReIDLogDatas = selectorFamily({
-    key: "ReIDLog/selector/search",
-    get: (params: ReIDSearchParamsType) => async ({get}) => {
-        // return {
-        //     results: [],
-        //     totalCount: 0
-        // }
-        const temp = await Axios("GET", GetReIDLogs, {
-            size: 10,
-            ...params
-        }) as ReIDLogApiResponseType
-        console.debug("ReID Logs Get Success : ", temp)
-        return temp
-    },
-    cachePolicy_UNSTABLE: {
-        eviction: 'most-recent'
-    }
+const _ReIDLogDatas = atom({
+    key: "ReID/Logs",
+    default: {
+        state: 'IDLE',
+        data: {
+            totalCount: 0,
+            results: []
+        }
+    } as LoadableDataType<ReIDLogApiResponseType>
 })
 
-let tempLogDatas:ReIDLogApiResponseType = {
-    results: [],
-    totalCount: 0
-}
+export const useReIDLogDatas = (params: ReIDSearchParamsType) => {
+    const [logs, setLogs] = useRecoilState(_ReIDLogDatas)
+    const menu = useRecoilValue(conditionMenu)
+    const [_params, _setParams] = useState<ReIDSearchParamsType>(params)
 
-export const useReIDLogDatas = (params: ReIDSearchParamsType): ReIDLogApiResponseType|null => {
-    const logs = useRecoilValueLoadable(SearchReIDLogDatas(params))
-    let result: ReIDLogApiResponseType|null = tempLogDatas
-    switch(logs.state) {
-        case 'hasValue':
-            tempLogDatas = logs.contents
-            result = logs.contents
-            break;
-        case 'hasError':
-        case 'loading':
-            result = tempLogDatas
-            break;
-        default:
-            result = null
+    useEffect(() => {
+        if (menu === ReIDMenuKeys['REIDLOGS']) refresh()
+    },[_params])
+
+    const refresh = async () => {
+        setLogs({
+            ...logs,
+            state: 'RUNNING'
+        })
+        const res = await Axios("GET", GetReIDLogs, {
+            ..._params,
+            size: _params.size || 10
+        }) as ReIDLogApiResponseType
+        setLogs({
+            state: 'IDLE',
+            data: res
+        })
     }
-    return result
+
+    const setParams = (params: ReIDSearchParamsType) => {
+        _setParams(params)
+    }
+
+    return {logs, setParams, refresh}
 }

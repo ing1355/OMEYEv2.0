@@ -1,8 +1,7 @@
 import styled from "styled-components"
 import Input from "./Input"
 import { GlobalBackgroundColor, InputTextColor, TextActivateColor } from "../../styles/global-styled"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { ArrayDeduplication } from "../../Functions/GlobalFunctions"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecoilValue } from "recoil"
 import { SitesData } from "../../Model/SiteDataModel"
 import { CameraDataType } from "../../Constants/GlobalTypes"
@@ -149,7 +148,6 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
             }}
             onEnter={(e) => {
                 const target = viewList[selectedIndex]
-                console.debug(target)
                 if (target) {
                     onChange(target)
                     // setSearchInputValue(target.name)

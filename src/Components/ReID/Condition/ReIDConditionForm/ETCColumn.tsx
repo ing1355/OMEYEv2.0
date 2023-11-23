@@ -66,10 +66,10 @@ const RankComponent = () => {
     const isRealTime = useRecoilValue(conditionIsRealTimeData)
 
     const rankUpCallback = useCallback(() => {
-        setRank(_ => _ === 99 ? _ : _ + 1)
+        setRank(_ => _ > 99 ? _ : _ + 1)
     }, [])
     const rankDownCallback = useCallback(() => {
-        setRank(_ => _ === 0 ? _ : _ - 1)
+        setRank(_ => _ < 2 ? _ : _ - 1)
     }, [])
 
     return <RankContainer>

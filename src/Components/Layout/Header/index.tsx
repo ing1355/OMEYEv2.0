@@ -42,7 +42,9 @@ const Header = () => {
                 setReIDProgressVisible(!reIDProgressVisible)
             }}>
                 <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} />
-                <ReIDProgress visible={reIDProgressVisible} />
+                <ReIDProgress visible={reIDProgressVisible} close={() => {
+                    setReIDProgressVisible(false)
+                }}/>
             </ProgressBtn>
             <UserMenu />
         </ButtonsContainer>

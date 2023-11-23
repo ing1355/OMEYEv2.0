@@ -1,10 +1,10 @@
 import { useRecoilState, useRecoilValue } from "recoil"
 import ConditionParamsInputColumnComponent from "./ConditionParamsInputColumnComponent"
-import { conditionIsRealTimeData, conditionTargetDatas, selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import { conditionIsRealTimeData, conditionTargetDatas } from "../../../../Model/ConditionDataModel"
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
+import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
-import { ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
+import { ObjectTypeSelectRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
 import Button from "../../../Constants/Button"
 import { useState } from "react"
@@ -14,13 +14,13 @@ import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 import useMessage from "../../../../Hooks/useMessage"
+import checkIcon from '../../../../assets/img/checkIcon.png'
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
     const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
-    const [datas, setDatas] = useRecoilState(conditionTargetDatas(null))
-    const selectedType = useRecoilValue(selectedConditionObjectType)
+    const [datas, setDatas] = useRecoilState(conditionTargetDatas)
     const isRealTime = useRecoilValue(conditionIsRealTimeData)
     const { routePush } = useConditionRoutes()
     const message = useMessage()
@@ -31,9 +31,10 @@ const TargetSelectColumn = () => {
     }
 
     const addAction = () => {
-        if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
-        else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
-        else routePush(ReIDConditionTargetSelectMethodRoute.key)
+        routePush(ObjectTypeSelectRoute.key)
+        // if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
+        // else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
+        // else routePush(ReIDConditionTargetSelectMethodRoute.key)
     }
 
     const allSelectAction = () => {
@@ -43,18 +44,18 @@ const TargetSelectColumn = () => {
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
-            titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
+            // titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
             isTarget
             initAction={initAction}
             dataAddAction={addAction}
             noDataText="대상 추가"
-            isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
-            dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
-            disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
+            isDataExist={datas.length > 0}
+            // isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
+            // dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
+            // disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
-            {plateStatus === 'add' && selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <PlateTarget status={plateStatus} setStatus={setPlateStatus} />}
-            {datas.map(_ => selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] ? <PlateTarget key={_.id} data={_} status={plateStatus} setStatus={setPlateStatus} /> : <ItemContainer key={_.id} selected={_.selected || false} onClick={() => {
+            {datas.map((_, ind) => <ItemContainer key={ind} selected={_.selected || false} onClick={() => {
                 if (_.selected) {
                     setDatas(datas.map(__ => _.objectId !== __.objectId ? __ : {
                         ..._,
@@ -69,7 +70,16 @@ const TargetSelectColumn = () => {
                 }
             }}>
                 <ItemSubContainer>
-                    <ItemImage src={_.src} />
+                    <ItemImageContainer>
+                        <ItemImage>
+                            <ItemHeader>
+                                <Check>
+                                    {_.selected && <img src={checkIcon}/>}
+                                </Check>
+                            </ItemHeader>
+                            <ImageView src={_.src} />
+                        </ItemImage>
+                    </ItemImageContainer>
                     <ItemDescription>
                         <ItemDescriptionHeader>
                             <IconBtn type="delete" onClick={(e) => {
@@ -82,9 +92,9 @@ const TargetSelectColumn = () => {
                         </ItemDescriptionContents>
                     </ItemDescription>
                 </ItemSubContainer>
-                <ItemSelectBtn hover activate={_.selected}>
+                {/* <ItemSelectBtn hover activate={_.selected}>
                     {_.selected ? '해제' : '선택'}
-                </ItemSelectBtn>
+                </ItemSelectBtn> */}
             </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
     </Container>
@@ -112,7 +122,7 @@ const ItemContainer = styled.div<{ selected: boolean }>`
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     cursor: pointer;
     &:hover {
-        border: 1px solid ${ContentsActivateColor};
+        background-color: ${ButtonBackgroundColor};
     }
 `
 
@@ -122,10 +132,8 @@ const ItemSubContainer = styled.div`
     flex: 1;
 `
 
-const ItemImage = styled(ImageView)`
-    flex: 0 0 40%;
-    height: 100%;
-    padding: 4px;
+const ItemImage = styled.div`
+    height: calc(100% - 32px);
 `
 
 const ItemDescription = styled.div`
@@ -151,4 +159,27 @@ const ItemDescriptionContents = styled.div`
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '8px' })}
     overflow-wrap: anywhere;
+`
+
+const ItemImageContainer = styled.div`
+    flex: 0 0 40%;
+    height: 100%;
+    padding: 4px;
+`
+
+const ItemHeader = styled.div`
+    height: 20px;
+    margin-bottom: 8px;
+`
+
+const Check = styled.div`
+    height: 100%;
+    width: 20px;
+    border: 1px solid ${ContentsActivateColor};
+    border-radius: 50%;
+    padding: 4px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `

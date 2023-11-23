@@ -21,8 +21,9 @@ import { CustomEventSource, IS_PRODUCTION } from "../../../Constants/GlobalConst
 import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
+import editIcon from '../../../assets/img/cctvEditIcon.png'
 import useMessage from "../../../Hooks/useMessage"
-import { SSEResponseErrorMsg } from "../../../Model/ProgressModel"
+import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
 import { useRecoilValue } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
 
@@ -134,12 +135,15 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                     {getLoadingTimeString(count)}
                 </CountText>}
             </TitleContainer>
-            <CCTVName>
-                <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
+            <CCTVName disabled={!canChangeInput} onClick={() => {
                     if (canChangeInput) inputTypeChange('cctv')
                 }}>
+                <NeedSelectTitle>
                     {cctvId ? <CCTVNameById cctvId={cctvId} /> : '클릭하여 반출할 CCTV 선택'}
                 </NeedSelectTitle>
+                {canChangeInput && <EditIconContainer>
+                    <img src={editIcon} />
+                </EditIconContainer>}
             </CCTVName>
             <ProgressContainer>
                 <Progress percent={progress.videoPercent} color={TextActivateColor} outString icon={ProgressVideoIcon} />
@@ -147,11 +151,16 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
             <ProgressContainer>
                 <Progress percent={progress.aiPercent} color={TextActivateColor} outString icon={ProgressAIIcon} />
             </ProgressContainer>
-            <NeedSelectTitle disabled={!canChangeInput} onClick={() => {
-                if (canChangeInput) inputTypeChange('time')
-            }}>
-                {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '클릭하여 반출할 날짜 선택'}
-            </NeedSelectTitle>
+            <CCTVName disabled={!canChangeInput} onClick={() => {
+                    if (canChangeInput) inputTypeChange('time')
+                }}>
+                <NeedSelectTitle>
+                    {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '클릭하여 반출할 날짜 선택'}
+                </NeedSelectTitle>
+                {canChangeInput && <EditIconContainer>
+                    <img src={editIcon} />
+                </EditIconContainer>}
+            </CCTVName>
             {options.description && <ETCContainer>
                 <div>
                     비고 :
@@ -216,7 +225,8 @@ const defaultExportRowData: VideoExportRowDataType = {
     },
     progress: {
         aiPercent: 0,
-        videoPercent: 0
+        videoPercent: 0,
+        status: "WAIT"
     }
 }
 
@@ -274,7 +284,8 @@ const NewExport = () => {
                 },
                 "progress": {
                     "aiPercent": 0,
-                    "videoPercent": 0
+                    "videoPercent": 0,
+                    "status": "WAIT"
                 }
             },
             {
@@ -292,7 +303,8 @@ const NewExport = () => {
                 },
                 "progress": {
                     "aiPercent": 0,
-                    "videoPercent": 0
+                    "videoPercent": 0,
+                    "status": "WAIT"
                 }
             }
         ])
@@ -354,7 +366,8 @@ const NewExport = () => {
                         ...currentData.current,
                         progress: {
                             aiPercent,
-                            videoPercent
+                            videoPercent,
+                            status: 'RUNNING'
                         }
                     }
                     if (tempTimer.current) clearTimeout(tempTimer.current)
@@ -387,7 +400,7 @@ const NewExport = () => {
                     status: 'cancel'
                 }) : _))
             }
-            if (status === 'SSE_DESTROY') {
+            if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                 sseRef.current!.close()
                 sseRef.current = undefined
             }
@@ -553,17 +566,18 @@ const StatusTitle = styled.div<{ status: VideoExportRowDataType['status'] }>`
 const CountText = styled.div`
 `
 
-const CCTVName = styled.div`
-`
-
-const CCTVAndTimeTitle = styled.div`
-    font-size: 1.2rem;
-`
-
-const NeedSelectTitle = styled.div<{ disabled: boolean }>`
-    text-decoration: ${({ disabled }) => disabled ? 'auto' : 'underline'};
-    font-size: 1.2rem;
+const CCTVName = styled.div<{ disabled: boolean }>`
+    &:hover {
+        & > div {
+            text-decoration: ${({ disabled }) => disabled ? 'auto' : 'underline'};
+        }
+    }
     cursor: ${({ disabled }) => disabled ? 'default' : 'pointer'};
+`
+
+const NeedSelectTitle = styled.div`
+    font-size: 1.2rem;
+    display: inline-block;
     
 `
 const ProgressContainer = styled.div`
@@ -622,5 +636,15 @@ const ETCContainer = styled.div`
     }
     & > div:last-child {
         font-size: 1.1rem;
+    }
+`
+
+const EditIconContainer = styled.div`
+    display: inline-block;
+    position: relative;
+    height: 14px;
+    & > img {
+        width: 100%;
+        height: 100%;
     }
 `

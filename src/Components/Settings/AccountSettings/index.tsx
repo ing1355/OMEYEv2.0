@@ -331,7 +331,7 @@ const AccountSettings = () => {
                   )
                 })}
               </div>
-              <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={usersAccountRows} dataPerPage={10}/> 
+              {/* <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={usersAccountRows} dataPerPage={10}/>  */}
             </>
           :
             <NoDataContentsContainer style={{}}>

@@ -4,6 +4,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import GlobalStyle, {globalStyles} from './styles/global-styled';
 import { RecoilRoot } from 'recoil';
+import './Extensions'
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

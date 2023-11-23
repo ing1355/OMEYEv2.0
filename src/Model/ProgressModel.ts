@@ -2,14 +2,35 @@ import { DefaultValue, atom, selector } from "recoil"
 import { CameraDataType, ReIDResultDataResultListDataType } from "../Constants/GlobalTypes"
 import { AdditionalReIDRequestParamsType, ReIDRequestParamsType } from "./ReIdResultModel"
 
+export type ProgressStatusType = 'IDLE' | 'RUNNING' | 'COMPLETE' | 'CANCELD' | 'ERROR'
+export type ProgressRequestType = 'REID' | 'REALTIME' | 'ADDITIONALREID' | ''
+export type SSEResponseStatusType = 'SSE_CONNECTION' | 'SSE_DESTROY' | 'REID_START' | 'REID_COMPLETE' | 'REID_CANCEL' | 'UPDATE_THRESHOLD' | 'ADMIN_REID_KILL' | 'EXPORT_CANCEL' | 'BACKEND_BAD_REQUEST' | 'PYTHON_SERVER_ERROR' | 'COMPLETE' | 'DONE' | 'TIME_DURATION_ERROR' | 'SUCCESS' | 'UKNOWN_DOWNLOAD_FAIL' | 'LOCAL_DOWNLOAD_FAIL' | 'SOCKET_CONNECTION_FAIL' | 'VIDEO_PATH_NULL' | 'NO_RECORDED_AT_THAT_TIME'
+export const SSEResponseErrorMsg: SSEResponseStatusType[] = ['PYTHON_SERVER_ERROR', 'BACKEND_BAD_REQUEST', 'EXPORT_CANCEL', 'ADMIN_REID_KILL', 'TIME_DURATION_ERROR']
+export type ProgressDataPercentStatusType = 'WAIT' | 'SUCCESS' | 'FAIL' | 'RUNNING'
+export const SSEResponseSingleProgressErrorMsg: SSEResponseStatusType[] = ['LOCAL_DOWNLOAD_FAIL', 'UKNOWN_DOWNLOAD_FAIL', 'SOCKET_CONNECTION_FAIL', 'VIDEO_PATH_NULL', 'NO_RECORDED_AT_THAT_TIME']
+
+export enum SSEResponseMsgTypeKeys {
+  REID_START,
+  REID_COMPLETE,
+  REID_CANCEL,
+  SSE_CONNECTION,
+  SSE_DESTROY,
+  ADMIN_REID_KILL,
+  EXPORT_CANCEL,
+  BACKEND_BAD_REQUEST,
+  PYTHON_SERVER_ERROR,
+  TIME_DURATION_ERROR,
+  SUCCESS
+}
+
+export const SSEResponseMsgTypes: SSEResponseStatusType[] = ['REID_START', 'REID_COMPLETE', 'REID_CANCEL', 'SSE_CONNECTION', 'SSE_DESTROY', 'ADMIN_REID_KILL', 'EXPORT_CANCEL', 'BACKEND_BAD_REQUEST', 'PYTHON_SERVER_ERROR', 'TIME_DURATION_ERROR', 'SUCCESS']
+
 type ProgressDataParamsType = {
   conditionIndex: number
   timeIndex: number
   cctvId: CameraDataType['cameraId']
 }
 
-export type SSEResponseStatusType = 'SSE_CONNECTION' | 'SSE_DESTROY' | 'REID_START' | 'REID_COMPLETE' | 'REID_CANCEL' | 'UPDATE_THRESHOLD' | 'ADMIN_REID_KILL' | 'EXPORT_CANCEL' | 'BACKEND_BAD_REQUEST' | 'PYTHON_SERVER_ERROR' | 'COMPLETE' | 'DONE' | 'TIME_DURATION_ERROR'
-export const SSEResponseErrorMsg: SSEResponseStatusType[] = ['PYTHON_SERVER_ERROR', 'BACKEND_BAD_REQUEST', 'EXPORT_CANCEL', 'ADMIN_REID_KILL', 'TIME_DURATION_ERROR']
 
 export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataParamsType & {
   reIdId?: number
@@ -22,6 +43,13 @@ export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataPara
 export type ProgressDataPercentType = {
   aiPercent: number
   videoPercent: number
+  status: ProgressDataPercentStatusType
+  errReason?: string
+}
+
+export type ProgressDataVideoExportPercentType = ProgressDataPercentType & {
+  deIdentificationPercent?: number
+  encodingPercent?: number
 }
 
 export type ProgressDataParamsTimesDataType = {
@@ -55,9 +83,6 @@ export const ProgressData = selector({
     }
   }
 })
-
-export type ProgressStatusType = 'IDLE' | 'RUNNING' | 'COMPLETE' | 'CANCELD' | 'ERROR'
-export type ProgressRequestType = 'REID' | 'REALTIME' | 'ADDITIONALREID' | ''
 
 export const defaultProgressRequestParams: { type: ProgressRequestType, params: ReIDRequestParamsType[] } = {
   type: '',

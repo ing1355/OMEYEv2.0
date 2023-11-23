@@ -1,16 +1,22 @@
 import styled from "styled-components"
 import { globalStyles } from "../../../../styles/global-styled"
 import Card from "./Card"
-import { ReIDObjectTypes } from "../../ConstantsValues"
+import { ObjectTypes, ReIDObjectTypes } from "../../ConstantsValues"
 import { useSetRecoilState } from "recoil"
-import { selectedConditionObjectType } from "../../../../Model/ConditionDataModel"
+import useConditionRoutes from "../Hooks/useConditionRoutes"
+import { ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
+import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
+import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
 
 const ObjectTypeSelect = () => {
-    const setSelected = useSetRecoilState(selectedConditionObjectType)
+    const setSelected = useSetRecoilState(conditionSelectedType)
+    const { routePush } = useConditionRoutes()
     return <Container>
         {
             ReIDObjectTypes.map(_ => <Card key={_.key} title={_.title} icon={_.icon} onSelect={() => {
-                if(setSelected) setSelected(_.key)
+                setSelected(_.key)
+                if(_.key === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
+                else routePush(ReIDConditionTargetSelectMethodRoute.key)
             }}/>)
         }
     </Container>
