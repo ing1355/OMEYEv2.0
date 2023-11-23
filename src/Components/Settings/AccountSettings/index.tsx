@@ -17,6 +17,8 @@ import ModifyAccount from "./ModifyAccount"
 import resetIcon from "../../../assets/img/resetIcon.png"
 import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
+import { message } from "antd"
+import useMessage from "../../../Hooks/useMessage"
 
 const AccountSearchDropdownList = [
   {
@@ -98,7 +100,7 @@ type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber
 export type RoleValues = 'USER' | 'username' | 'name' | 'email' | 'phoneNumber' ;
 
 const AccountSettings = () => {
-  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectUsers, setSelectUsers] = useState<string[]>([]);
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isDeleteMember, setIsDeleteMember] = useState<boolean>(false);
@@ -110,11 +112,12 @@ const AccountSettings = () => {
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
+  const message = useMessage();
 
   const getUsersAccountList = async () => {
     const res:ResType = await Axios('GET', UserAccountApi, {
       size: 10,
-      page: currentPage + 1,
+      page: currentPage,
       username: searchValue === 'username' ? searchInputValue === '' ? null : searchInputValue : null,
       role: searchValue === 'role' ? searchRoleValue : null,
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
@@ -135,10 +138,18 @@ const AccountSettings = () => {
   const deleteUsersAccount = async () => {
     const res = await Axios('DELETE', UserAccountApi, {
       uuid: selectUsers.join(',')
-    })
-    if(res && res === null) {
-      setIsDeleteMember(false);
-      setSelectUsers([]);
+    }, true)
+    setIsDeleteMember(false);
+    setSelectUsers([]);
+
+    if(res !== undefined) {
+      if(res.data.success) {
+        message.success({ title: '멤버 삭제', msg: '멤버를 삭제했습니다' })
+      } else {
+        message.error({ title: '멤버 삭제 에러', msg: '멤버 삭제를 실패했습니다' })
+      }
+    } else {
+      message.error({ title: '멤버 삭제 에러', msg: '멤버 삭제를 실패했습니다' })
     }
   }
 
@@ -209,7 +220,7 @@ const AccountSettings = () => {
               })
               if (res) {
                 setUsersAccountRows(res);
-                setCurrentPage(0);
+                setCurrentPage(1);
               }
             }}
           >
@@ -222,7 +233,7 @@ const AccountSettings = () => {
             style={{ cursor: 'pointer' }}
             onClick={() => {
               setSearchInputValue('');
-              setCurrentPage(0);
+              setCurrentPage(1);
               getUsersAccountListReset();
             }}
           >
@@ -331,7 +342,7 @@ const AccountSettings = () => {
                   )
                 })}
               </div>
-              {/* <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} datas={usersAccountRows} dataPerPage={10}/>  */}
+              <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} totalCount={usersAccountRows.totalCount} dataPerPage={10}/> 
             </>
           :
             <NoDataContentsContainer style={{}}>

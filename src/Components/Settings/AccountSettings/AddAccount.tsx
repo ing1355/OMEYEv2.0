@@ -77,9 +77,17 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         email: newAccountEmail,
         phoneNumber: newAccountPhoneNumber,
       })
-      if(res) {
-        resetNewAccountFun();
-      } 
+      resetNewAccountFun();
+
+      if(res !== undefined) {
+        if(res) {
+          message.success({ title: '멤버 추가', msg: '멤버를 추가했습니다' })
+        } else {
+          message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+        }
+      } else {
+        message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+      }
     }
   }
 

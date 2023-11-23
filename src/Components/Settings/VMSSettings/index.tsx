@@ -3,10 +3,12 @@ import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import Dropdown, { DropdownItemType } from "../../Layout/Dropdown"
 import { useEffect, useState } from "react"
-import { Axios } from "../../../Functions/NetworkFunctions"
+import { Axios, GetAllSitesData } from "../../../Functions/NetworkFunctions"
 import { GetVmsInfoApi, GetVmsListApi, PutVmsInfoApi, SyncVmsApi, VmsExcelUploadApi } from "../../../Constants/ApiRoutes"
 import { InputBackgroundColor } from "../../../styles/global-styled"
 import useMessage from "../../../Hooks/useMessage"
+import { SitesState } from "../../../Model/SiteDataModel"
+import { useRecoilState } from "recoil"
 
 type getVmsListType = {
   siteList: string[];
@@ -39,7 +41,7 @@ const VMSSettings = () => {
   const [vmsInfo, setVmsInfo] = useState<vmsInfoType | null>(null);
   const [isAgree, setIsAgree] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>('');
-console.log('vmsInfo',vmsInfo)
+  const [sitesState, setSitesState] = useRecoilState(SitesState);
   const message = useMessage();
 
   const GetVmsList = async () => {
@@ -111,8 +113,21 @@ console.log('vmsInfo',vmsInfo)
 
   const SyncVmsApiFun = async () => {
     const res = await Axios('GET', SyncVmsApi)
-    if (res) {
-      console.log('res', res);
+
+    if(res !== undefined) {
+      if(res.data.success) {
+        message.success({ title: '동기화', msg: '동기화에 성공했습니다' })
+        GetAllSitesData().then(res => {
+          setSitesState({
+              state: 'IDLE',
+              data: res
+          })
+        })
+      } else {
+        message.error({ title: '동기화 에러', msg: '동기화에 실패했습니다' })
+      }
+    } else {
+      message.error({ title: '동기화 에러', msg: '동기화에 실패했습니다' })
     }
   }
 
