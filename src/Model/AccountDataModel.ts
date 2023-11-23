@@ -8,6 +8,7 @@ export type selectMemberType = {
   name: string;
   email: string;
   phoneNumber: string;
+  organization: string;
 }
 
 export const IsAddMember = atom<boolean>({
@@ -27,6 +28,7 @@ export const modifySelectMemberInit = {
   name: '',
   email: '',
   phoneNumber: '',
+  organization: ''
 }
 
 export const ModifySelectMember = atom<selectMemberType>({

@@ -4,11 +4,11 @@ import Dropdown from "../../../Layout/Dropdown"
 import serverRebootIcon from "../../../../assets/img/serverRebootIcon.png"
 import { GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
+import { StorageThreshHoldApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
 import Input from "../../../Constants/Input";
 import clearIcon from '../../../../assets/img/rankUpIcon.png'
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TimeModal, { TimeModalDataType } from "../../../ReID/Condition/Constants/TimeModal";
 import Modal from "../../../Layout/Modal";
 import useMessage from "../../../../Hooks/useMessage";
@@ -64,6 +64,10 @@ type logFileDateType = {
   endDate: string,
 }
 
+type GetStorageThreshHoldType = {
+  threshold: number
+}
+
 const ServerMgmtSidebar = () => {
   const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined);
   const [timeVisible, setTimeVisible] = useState(false);
@@ -77,6 +81,7 @@ const ServerMgmtSidebar = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
+  const [storageThreshHold, setStorageThreshHold] = useState<number>(0);
 
   const message = useMessage();
 
@@ -85,8 +90,12 @@ const ServerMgmtSidebar = () => {
       priority: 0,
       schedule: '',
     }, true)
-    if (res.data.success) {
-      message.success({ title: '서버 재부팅', msg: '서버 재부팅에 성공했습니다' })
+    if(res !== undefined) {
+      if (res.data.success) {
+        message.success({ title: '서버 재부팅', msg: '서버 재부팅에 성공했습니다' })
+      } else {
+        message.error({ title: '서버 재부팅 에러', msg: '서버 재부팅에 실패했습니다' })
+      }
     } else {
       message.error({ title: '서버 재부팅 에러', msg: '서버 재부팅에 실패했습니다' })
     }
@@ -107,8 +116,12 @@ const ServerMgmtSidebar = () => {
         }]
       }, true)
       
-      if (res.data.success) {
-        message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
+      if(res !== undefined) {
+        if (res.data.success) {
+          message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
+        } else {
+          message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
+        }
       } else {
         message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
       }
@@ -159,7 +172,7 @@ const ServerMgmtSidebar = () => {
       }, true)
 
       if (res.status === 204) {
-        
+        message.error({ title: '로그 파일 다운로드', msg: '해당 날짜의 로그 파일이 없습니다' })
       } else {
         console.log('다운로드 성공', res)
         const versionName = res.headers['content-disposition'].split(';').filter((str:any) => str.includes('filename'))[0].match(/filename="([^"]+)"/)[1];
@@ -205,6 +218,30 @@ const ServerMgmtSidebar = () => {
       setFileName(name);
     }
   };
+
+  const GetStorageThreshHoldFun = async () => {
+    const res:GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
+    if(res) setStorageThreshHold(res.threshold);
+  }
+
+  const SaveStorageThreshHoldFun = async () => {
+    const res = await Axios('PUT', StorageThreshHoldApi, {
+      threshold: storageThreshHold
+    }, true)
+    if(res !== undefined) {
+      if (res.data.success) {
+        message.success({ title: '알림 기준 저장공간 사용량 설정', msg: '수정에 성공했습니다' })
+      } else {
+        message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+      }
+    } else {
+      message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+    }
+  }
+
+  useEffect(() => {
+    GetStorageThreshHoldFun();
+  },[])
 
   return (
     <div>
@@ -337,6 +374,8 @@ const ServerMgmtSidebar = () => {
               const file = uploadFile.files[0];
               const fileExtension = file?.name.split('.').pop();
               const isFileExtensionPth = fileExtension === 'pth' || fileExtension === 'pt';
+
+              if(!file) return message.error({ title: '모델 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
               modelUploadFun(file);
               // if(!isFileExtensionPth) {
               //   message.error({ title: '모델 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
@@ -374,6 +413,25 @@ const ServerMgmtSidebar = () => {
               </div>
             </div>
           </form>
+        </div>
+      </div>
+      <div style={{marginBottom: '25px', lineHeight: '30px'}}>
+        <div style={{marginBottom: '10px'}}>저장공간 관리</div>
+        <div style={{display: 'flex'}}>
+          <div style={{marginRight: '10px'}}>
+            알림 기준 저장공간 사용량 설정(%) : 
+          </div>
+          <StorageInput value={storageThreshHold} onChange={(e) => {
+            setStorageThreshHold(parseInt(e));
+          }}/>
+          <ServerControlButton
+            onClick={SaveStorageThreshHoldFun}
+          >
+            저장
+          </ServerControlButton>
+        </div>
+        <div>
+
         </div>
       </div>
 
@@ -500,4 +558,16 @@ const DateInput = styled(Input)`
   font-size: 2.3rem;
   text-align: center;
   color: white;
+`
+
+const StorageInput = styled(Input)`
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  border-radius: 10px
+  font-size: 2.3rem;
+  text-align: center;
+  color: white;
+  width: 60px;
 `

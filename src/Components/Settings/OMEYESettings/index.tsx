@@ -19,8 +19,6 @@ const OMEYESettings = () => {
   const [CCTVIconFileName, setCCTVIconFileName] = useState<string>('');
   const message = useMessage();
 
-console.log('omeyeSettingsInfo', omeyeSettingsInfo)
-
   const GetOMEYESettingsInfo = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
     if (res) setOmeyeSettingsInfo(res);
@@ -141,6 +139,7 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
   const handleCCTVIconFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCCTVIconFileName('');
     const fileInput = event.target;
+
     if (fileInput.files && fileInput.files[0]) {
       const name = fileInput.files[0].name;
       setCCTVIconFileName(name);
@@ -250,11 +249,10 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
                   const fileExtension = file?.name.split('.').pop();
                   const isFileExtensionPth = fileExtension === 'zip';
 
-                  if(!isFileExtensionPth) {
-                    message.error({ title: '지도 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
-                  } else {
-                    MapFileUploadFun(file);
-                  }
+                  if(!file) return message.error({ title: '지도 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
+                  if(!isFileExtensionPth) return message.error({ title: '지도 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
+                  
+                  MapFileUploadFun(file);
                 }}
               >
                 <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
@@ -364,15 +362,17 @@ console.log('omeyeSettingsInfo', omeyeSettingsInfo)
                     const file = CCTVIconUploadFile.files[0];
                     const fileExtension = file?.name.split('.').pop();
                     // const isFileExtensionPth = fileExtension === 'zip';
+                    if(!file) {
+                      message.error({ title: 'CCTV 아이콘 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
+                    } else {
+                      CCTVIconFileUploadFun(file);
+                    }
                     
-                    CCTVIconFileUploadFun(file);
-
                     // if(!isFileExtensionPth) {
                     //   message.error({ title: '지도 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
                     // } else {
                     //   CCTVIconFileUploadFun(file);
                     // }
-
                   }}
                 >
                   <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>

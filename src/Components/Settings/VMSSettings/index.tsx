@@ -112,8 +112,7 @@ const VMSSettings = () => {
   };
 
   const SyncVmsApiFun = async () => {
-    const res = await Axios('GET', SyncVmsApi)
-
+    const res = await Axios('GET', SyncVmsApi,{},true)
     if(res !== undefined) {
       if(res.data.success) {
         message.success({ title: '동기화', msg: '동기화에 성공했습니다' })
@@ -284,10 +283,11 @@ const VMSSettings = () => {
                   const file = uploadFile.files[0];
                   const fileExtension = file?.name.split('.').pop();
                   const isFileExtensionPth = fileExtension === 'xlsx';
-
+                  if(!file) return message.error({ title: '엑셀 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
                   if(!isFileExtensionPth) {
-                    message.error({ title: '엑셀 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
-                  }
+                     return message.error({ title: '엑셀 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
+                  } 
+
                   VmsExcelUploadFun(file);
                 }}
               >

@@ -89,6 +89,7 @@ type usersType = {
   monitoringViewCount: number;
   isLock: boolean;
   isAlreadyLoggedIn: boolean;
+  organization: string;
 }
 
 type ResType = {
@@ -96,8 +97,8 @@ type ResType = {
   results: usersType[];
 }
 
-type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' ;
-export type RoleValues = 'USER' | 'username' | 'name' | 'email' | 'phoneNumber' ;
+type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' | 'organization' ;
+export type RoleValues = 'USER' | 'ADMIN' | 'DEVELOPER' ;
 
 const AccountSettings = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -283,9 +284,10 @@ const AccountSettings = () => {
           }
           <div style={{width: '15%', lineHeight: '20px'}}>아이디</div>
           <div style={{width: '15%', lineHeight: '20px'}}>등급</div>
-          <div style={{width: '15%', lineHeight: '20px'}}>이름</div>
-          <div style={{width: '28%', lineHeight: '20px'}}>이메일</div>
-          <div style={{width: '20%', lineHeight: '20px'}}>전화번호</div>
+          <div style={{width: '13%', lineHeight: '20px'}}>조직</div>
+          <div style={{width: '12%', lineHeight: '20px'}}>이름</div>
+          <div style={{width: '20%', lineHeight: '20px'}}>이메일</div>
+          <div style={{width: '18%', lineHeight: '20px'}}>전화번호</div>
           <div style={{width: '5%', lineHeight: '20px'}}>수정</div>
         </div>
         <div>
@@ -320,9 +322,10 @@ const AccountSettings = () => {
                       </div>
                       <div style={{width: '15%', lineHeight: '20px'}}>{data.username}</div>
                       <div style={{width: '15%', lineHeight: '20px'}}>{data.role}</div>
-                      <div style={{width: '15%', lineHeight: '20px'}}>{data.name}</div>
-                      <div style={{width: '28%', lineHeight: '20px'}}>{data.email}</div>
-                      <div style={{width: '20%', lineHeight: '20px'}}>{data.phoneNumber}</div>
+                      <div style={{width: '13%', lineHeight: '20px'}}>{data.organization}</div>
+                      <div style={{width: '12%', lineHeight: '20px'}}>{data.name}</div>
+                      <div style={{width: '20%', lineHeight: '20px'}}>{data.email}</div>
+                      <div style={{width: '18%', lineHeight: '20px'}}>{data.phoneNumber}</div>
                       {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
                       <div style={{width: '5%', lineHeight: '20px'}} onClick={() => {
                         setIsModifyMember(true);
@@ -333,6 +336,7 @@ const AccountSettings = () => {
                           name: data.name,
                           email: data.email,
                           phoneNumber: data.phoneNumber,
+                          organization: data.organization
                         })
                       }}><img src={edit} style={{height: '15px'}}/></div>
                       :

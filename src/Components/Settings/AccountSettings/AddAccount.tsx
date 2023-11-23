@@ -33,6 +33,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [newAccountEmail, setNewAccountEmail] = useState<string>('');
   const [newAccountPhoneNumber, setNewAccountPhoneNumber] = useState<string>('');
+  const [newAccountOrg, setNewAccountOrg] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
@@ -49,10 +50,11 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
     setSearchRoleValue('USER');
     setNewAccountEmail('');
     setNewAccountPhoneNumber('');
+    setNewAccountOrg('');
   }
 
   const newAccountSaveFun = async () => {
-    if(!(newAccountUsername && newAccountPassword && newAccountPasswordConfirm && newAccountName && newAccountEmail && newAccountPhoneNumber)) {
+    if(!(newAccountUsername && newAccountPassword && newAccountPasswordConfirm && newAccountName && newAccountEmail && newAccountPhoneNumber && newAccountOrg)) {
       message.error({ title: '계정 생성 에러', msg: '모든 항목을 입력해주세요' })
     } else if(!idRegex.test(newAccountUsername)) {
       message.error({ title: '계정 생성 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
@@ -76,6 +78,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         role: searchRoleValue,
         email: newAccountEmail,
         phoneNumber: newAccountPhoneNumber,
+        organization: newAccountOrg
       })
       resetNewAccountFun();
 
@@ -155,6 +158,18 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
           type="password"
           onChange={(e) => {
             setNewAccountPasswordConfirm(e);
+          }}
+        />
+        <div style={{width: '130px'}}></div>
+      </div>
+      <div style={{ display: 'flex', marginBottom: '10px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
+          조직 :
+        </div>
+        <AccountInput 
+          value={newAccountOrg}
+          onChange={(e) => {
+            setNewAccountOrg(e);
           }}
         />
         <div style={{width: '130px'}}></div>

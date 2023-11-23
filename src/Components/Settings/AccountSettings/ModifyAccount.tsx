@@ -29,13 +29,14 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const [modifyAccountName, setModifyAccountName] = useState<string>(modifySelectMember.name);
   const [modifyAccountEmail, setModifyAccountEmail] = useState<string>(modifySelectMember.email);
   const [modifyAccountPhoneNumber, setModifyAccountPhoneNumber] = useState<string>(modifySelectMember.phoneNumber);
+  const [modifyAccountOrg, setModifyAccountOrg] = useState<string>(modifySelectMember.organization);
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
   const message = useMessage();
 
   const putUsersAccount = async () => {
-    if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber)) {
+    if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber && modifyAccountOrg)) {
       message.error({ title: '계정 생성 에러', msg: '모든 항목을 입력해주세요' })
     } else if(!passwordRegex.test(modifyAccountPassword)) {
       message.error({ title: '계정 생성 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
@@ -54,6 +55,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         name: modifyAccountName,
         email: modifyAccountEmail,
         phoneNumber: modifyAccountPhoneNumber,
+        organization: modifyAccountOrg
       })
       if(res) {
         setIsModifyMember(false);
@@ -64,6 +66,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         setModifyAccountName('');
         setModifyAccountEmail('');
         setModifyAccountPhoneNumber('');
+        setModifyAccountOrg('');
       }
     }
   }
@@ -104,6 +107,17 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           type="password"
           onChange={(e) => {
             setModifyAccountPasswordConfirm(e);
+          }}
+        />
+      </div>
+      <div style={{ display: 'flex', marginBottom: '10px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
+          조직 :
+        </div>
+        <AccountInput 
+          value={modifyAccountOrg}
+          onChange={(e) => {
+            setModifyAccountOrg(e);
           }}
         />
       </div>
@@ -157,6 +171,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           전화번호: 
         </div>
         <AccountInput 
+          maxLength={11}
           value={modifyAccountPhoneNumber}
           onChange={(e) => {
             setModifyAccountPhoneNumber(e);
