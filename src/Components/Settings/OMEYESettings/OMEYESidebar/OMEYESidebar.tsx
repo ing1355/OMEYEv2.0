@@ -78,9 +78,9 @@ const OMEYESidebar = () => {
         </OMEYEButton>
       </div>
       {/* FPS 설정 */}
-      <div style={{marginBottom: '30px'}}>
+      <div style={{marginBottom: '40px'}}>
         {/* FPS 헤더 */}
-        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+        <div style={{display: 'flex', flexDirection: 'row', marginBottom: '20px'}}>
           <div style={{width: '25%'}}>
             FPS 설정
           </div>
@@ -94,7 +94,7 @@ const OMEYESidebar = () => {
         <div>
           {/* 사람 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>사람</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>사람</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.personFrame}
@@ -111,7 +111,7 @@ const OMEYESidebar = () => {
 
           {/* 얼굴 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>얼굴</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>얼굴</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.faceFrame}
@@ -128,7 +128,7 @@ const OMEYESidebar = () => {
 
           {/* 번호판 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>번호판</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>번호판</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.carFrame}
@@ -145,7 +145,7 @@ const OMEYESidebar = () => {
 
           {/* 인상착의 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>인상착의</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>인상착의</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.attributionFrame}
@@ -165,7 +165,7 @@ const OMEYESidebar = () => {
       {/* 최대 선택 가능 CCTV 수 */}
       <div style={{marginBottom: '30px'}}>
         <div>
-          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '20px'}}>
             <div style={{width: '25%'}}>
               최대 선택 가능 CCTV 수
             </div>
@@ -175,7 +175,7 @@ const OMEYESidebar = () => {
         <div>
           {/* 최대 선택 가능 CCTV 수 (과거 영상) */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>과거영상</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>과거영상</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.maxAnalyzeCount}
@@ -191,8 +191,8 @@ const OMEYESidebar = () => {
           </div>
 
           {/* 최대 선택 가능 CCTV 수 (실시간) */}
-          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '30px'}}>
-            <div style={{width: '25%', paddingLeft: '10px'}}>실시간</div>
+          <div style={{display: 'flex', flexDirection: 'row', marginBottom: '35px'}}>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>실시간</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.maxLiveAnalyzeCount}
@@ -211,7 +211,7 @@ const OMEYESidebar = () => {
 
       {/* 최대 허용 분석 영상 시간 */}
       <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-        <div style={{width: '25%'}}>최대 허용 분석 영상 시간</div>
+        <div style={{width: '25%', lineHeight: '30px'}}>최대 허용 분석 영상 시간</div>
         <div style={{width: '75%'}}>
           <OMEYESettingsSideBarInput 
             value={omeyeSettingsInfo.maxAnalyzeDuration}

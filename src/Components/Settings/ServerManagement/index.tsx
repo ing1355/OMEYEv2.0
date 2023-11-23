@@ -2,10 +2,16 @@ import { useEffect, useState } from "react";
 import { ButtonBackgroundColor, ButtonBorderColor, InputBackgroundColor } from "../../../styles/global-styled";
 import { serverMgmtInfoApi } from "../../../Constants/ApiRoutes";
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues";
+import { Progress } from "antd";
+import { LineChart } from "@mui/x-charts";
+import { useRecoilState } from "recoil";
+import { isLogin } from "../../../Model/LoginModel";
+import { decodedJwtToken } from "../../Layout/Header/UserMenu";
 
-type serviceType = 'detect' | 'main' | 'reid' | 'rt' | 'selective' | 'mediaserver' | '';
+type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
 
 type GetSSEServerMgmtInfoType = {
+  monitorVersion: string,
   serverInfo: serverInfoType,
   serviceStatus: serviceStatusType[],
   omeyeVersion: omeyeVersionType,
@@ -67,25 +73,50 @@ type networkBandwidthType = {
 }
 
 const servicesName = [
-  'detect',
-  'main',
-  'rt',
-  'selective',
-  'reid',
+  'detect2',
+  'main2',
+  'rt2',
+  'reid2',
   'mediaserver',
 ];
 
 const aiServicesName = [  
-  'detect',
-  'main',
-  'selective',
-  'rt',
+  'detect2',
+  'main2',
+  'rt2',
 ];
 
 let sse: EventSource | null;
+const init = [0,0,0,0,0,0,0,0];
 
 const ServerManagement = () => {
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
   const [serverMgmtInfo, setSeverMgmtInfo] = useState<GetSSEServerMgmtInfoType | null>(null);
+  const [xLabels, setXLabels] = useState([
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+    '00:00:00',
+  ]);
+  const [cpuData, setCpuData] = useState(init);
+  const [mData, setMData] = useState(init);
+  const [diskData, setDiskData] = useState(init);
+  const [totalData, setTotalData] = useState(init);
+  const [uplinkData, setUplinkData] = useState(init);
+  const [downlinkData, setDownlinkData] = useState(init);
+  const [gpuData1, setGpuData1] = useState(init);
+  const [gpuData2, setGpuData2] = useState(init);
+  const [gpuData3, setGpuData3] = useState(init);
+  const [gpuData4, setGpuData4] = useState(init);  
+  const [login, setIsLogin] = useRecoilState(isLogin);
+  const userInfo = decodedJwtToken(login!);
 
   function serviceStatusDiv(serviceName: serviceType) {
     const isService = serverMgmtInfo?.serviceStatus.find(item => item.serviceName.split('.')[1] === serviceName);
@@ -93,7 +124,7 @@ const ServerManagement = () => {
     const serviceStatus = isService?.serviceStatus;
 
     return (
-      <div style={{display: 'flex'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between'}}>
         <div>{serviceName} </div>
         <div>
           {(serviceStatus === 'active' || serviceStatus === 'activating') && 
@@ -137,6 +168,129 @@ const ServerManagement = () => {
     )
   }
 
+  function memoryPercent(total: string | undefined, used: string | undefined) {
+    let totalData = 0;
+    let usedData = 0;
+    let percent = 0;
+
+    if(total && used) {
+      if(total.slice(-2) === 'GB') {
+        totalData = Number(total.slice(0,-2)) * 1024 * 1024;
+      } else if(total.slice(-2) === 'MB') {
+        totalData = Number(total.slice(0,-2)) * 1024;
+      } else if(total.slice(-2) === 'KB') {
+        totalData = Number(total.slice(0,-2));
+      }
+
+      if(used.slice(-2) === 'GB') {
+        usedData = Number(used.slice(0,-2)) * 1024 * 1024;
+      } else if(total.slice(-2) === 'MB') {
+        usedData = Number(used.slice(0,-2)) * 1024;
+      } else if(total.slice(-2) === 'KB') {
+        usedData = Number(used.slice(0,-2));
+      }
+    }
+
+    percent = Math.round(usedData/totalData * 100);
+
+    return percent;
+  }
+
+  function bandwidthLabel(data: string | undefined) {
+    if(data) {
+      const matches = data.match(/^([\d.]+)([A-Za-z]+)$/);
+      if(matches)
+      return 'bandwidth (' + matches[2] + ')'
+    } else {
+      return undefined
+    }
+  }
+
+  const diskPercent = (data: string | undefined) => {
+    let percent = 0;
+
+    if(data) {
+      percent = Number(data.replace('%', ''));
+    }
+
+    return percent
+  }
+
+  function networkBandwidthTotalUnit(total: string | undefined, bw: string | undefined) {
+    let bandwidthTotalUnit = separateUnit(total);
+    let bandwidthNum = 0;
+    let bandwidthReturn = 0;
+
+    if(bw) {
+      const num = separateNumber(bw);
+      const unit = separateUnit(bw);
+      if(num && unit) {
+        if(bandwidthTotalUnit === unit) {
+          return Number(num)
+        } else {
+          if(unit === 'bps') {
+            bandwidthNum = Number(num);
+          } else if(unit === 'Kbps' || unit === 'kbps') {
+            bandwidthNum = Number(num) * 1000;
+          } else if(unit === 'Mbps' || unit === 'mbps') {
+            bandwidthNum = Number(num) * 1000 * 1000;
+          } else if(unit === 'Gbps' || unit === 'gbps') {
+            bandwidthNum = Number(num) * 1000 * 1000 * 1000;
+          }
+
+          if(bandwidthTotalUnit === 'bps') {
+            bandwidthReturn = bandwidthNum;
+          } else if(bandwidthTotalUnit === 'Kbps' || bandwidthTotalUnit === 'kbps') {
+            bandwidthReturn = bandwidthNum / 1000;
+          } else if(bandwidthTotalUnit === 'Mbps' || bandwidthTotalUnit === 'mbps') {
+            bandwidthReturn = bandwidthNum / (1000 * 1000);
+          } else if(bandwidthTotalUnit === 'Gbps' || bandwidthTotalUnit === 'gbps') {
+            bandwidthReturn = bandwidthNum / (1000 * 1000 * 1000);
+          }
+
+          return bandwidthReturn
+        }
+      }
+    }
+
+    return 0
+  }
+
+  function separateNumber(data: string | undefined) {
+    if(data) {
+      const matches = data.match(/^([\d.]+)([A-Za-z]+)$/);
+      if(matches)
+      return matches[1]
+    } else {
+      return undefined
+    }
+  }
+
+  function separateUnit(data: string | undefined) {
+    if(data) {
+      const matches = data.match(/^([\d.]+)([A-Za-z]+)$/);
+      if(matches)
+      return matches[2]
+    } else {
+      return undefined
+    }
+  }
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []); 
+
   useEffect(() => {
     if(sse) {
       sse.close();
@@ -150,9 +304,96 @@ const ServerManagement = () => {
 
     sse.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
-      console.log('response', response);
-      const { serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
+      // console.log('response', response);
+      const { monitorVersion, serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
+      // console.log('serverInfo', serverInfo)
       setSeverMgmtInfo(response);
+
+      setXLabels(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newTime = time;
+        newXLabels.shift();
+        newXLabels.push(newTime);
+        return newXLabels;
+      }); 
+      setCpuData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newCpu = Math.round(cpu.use);
+        newXLabels.shift();
+        newXLabels.push(newCpu);
+        return newXLabels;
+      });
+      setMData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newM = Math.round(memoryPercent(memory.total, memory.used));
+        newXLabels.shift();
+        newXLabels.push(newM);
+        return newXLabels;
+      });
+      setDiskData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newDisk = diskPercent(disk.use);
+        newXLabels.shift();
+        newXLabels.push(newDisk);
+        return newXLabels;
+      });
+      setTotalData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newTotal = networkBandwidthTotalUnit(networkBandwidth.total, networkBandwidth.total);
+        newXLabels.shift();
+        newXLabels.push(newTotal);
+        return newXLabels;
+      });
+      setUplinkData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newUplink = networkBandwidthTotalUnit(networkBandwidth.total, networkBandwidth.uplink);
+        newXLabels.shift();
+        newXLabels.push(newUplink);
+        return newXLabels;
+      });
+      setDownlinkData(prevLabels => {
+        const newXLabels = [...prevLabels];
+        const newDownlink = networkBandwidthTotalUnit(networkBandwidth.total, networkBandwidth.downlink);
+        newXLabels.shift();
+        newXLabels.push(newDownlink);
+        return newXLabels;
+      });
+      if(gpu[0]) {
+        setGpuData1(prevLabels => {
+          const newXLabels = [...prevLabels];
+          const newGpu = Math.round(gpu[0].use);
+          newXLabels.shift();
+          newXLabels.push(newGpu);
+          return newXLabels;
+        });
+      }
+      if(gpu[1]) {
+        setGpuData2(prevLabels => {
+          const newXLabels = [...prevLabels];
+          const newGpu = Math.round(gpu[1].use);
+          newXLabels.shift();
+          newXLabels.push(newGpu);
+          return newXLabels;
+        });
+      }
+      if(gpu[2]) {
+        setGpuData3(prevLabels => {
+          const newXLabels = [...prevLabels];
+          const newGpu = Math.round(gpu[2].use);
+          newXLabels.shift();
+          newXLabels.push(newGpu);
+          return newXLabels;
+        });
+      }
+      if(gpu[3]) {
+        setGpuData4(prevLabels => {
+          const newXLabels = [...prevLabels];
+          const newGpu = Math.round(gpu[3].use);
+          newXLabels.shift();
+          newXLabels.push(newGpu);
+          return newXLabels;
+        });
+      }
     }
 
     sse.onerror = (e: any) => {
@@ -163,7 +404,7 @@ const ServerManagement = () => {
 
   return (
     <div>
-      <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>모니터링</div>
+      <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>모니터링 <span>v{serverMgmtInfo?.monitorVersion}</span></div>
       <div style={{display: 'flex', gap: '10px', justifyContent: 'space-between', marginBottom: '15px'}}>
         <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '46%', padding: '10px'}}>
           <div style={{marginBottom: '10px'}}>서비스 정보</div>
@@ -189,7 +430,7 @@ const ServerManagement = () => {
                 백엔드
               </div>
               <div style={{margin: '10px'}}>
-                {serviceStatusDiv('reid' as serviceType)}
+                {serviceStatusDiv('reid2' as serviceType)}
               </div>
             </div>
             <div style={{width: '30%', backgroundColor: `${InputBackgroundColor}`}}>
@@ -213,17 +454,17 @@ const ServerManagement = () => {
         <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
           <div style={{marginBottom: '10px'}}>네트워크 정보</div>
           <div>
-            <div style={{padding: '10px'}}>interface name: {serverMgmtInfo?.serverInfo.network.iface}</div>
-            <div style={{padding: '10px'}}>netmask: {serverMgmtInfo?.serverInfo.network.netmask}</div>
-            <div style={{padding: '10px'}}>gateway: {serverMgmtInfo?.serverInfo.network.gateway}</div>
-            <div style={{padding: '10px'}}>ip: {serverMgmtInfo?.serverInfo.network.ip}</div>
-            <div style={{padding: '10px'}}>dns: {serverMgmtInfo?.serverInfo.network.dns}</div>
+            <div style={{padding: '10px'}}>Interface name: {serverMgmtInfo?.serverInfo.network.iface}</div>
+            <div style={{padding: '10px'}}>IP: {serverMgmtInfo?.serverInfo.network.ip}</div>
+            <div style={{padding: '10px'}}>Netmask: {serverMgmtInfo?.serverInfo.network.netmask}</div>
+            <div style={{padding: '10px'}}>Gateway: {serverMgmtInfo?.serverInfo.network.gateway}</div>
+            <div style={{padding: '10px'}}>DNS: {serverMgmtInfo?.serverInfo.network.dns}</div>
           </div>
         </div>
         <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
           <div style={{marginBottom: '10px'}}>기타 정보</div>
           <div>
-            <div style={{padding: '10px'}}>uptime: {uptimeDataFun(serverMgmtInfo?.serverInfo.uptime)}</div>
+            <div style={{padding: '10px'}}>Uptime: {uptimeDataFun(serverMgmtInfo?.serverInfo.uptime)}</div>
           </div>
         </div>
       </div>
@@ -231,49 +472,142 @@ const ServerManagement = () => {
       <div>
 
         <div style={{display: 'flex', justifyContent: 'space-between'}}>
-          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%'}}>
-            <div>GPU</div>
-            <div>
-              <div></div>
-              <div></div>
+          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
+            <div style={{marginBottom: '10px'}}>GPU</div>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+              <div>
+                {serverMgmtInfo?.gpu && serverMgmtInfo?.gpu.map((data) => (
+                  <div>
+                    GPU{data.id + 1} 사용률: {data.use}%
+                  </div>
+                ))}
+              </div>
+              <div style={{backgroundColor: '#ddd'}}>
+                <LineChart
+                  width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
+                  height={271}
+                  series={[
+                    { data: gpuData1, label: 'GPU1', showMark: false, color: '#FE8968' },
+                    { data: gpuData2, label: 'GPU2', showMark: false, color: '#857DB7' },
+                    { data: gpuData3, label: 'GPU3', showMark: false, color: '#4E7FEA' },
+                    { data: gpuData4, label: 'GPU4', showMark: false, color: '#F5C527' },
+                  ].slice(0, serverMgmtInfo?.gpu.length || 0)}
+                  xAxis={[{ scaleType: 'point', data: xLabels }]}
+                  yAxis={[{ label: 'GPU (%)', min: 0, max: 100 }]}
+                />
+              </div>
             </div>
           </div>
-          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%'}}>
-            <div>memory</div>
-            <div>
-              <div></div>
-              <div></div>
-            </div>            
+          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
+            <div style={{marginBottom: '10px'}}>CPU</div>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+              <div>
+                <div>
+                  <div>사용률: {serverMgmtInfo?.cpu.use ? Math.round(serverMgmtInfo?.cpu.use) : 0}%</div>
+                </div>
+                {/* <div>
+                  <Progress type="circle" percent={memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)} width={75} strokeWidth={10} trailColor='#ccc' strokeColor='#4AA372' format={(percent) => `${percent}%`} />
+                </div> */}
+              </div>
+              <div style={{backgroundColor: '#ddd'}}>
+                <LineChart
+                  width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
+                  height={271}
+                  series={[
+                    { data: cpuData, label: 'CPU', showMark: false, color: '#4ADAE5' },
+                    // { data: gpuData, label: 'GPU', showMark: false },
+                  ]}
+                  xAxis={[{ scaleType: 'point', data: xLabels }]}
+                  yAxis={[{ label: 'CPU (%)', min: 0, max: 100 }]}
+                />
+              </div>
+            </div>          
           </div>
         </div>
 
         <div style={{display: 'flex', justifyContent: 'space-between'}}>
-          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%'}}>
-            <div>disk</div>
-            <div>
-              <div></div>
-              <div></div>
-            </div>
+          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
+            <div style={{marginBottom: '10px'}}>Memory</div>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+              <div>
+                <div>
+                  <div><span>총량 : </span><span>{serverMgmtInfo?.memory.total}</span></div>
+                  <div><span>사용량 : </span><span>{serverMgmtInfo?.memory.used}</span></div>
+                  <div>사용률: {memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)}%</div>
+                </div>
+                {/* <div>
+                  <Progress type="circle" percent={memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)} width={75} strokeWidth={10} trailColor='#ccc' strokeColor='#4AA372' format={(percent) => `${percent}%`} />
+                </div> */}
+              </div>
+              <div style={{backgroundColor: '#ddd'}}>
+                <LineChart
+                  width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
+                  height={271}
+                  series={[
+                    { data: mData, label: 'memory', showMark: false, color: '#4AA372' },
+                  ]}
+                  xAxis={[{ scaleType: 'point', data: xLabels }]}
+                  yAxis={[{ label: 'memory (%)', min: 0, max: 100 }]}
+                />
+              </div>
+            </div>           
           </div>
-          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%'}}>
-            <div>network bandwidth</div>
-            <div>
-              <div></div>
-              <div></div>
-            </div>            
+          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
+            <div style={{marginBottom: '10px'}}>Network bandwidth</div>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+              <div>
+                <div>
+                  <div><span>Total : </span><span>{serverMgmtInfo?.networkBandwidth.total}</span></div>
+                  <div><span>Uplink : </span><span>{serverMgmtInfo?.networkBandwidth.uplink}</span></div>
+                  <div><span>Downlink : </span><span>{serverMgmtInfo?.networkBandwidth.downlink}</span></div>
+                </div>
+              </div>
+              <div style={{backgroundColor: '#ddd'}}>
+                <LineChart
+                  width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
+                  height={271}
+                  series={[
+                    { data: totalData, label: 'total', showMark: false, color: '#A8A8A8' },
+                    { data: uplinkData, label: 'uplink', showMark: false, color: '#4D94AA' },
+                    { data: downlinkData, label: 'downlink', showMark: false, color: '#F9DB5D' },
+                  ]}
+                  xAxis={[{ scaleType: 'point', data: xLabels }]}
+                  yAxis={[{ label: bandwidthLabel(serverMgmtInfo?.networkBandwidth.total) }]}
+                  // slotProps={{
+                  //   legend: {
+                  //     labelStyle: {
+                  //       fill: '#ccc'
+                  //     }
+                  //   }
+                  // }}
+                />
+              </div>
+            </div>          
           </div>
         </div>
 
         <div style={{display: 'flex', justifyContent: 'space-between'}}>
-          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%'}}>
-            <div>disk</div>
-            <div>
-              <div></div>
-              <div></div>
+          <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
+            <div style={{marginBottom: '10px'}}>Disk</div>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
+              <div className='server_management_monitoring_information_card_progress_info'>
+                <div>
+                  <div><span>총량 : </span><span>{serverMgmtInfo?.disk.total}</span></div>
+                  <div><span>사용률 : </span><span>{serverMgmtInfo?.disk.use}</span></div>
+                </div>
+              </div>
+              <div style={{backgroundColor: '#ddd'}}>
+                <LineChart
+                  width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
+                  height={271}
+                  series={[
+                    { data: diskData, label: 'disk', showMark: false, color: '#ED77C0' },
+                  ]}
+                  xAxis={[{ scaleType: 'point', data: xLabels }]}
+                  yAxis={[{ label: 'disk (%)', min: 0, max: 100 }]}
+                />
+              </div>
             </div>
-          </div>
-          <div>
-
           </div>
         </div>
 

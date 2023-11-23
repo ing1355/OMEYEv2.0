@@ -14,43 +14,50 @@ import { decodedJwtToken } from "../Layout/Header/UserMenu";
 
 type settingsCategoryType = 'account' | 'vms' | 'omeye' | 'server';
 
-const ViewByCategory = ({ type }: {
-  type: settingsCategoryType
-}) => {
-  return <>
-    <ChangedView selected={type === 'account'}>
-      <AccountSettings />
-    </ChangedView>
-    <ChangedView selected={type === 'vms'}>
-      <VMSSettings />
-    </ChangedView>
-    {type === 'omeye' &&
-      <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-        <ChangedView selected={type === 'omeye'} style={{width:'49.5%', marginRight: '0.5%'}}>
-          <OMEYESettings />
-        </ChangedView>
-        <ChangedView selected={type === 'omeye'} style={{width: '49.5%', marginLeft: '0.5%'}}>
-          <OMEYESidebar />
-        </ChangedView>
-      </div>
-    }
-    {type === 'server' && 
-      <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-        <ChangedView selected={type === 'server'} style={{width:'77%', marginRight: '0.5%'}}>
-          <ServerManagement />
-        </ChangedView>
-        <ChangedView selected={type === 'server'} style={{width:'22%', marginRight: '0.5%'}}>
-          <ServerMgmtSidebar />
-        </ChangedView>
-      </div>
-    }
-  </>
-}
-
 const Settings = () => {
   const [category, setCategory] = useState<settingsCategoryType>('account')
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
+
+  const ViewByCategory = ({ type }: {
+    type: settingsCategoryType
+  }) => {
+    return <>
+      <ChangedView selected={type === 'account'}>
+        <AccountSettings />
+      </ChangedView>
+      <ChangedView selected={type === 'vms'}>
+        <VMSSettings />
+      </ChangedView>
+      {type === 'omeye' &&
+        <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
+          <ChangedView selected={type === 'omeye'} style={{width:'49.5%', marginRight: '0.5%'}}>
+            <OMEYESettings />
+          </ChangedView>
+          <ChangedView selected={type === 'omeye'} style={{width: '49.5%', marginLeft: '0.5%'}}>
+            <OMEYESidebar />
+          </ChangedView>
+        </div>
+      }
+      {type === 'server' && 
+        (userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
+          <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
+            <ChangedView selected={type === 'server'} style={{width:'77%', marginRight: '0.5%'}}>
+              <ServerManagement />
+            </ChangedView>
+            <ChangedView selected={type === 'server'} style={{width:'22%', marginRight: '0.5%'}}>
+              <ServerMgmtSidebar />
+            </ChangedView>
+          </div>
+        :
+          <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
+            <ChangedView selected={type === 'server'}>
+              <ServerManagement />
+            </ChangedView>
+          </div>
+      }
+    </>
+  }
 
   return (
     <Container>
@@ -60,11 +67,13 @@ const Settings = () => {
         }}>
           계정 설정
         </CategoryBtn>
-        <CategoryBtn selected={category === 'vms'} onClick={() => {
-          setCategory('vms')
-        }}>
-          VMS 설정
-        </CategoryBtn>
+        {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') &&
+          <CategoryBtn selected={category === 'vms'} onClick={() => {
+            setCategory('vms')
+          }}>
+            VMS 설정
+          </CategoryBtn>
+        }
         {userInfo.user.role === 'DEVELOPER' &&
           <CategoryBtn selected={category === 'omeye'} onClick={() => {
             setCategory('omeye')

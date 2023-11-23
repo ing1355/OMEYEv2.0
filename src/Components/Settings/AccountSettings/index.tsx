@@ -179,7 +179,7 @@ const AccountSettings = () => {
           </div>
           {searchValue === 'role' ?
             <RoleDropdown 
-              itemList={RoleSearchDropdownList} 
+              itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
               onChange={val => {
                 setSearchRoleValue(val.value as RoleValues);

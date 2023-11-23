@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType } from "../Constants/GlobalTypes";
-import { GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -12,10 +12,10 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
     const options: AxiosRequestConfig<any> = {
         method,
         url,
-        responseType: 'json',
-        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
+        responseType: ([serverLogFilesDownloadApi].includes(url!)) ? 'blob' : 'json',
+        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, serverControlApi, modelFileUploadApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": ([VmsExcelUploadApi, modelFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
             'Authorization': GetAuthorizationToken()
         }
     }

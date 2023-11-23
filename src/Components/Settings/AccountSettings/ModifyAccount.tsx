@@ -32,7 +32,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
-  const message = useMessage()
+  const message = useMessage();
 
   const putUsersAccount = async () => {
     if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber)) {
