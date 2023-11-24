@@ -199,16 +199,16 @@ const RankInputButton = styled(Button)`
 
 const DescriptionContainer = styled.div`
     width: 100%;
-    flex: 1 1 auto;
+    height: calc(100% - 120px);
     ${globalStyles.flex({ gap: '2px' })}
 `
 
 const DescriptionInputContainer = styled.div<{disabled: boolean}>`
     width: 100%;
-    flex: 1 1 auto;
-    padding: 16px 36px;
+    height: calc(100% - 36px);
+    padding: 24px 36px;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 12px;
     pointer-events: ${({disabled}) => disabled ? 'none' : 'all'};
     background-color: ${({disabled}) => disabled ? ContentsDisableColor : SectionBackgroundColor};
 
@@ -231,7 +231,6 @@ const TitleContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     flex: 0 0 ${ConditionDataFormColumnTitleHeight}px;
     width: 100%;
-    margin-bottom: 8px;
 `
 
 const TitleInnerContainer = styled.div`

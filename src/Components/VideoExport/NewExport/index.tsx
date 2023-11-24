@@ -164,11 +164,11 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 <Progress percent={progress.videoPercent || 0} color={TextActivateColor} outString icon={ProgressVideoIcon} />
             </ProgressContainer>
             <ProgressContainer>
-                <Progress percent={progress.deIdentificationPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
+                <Progress percent={progress.aiPercent || progress.deIdentificationPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
             </ProgressContainer>
-            <ProgressContainer>
+            {options.masking.length > 0 && <ProgressContainer>
                 <Progress percent={progress.encodingPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
-            </ProgressContainer>
+            </ProgressContainer>}
             {options.description && <ETCContainer>
                 <div>
                     비고 :
@@ -371,13 +371,14 @@ const NewExport = () => {
         }
         sseRef.current.onmessage = (res: MessageEvent) => {
             console.debug('video export sse message : ', JSON.parse(res.data.replace(/\\/gi, '')))
-            const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
+            const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent, aiPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
             if (videoUUID) {
                 if (type === 'complete') {
                     currentData.current = {
                         ...currentData.current,
                         progress: {
                             encodingPercent,
+                            aiPercent,
                             deIdentificationPercent,
                             videoPercent,
                             status: 'RUNNING'

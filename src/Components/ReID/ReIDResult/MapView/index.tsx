@@ -30,7 +30,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType[] | null>(null)
     const resultData = useRecoilValue(ReIDResultData(reIdId))
     const selectedData = useRecoilValue(SingleReIDSelectedData(reIdId))
-
+    
     const filteredViewData = useMemo(() => resultData?.data.map((_, index) => ({
         title: _.title,
         index,

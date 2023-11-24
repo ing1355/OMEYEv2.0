@@ -24,6 +24,7 @@ export const ContentsDisableColor = 'rgba(128,128,128,.5)'
 export const loadingVideoDownloadColor = ContentsActivateColor
 export const loadingAIAnalysisColor = ButtonActiveBackgroundColor
 export const ScrollBarColor = "#4f4f56"
+export const ModalBoxShadow = '0 0 20px #060607'
 
 const fadeOut = keyframes`
   0% {

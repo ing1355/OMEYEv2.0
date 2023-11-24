@@ -85,7 +85,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const message = useMessage()
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
-
+    
     useEffect(() => {
         if (duplicatedCCTVs.length > 0) {
 
@@ -474,6 +474,7 @@ export default memo(MapComponent, (prev, next) => {
     if (prev.idForViewChange !== next.idForViewChange) return false
     if (prev.viewChangeForPath !== next.viewChangeForPath) return false
     if (prev.initEvent !== next.initEvent) return false
+    if (prev.reIdId !== next.reIdId) return false
     return true
 })
 

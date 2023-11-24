@@ -41,7 +41,7 @@ export type SSEProgressResponseType = ProgressDataPercentType & ProgressDataPara
 }
 
 export type ProgressDataPercentType = {
-  aiPercent?: number
+  aiPercent: number
   videoPercent: number
   status: ProgressDataPercentStatusType
   errReason?: string

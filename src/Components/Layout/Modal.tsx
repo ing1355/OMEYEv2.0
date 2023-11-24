@@ -1,12 +1,12 @@
 import styled from "styled-components"
-import { ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../styles/global-styled"
+import { ContentsBorderColor, ModalBoxShadow, SectionBackgroundColor, globalStyles } from "../../styles/global-styled"
 import { PropsWithChildren, useCallback, useEffect, useRef } from "react"
 import ModalCloseIcon from '../../assets/img/modalCloseIcon.png'
 import Button from "../Constants/Button"
 
 type ModalProps = PropsWithChildren & {
     visible: boolean
-    complete?: (data?: any) => void|boolean|Promise<unknown>
+    complete?: (data?: any) => void | boolean | Promise<unknown>
     close: () => void
     title: string
     noComplete?: boolean
@@ -22,11 +22,11 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
     const escKeydownCallback = useCallback(async (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             close()
-        } else if(e.key === 'Enter') {
-            if(!noComplete) {
-                if(complete && completeRef.current === false) {
+        } else if (e.key === 'Enter') {
+            if (!noComplete) {
+                if (complete && completeRef.current === false) {
                     completeRef.current = true
-                    if(!(await complete())) {
+                    if (!(await complete())) {
                         close()
                     }
                     completeRef.current = false
@@ -44,12 +44,12 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
     useEffect(() => {
         if (visible) {
             console.debug(containerRef.current)
-            if(containerRef.current) containerRef.current.focus()
+            if (containerRef.current) containerRef.current.focus()
             document.addEventListener('keydown', escKeydownCallback)
             visibleRef.current = escKeydownCallback
             if (containerRef.current) containerRef.current.addEventListener('mousedown', mouseDownCallback)
         } else {
-            if(visibleRef.current) document.removeEventListener('keydown', visibleRef.current)
+            if (visibleRef.current) document.removeEventListener('keydown', visibleRef.current)
             visibleRef.current = undefined
             if (containerRef.current) containerRef.current.removeEventListener('mousedown', mouseDownCallback)
         }
@@ -60,11 +60,11 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
             e.stopPropagation()
         }}>
             <Header>
-                {!noComplete && <CompleteBtn activate onClick={async () => {
-                    if(complete) {
-                        if(complete && completeRef.current === false) {
+                {/* {!noComplete && <CompleteBtn activate onClick={async () => {
+                    if (complete) {
+                        if (complete && completeRef.current === false) {
                             completeRef.current = true
-                            if(!(await complete())) {
+                            if (!(await complete())) {
                                 close()
                             }
                             completeRef.current = false
@@ -74,13 +74,33 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
                     }
                 }}>
                     {completeText ? completeText : (isConfirm ? '확인' : '완료')}
-                </CompleteBtn>}
+                </CompleteBtn>} */}
                 {title}
-                <CloseIcon src={ModalCloseIcon} onClick={close}/>
+                <CloseIcon src={ModalCloseIcon} onClick={close} />
             </Header>
             <Contents>
                 {children}
             </Contents>
+            <Footer>
+                <FooterBtn hover onClick={async () => {
+                    if (complete) {
+                        if (complete && completeRef.current === false) {
+                            completeRef.current = true
+                            if (!(await complete())) {
+                                close()
+                            }
+                            completeRef.current = false
+                        }
+                    } else {
+                        close()
+                    }
+                }}>
+                    {completeText ? completeText : (isConfirm ? '확인' : '완료')}
+                </FooterBtn>
+                <FooterBtn hover onClick={close}>
+                    닫기
+                </FooterBtn>
+            </Footer>
         </ContentsContainer>
     </Container>
 }
@@ -88,7 +108,7 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
 export default Modal
 
 const Container = styled.div<{ visible: boolean }>`
-    z-index: 1004;
+    z-index: 9001;
     position: absolute;
     left: 0;
     top: 0;
@@ -97,10 +117,11 @@ const Container = styled.div<{ visible: boolean }>`
     background-color: rgba(0,0,0,.4);
     ${globalStyles.flex()}
     display: ${({ visible }) => visible ? 'flex' : 'none'};
-    ${globalStyles.fadeOut({animationDuration: '.1s'})}
+    ${globalStyles.fadeOut({ animationDuration: '.1s' })}
 `
 
 const ContentsContainer = styled.div`
+    box-shadow: ${ModalBoxShadow};
     background-color: ${SectionBackgroundColor};
     border-radius: 8px;
     min-width: 300px;
@@ -132,6 +153,16 @@ const CloseIcon = styled.img`
 `
 
 const Contents = styled.div`
-    height: calc(100% - 32px);
     padding: 12px;
+    ${globalStyles.flex()}
+    min-height: calc(100% - 88px);
+`
+
+const Footer = styled.div`
+    height: 48px;
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end', gap: '6px' })}
+    padding: 12px 6px;
+`
+
+const FooterBtn = styled(Button)`
 `

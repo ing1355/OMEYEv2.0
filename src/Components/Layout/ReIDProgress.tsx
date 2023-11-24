@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles, loadingAIAnalysisColor, loadingVideoDownloadColor } from "../../styles/global-styled"
+import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, ModalBoxShadow, SectionBackgroundColor, globalStyles, loadingAIAnalysisColor, loadingVideoDownloadColor } from "../../styles/global-styled"
 import React, { Suspense, useEffect, useRef, useState } from "react"
 import Button from "../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
@@ -121,9 +121,9 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
                         {Math.floor(getConditionPercent(progressData.times))}%
                     </ValueWithLabel>
                 </ConditionTitleSubContentOne>
-                <ConditionTitleSubContentTwo hover disabled={true}>
+                {/* <ConditionTitleSubContentTwo hover disabled={true}>
                     분석 취소
-                </ConditionTitleSubContentTwo>
+                </ConditionTitleSubContentTwo> */}
                 <ConditionTitleSubContentThree>
                     <TimeGroupCollapse opened={opened} />
                 </ConditionTitleSubContentThree>
@@ -1157,7 +1157,7 @@ const ProgressContainer = styled.div<{ visible: boolean }>`
     ${globalStyles.zoomIn()}
     z-index: 9998;
     display: ${({ visible }) => visible ? 'block' : 'none'};
-    box-shadow: 0 0 20px #060607;
+    box-shadow: ${ModalBoxShadow};
 `
 
 const Arrow = styled.div`

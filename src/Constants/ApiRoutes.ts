@@ -47,6 +47,9 @@ export const GetVideoHistoryApi = '/api/v2/export/get-list'
 
 export const GetThumbnailImageApi = '/api/v2/thumbnail'
 
+export const AliveApi = '/api/v2/im-alive'
+export const RefreshApi = '/api/v2/refresh'
+
 // 설정
 // 계정 설정
 export const UserAccountApi = '/api/v2/users'

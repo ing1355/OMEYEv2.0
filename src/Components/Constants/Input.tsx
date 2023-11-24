@@ -37,7 +37,7 @@ const _Input = (props?: InputProps) => {
         if (props?.type === 'textarea') {
             if (!props?.value) {
                 const target = props.inputRef?.current
-                if(target) target.style.height = 32 + 'px'
+                if(target) target.style.height = 36 + 'px'
             }
         }
     }, [props?.value, props?.type])
@@ -64,13 +64,14 @@ const _Input = (props?: InputProps) => {
         style={{
             resize: 'none',
             maxHeight: '100%',
+            minHeight: '56px',
             ...props.style
         }}
         onInput={(e) => {
             const target = e.currentTarget
             target.style.height = 1 + 'px'
-            if ((4 + target.scrollHeight < target.parentElement?.clientHeight!)) {
-                target.style.height = (4 + target.scrollHeight) + 'px'
+            if (target.scrollHeight < target.parentElement?.clientHeight!) {
+                target.style.height = target.scrollHeight + 'px'
             } else {
                 target.style.height = (target.parentElement?.clientHeight! - 12) + 'px'
             }
@@ -123,6 +124,7 @@ const _Input = (props?: InputProps) => {
         onKeyDown={(e) => {
             if (e.key === 'Enter' && props?.onEnter) {
                 e.preventDefault()
+                e.stopPropagation()
                 props.onEnter(e)
             } else if (props?.onKeyDown) props.onKeyDown(e)
         }}
