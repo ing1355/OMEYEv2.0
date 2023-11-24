@@ -3,10 +3,12 @@ import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import Dropdown, { DropdownItemType } from "../../Layout/Dropdown"
 import { useEffect, useState } from "react"
-import { Axios } from "../../../Functions/NetworkFunctions"
-import { GetVmsInfoApi, GetVmsListApi, PutVmsInfoApi, SyncVmsApi } from "../../../Constants/ApiRoutes"
+import { Axios, GetAllSitesData } from "../../../Functions/NetworkFunctions"
+import { GetVmsInfoApi, GetVmsListApi, PutVmsInfoApi, SyncVmsApi, VmsExcelUploadApi } from "../../../Constants/ApiRoutes"
 import { InputBackgroundColor } from "../../../styles/global-styled"
 import useMessage from "../../../Hooks/useMessage"
+import { SitesState } from "../../../Model/SiteDataModel"
+import { useRecoilState } from "recoil"
 
 type getVmsListType = {
   siteList: string[];
@@ -25,6 +27,7 @@ type vmsInfoType = {
   maxStoredDay: number;
   vmsGroup: string;
   vmsLic: string;
+  installSite: string;
 }
 
 const VMSSettings = () => {
@@ -37,7 +40,8 @@ const VMSSettings = () => {
   const [selectedSiteName, setSelectedSiteName] = useState<string>('');
   const [vmsInfo, setVmsInfo] = useState<vmsInfoType | null>(null);
   const [isAgree, setIsAgree] = useState<boolean>(false);
-
+  const [fileName, setFileName] = useState<string>('');
+  const [sitesState, setSitesState] = useRecoilState(SitesState);
   const message = useMessage();
 
   const GetVmsList = async () => {
@@ -61,20 +65,68 @@ const VMSSettings = () => {
   const GetVmsInfoFun = async () => {
     const res = await Axios('GET', GetVmsInfoApi(selectedSiteName))
     if (res) {
-      console.log('res', res);
-      setVmsInfo(res);
+      // console.log('res', res);
+      const resTemp = {...res, installSite: selectedSiteName}
+      setVmsInfo(resTemp);
     }
   }
 
   const PutVmsInfoFun = async () => {
-    const res = await Axios('PUT', PutVmsInfoApi, vmsInfo);
+    const res = await Axios('PUT', PutVmsInfoApi, vmsInfo, true);
+
+    if(res.data.success) {
+      message.success({ title: '사이트 정보 수정', msg: '사이트 정보 수정에 성공했습니다' })
+    } else {
+      message.error({ title: '사이트 정보 수정 에러', msg: '사이트 정보 수정에 실패했습니다' })
+    }
     GetVmsInfoFun()
   }
 
+  const VmsExcelUploadFun = async (file: any) => {
+    const res = await Axios('POST', VmsExcelUploadApi, {
+      file: file,
+      installSite: selectedSiteName
+    }, true);
+
+    if(res !== undefined) {
+      if(res.data.success) {
+        message.success({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 성공했습니다' })
+        setFileName('');
+      } else {
+        message.error({ title: '엑셀 파일 업로드 에러', msg: '엑셀 파일 업로드에 실패했습니다' })
+        setFileName('');
+      }
+    } else {
+      message.error({ title: '엑셀 파일 업로드 에러', msg: '엑셀 파일 업로드에 실패했습니다' })
+      setFileName('');
+    }
+  }
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFileName('');
+    const fileInput = event.target;
+    if (fileInput.files && fileInput.files[0]) {
+      const name = fileInput.files[0].name;
+      setFileName(name);
+    }
+  };
+
   const SyncVmsApiFun = async () => {
-    const res = await Axios('GET', SyncVmsApi)
-    if (res) {
-      console.log('res', res);
+    const res = await Axios('GET', SyncVmsApi,{},true)
+    if(res !== undefined) {
+      if(res.data.success) {
+        message.success({ title: '동기화', msg: '동기화에 성공했습니다' })
+        GetAllSitesData().then(res => {
+          setSitesState({
+              state: 'IDLE',
+              data: res
+          })
+        })
+      } else {
+        message.error({ title: '동기화 에러', msg: '동기화에 실패했습니다' })
+      }
+    } else {
+      message.error({ title: '동기화 에러', msg: '동기화에 실패했습니다' })
     }
   }
 
@@ -99,7 +151,7 @@ const VMSSettings = () => {
               hover
               onClick={GetVmsInfoFun}
             >
-              확인
+              조회
             </VMSButton>
           </div>
           {vmsInfo &&
@@ -108,7 +160,7 @@ const VMSSettings = () => {
                 hover
                 onClick={PutVmsInfoFun}
               >
-                수정
+                저장
               </VMSButton>
             </div>
           }
@@ -222,8 +274,54 @@ const VMSSettings = () => {
           }
           <div style={{display: 'flex'}}>
             <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>엑셀 업로드</div>
-            <VMSButton hover>업로드</VMSButton>
-            {/* <div>text.xsl</div> */}
+            <div>
+              <form
+                id='fileUpload'
+                onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+                  e.preventDefault();
+                  const { uploadFile } = (e.currentTarget.elements as any);
+                  const file = uploadFile.files[0];
+                  const fileExtension = file?.name.split('.').pop();
+                  const isFileExtensionPth = fileExtension === 'xlsx';
+                  if(!file) return message.error({ title: '엑셀 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
+                  if(!isFileExtensionPth) {
+                     return message.error({ title: '엑셀 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
+                  } 
+
+                  VmsExcelUploadFun(file);
+                }}
+              >
+                <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
+                  <div style={{lineHeight: '30px'}}>
+                    <label 
+                      htmlFor='uploadFile'
+                      style={{border: '1px solid #ccc', padding: '10px', borderRadius: '5px'}}
+                    >
+                      파일 선택
+                    </label>
+                    <input
+                      id='uploadFile'
+                      type='file'
+                      accept='.xlsx'
+                      hidden
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                  <div style={{lineHeight: '30px'}}>
+                    {fileName}
+                  </div>
+                  <div>
+                    <VMSButton 
+                      hover
+                      type='submit'
+                      form='fileUpload'
+                    >
+                      업로드
+                    </VMSButton>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
           <div style={{display: 'flex'}}>
             <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>

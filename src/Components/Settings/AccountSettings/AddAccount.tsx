@@ -10,7 +10,9 @@ import { useRecoilState } from "recoil"
 import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
 import { ButtonBackgroundColor, InputBackgroundColor } from "../../../styles/global-styled"
-import { RoleSearchDropdownList, RoleValues } from "."
+import { AdminRoleSearchDropdownList, RoleSearchDropdownList, RoleValues } from "."
+import { isLogin } from "../../../Model/LoginModel"
+import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 
 type AddAccountType = {
   visible: boolean
@@ -18,13 +20,11 @@ type AddAccountType = {
   noComplete: boolean
 }
 
-type accountInfoType = {
-  username: string
-  password: string
-  name: string
-  email: string
-  phoneNumber: string
-}
+export const idRegex = /^[a-z0-9]{4,16}$/;
+export const passwordRegex = /(?=.*[a-zA-Z])(?=.*[\d])(?=.*[\W]).{8,16}|(?=.*[a-zA-Z])(?=.*[\d]).{10,16}|(?=.*[a-zA-Z])(?=.*[\W]).{10,16}|(?=.*[\d])(?=.*[\W]).{10,16}/;
+export const nameRegex = /^[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]{1,16}$/;
+export const phoneNumberRegex = /^\d{9,11}$/;
+export const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
 
 const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [newAccountUsername, setNewAccountUsername] = useState<string>('');
@@ -33,28 +33,65 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [newAccountName, setNewAccountName] = useState<string>('');
   const [newAccountEmail, setNewAccountEmail] = useState<string>('');
   const [newAccountPhoneNumber, setNewAccountPhoneNumber] = useState<string>('');
+  const [newAccountOrg, setNewAccountOrg] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
+  const [login, setIsLogin] = useRecoilState(isLogin);
+  const userInfo = decodedJwtToken(login!);
   const message = useMessage();
 
+  const resetNewAccountFun = () => {
+    setIsAddMember(false);
+    setNewAccountUsername('');
+    setNewAccountPassword('');
+    setNewAccountPasswordConfirm('');
+    setNewAccountName('');
+    setSearchRoleValue('USER');
+    setNewAccountEmail('');
+    setNewAccountPhoneNumber('');
+    setNewAccountOrg('');
+  }
+
   const newAccountSaveFun = async () => {
-    const res = await Axios("POST", UserAccountApi, {
-      username: newAccountUsername,
-      password: newAccountPassword,
-      name: newAccountName,
-      email: newAccountEmail,
-      phoneNumber: newAccountPhoneNumber,
-    })
-    if(res) {
-      setIsAddMember(false);
-      setNewAccountUsername('');
-      setNewAccountPassword('');
-      setNewAccountPasswordConfirm('');
-      setNewAccountName('');
-      setNewAccountEmail('');
-      setNewAccountPhoneNumber('');
-    } 
+    if(!(newAccountUsername && newAccountPassword && newAccountPasswordConfirm && newAccountName && newAccountEmail && newAccountPhoneNumber && newAccountOrg)) {
+      message.error({ title: '계정 생성 에러', msg: '모든 항목을 입력해주세요' })
+    } else if(!idRegex.test(newAccountUsername)) {
+      message.error({ title: '계정 생성 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
+    } else if(!passwordRegex.test(newAccountPassword)) {
+      message.error({ title: '계정 생성 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
+    } else if(newAccountPassword !== newAccountPasswordConfirm) {
+      message.error({ title: '계정 생성 에러', msg: '비밀번호가 일치하지 않습니다' })
+    } else if(!nameRegex.test(newAccountName)) {
+      message.error({ title: '계정 생성 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
+    } else if(!emailRegex.test(newAccountEmail)) {
+      message.error({ title: '계정 생성 에러', msg: '잘못된 E-MAIL 형식 입니다' })
+    } else if(!phoneNumberRegex.test(newAccountPhoneNumber)) {
+      message.error({ title: '계정 생성 에러', msg: '9~11자리 숫자로만 입력해주세요' })
+    } else if(isSameId) {
+      message.error({ title: '계정 생성 에러', msg: '이미 사용중인 아이디입니다' })
+    } else {
+      const res = await Axios("POST", UserAccountApi, {
+        username: newAccountUsername,
+        password: newAccountPassword,
+        name: newAccountName,
+        role: searchRoleValue,
+        email: newAccountEmail,
+        phoneNumber: newAccountPhoneNumber,
+        organization: newAccountOrg
+      })
+      resetNewAccountFun();
+
+      if(res !== undefined) {
+        if(res) {
+          message.success({ title: '멤버 추가', msg: '멤버를 추가했습니다' })
+        } else {
+          message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+        }
+      } else {
+        message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+      }
+    }
   }
 
   const checkIdFun = async () => {
@@ -74,7 +111,10 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   return (
     <Modal
       visible={visible}
-      close={close}
+      close={() => {
+        close();
+        resetNewAccountFun();
+      }}
       title="멤버 추가"
       noComplete={noComplete}
     >
@@ -124,6 +164,18 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
+          조직 :
+        </div>
+        <AccountInput 
+          value={newAccountOrg}
+          onChange={(e) => {
+            setNewAccountOrg(e);
+          }}
+        />
+        <div style={{width: '130px'}}></div>
+      </div>
+      <div style={{ display: 'flex', marginBottom: '10px' }}>
+        <div style={{ width: '100px', lineHeight: '30px' }}>
           이름 :
         </div>
         <AccountInput 
@@ -140,7 +192,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </div>
         <div>
           <RoleDropdown 
-            itemList={RoleSearchDropdownList} 
+            itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
             bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
             onChange={val => {
               setSearchRoleValue(val.value as RoleValues);
@@ -168,6 +220,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
         </div>
         <AccountInput 
           value={newAccountPhoneNumber}
+          maxLength={11}
           onChange={(e) => {
             setNewAccountPhoneNumber(e);
           }}
