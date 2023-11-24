@@ -209,14 +209,14 @@ const ServerMgmtSidebar = () => {
 
     if(res !== undefined) {
       if(res.data.success) {
-        message.success({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 성공했습니다' })
+        message.success({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 성공했습니다' })
         setFileName('');
       } else {
-        message.error({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 실패했습니다' })
+        message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
         setFileName('');
       }
     } else {
-      message.error({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 실패했습니다' })
+      message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
       setFileName('');
     }
 
@@ -395,6 +395,9 @@ const ServerMgmtSidebar = () => {
             <ServerControlDropdown 
               itemList={logFileDownloadList}
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1}}
+              onChange={val => {
+                setSelectedLogFile(val.value as logFileType);
+              }}
             />
           </div>
           <div>

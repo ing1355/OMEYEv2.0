@@ -50,6 +50,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         name: modifySelectMember.name,
         email: modifySelectMember.email,
         phoneNumber: modifySelectMember.phoneNumber,
+        role: searchRoleValue,
         organization: modifySelectMember.organization
       })
       if(res) {
