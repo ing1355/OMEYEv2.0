@@ -4,7 +4,7 @@ import Logo from "../../Constants/Logo"
 import { globalStyles } from "../../../styles/global-styled"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { menuState } from "../../../Model/MenuModel"
-import { useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import ReIDProgress from "../ReIDProgress"
 import ProgressIcon from '../../../assets/img/ProgressIcon.png'
 import ProgressActivateIcon from '../../../assets/img/ProgressActivateIcon.png'
@@ -13,20 +13,29 @@ import UserMenu from "./UserMenu"
 import Menus from "./Menus"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
+import { AllMenuStateInitEvent } from "../../../Model/GlobalEventModel"
 
 const Header = () => {
-    const [currentMenu, setCurrentMenu] = useRecoilState(menuState)
-    const cMenu = useRecoilValue(conditionMenu)
     const [reIDProgressVisible, setReIDProgressVisible] = useState(false)
+    const [currentMenu, setCurrentMenu] = useRecoilState(menuState)
+    const [allMenuEvent, setAllMenuEvent] = useRecoilState(AllMenuStateInitEvent)
+    const cMenu = useRecoilValue(conditionMenu)
     const progressStatus = useRecoilValue(ProgressStatus)
 
     const goToMain = () => {
+        setAllMenuEvent(true)
         setCurrentMenu(null)
     }
 
     useLayoutEffect(() => {
         setReIDProgressVisible(false)
     }, [currentMenu, cMenu])
+
+    useEffect(() => {
+        if(allMenuEvent) {
+            setAllMenuEvent(false)
+        }
+    },[allMenuEvent])
 
     return <HeaderContainer>
         <LogoContainer onClick={goToMain}>

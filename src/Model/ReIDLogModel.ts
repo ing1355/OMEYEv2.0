@@ -82,7 +82,7 @@ export const useReIDLogDatas = (params: ReIDSearchParamsType) => {
         }) as ReIDLogApiResponseType
         setLogs({
             state: 'IDLE',
-            data: res
+            data: res || logs.data
         })
     }
 

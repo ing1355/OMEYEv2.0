@@ -34,6 +34,13 @@ export const SitesDataForTreeView = selector({
     }
 })
 
+export const GetAllSiteCameras = selector({
+    key: "SiteData/selector/cameras",
+    get: ({get}) => {
+        return get(SitesData).flatMap(_ => _.cameras)
+    }
+})
+
 export const GetCameraById = selectorFamily({
     key: "SiteData/selector/camera/id",
     get: (cctvId: CameraDataType['cameraId']) => ({get}) => {
@@ -51,7 +58,7 @@ export const useSites = () => {
         const res = await GetAllSitesData()
         setSites({
             state: 'IDLE',
-            data: res
+            data: res || sites.data
         })
     }
 

@@ -47,6 +47,8 @@ const msgByStatus = (status: VideoExportRowDataType['status'], progress?: VideoE
         case 'downloading': {
             if (progress) {
                 if (progress.videoPercent < 100) return '영상 다운로드 중'
+                else if ((progress.deIdentificationPercent || 0) < 100) return '영상 비식별화 진행 중'
+                else if ((progress.encodingPercent || 0) < 100) return '영상 인코딩 진행 중'
                 else return '영상 변환 중'
             } else {
                 return '영상 반출 진행 중'
@@ -91,7 +93,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
     const [count, setCount] = useState(0)
     const dataRef = useRef(data)
     const timerRef = useRef<NodeJS.Timer>()
-    const cctvName = useRecoilValue(GetCameraById(cctvId || 0))
+    const cctvInfo = useRecoilValue(GetCameraById(cctvId || 0))
 
     const canChangeInput = useMemo(() => {
         return status === 'none' || status === 'canDownload' || status === 'cancel' || status === 'wait'
@@ -125,42 +127,48 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
     return <RowContainer>
         <IconContainer>
             <Icon src={iconByStatus(status)} width="60%" height="60%" />
+            {!canChangeInput && <CountText>
+                {getLoadingTimeString(count)}
+            </CountText>}
         </IconContainer>
         <ContentsContainer>
             <TitleContainer>
                 <StatusTitle status={status}>
                     {msgByStatus(status, progress)}{status === 'downloading' && Array.from({ length: count % 4 }).map(_ => '.')}
                 </StatusTitle>
-                {!canChangeInput && <CountText>
+                {/* {!canChangeInput && <CountText>
                     {getLoadingTimeString(count)}
-                </CountText>}
+                </CountText>} */}
             </TitleContainer>
             <CCTVName disabled={!canChangeInput} onClick={() => {
-                    if (canChangeInput) inputTypeChange('cctv')
-                }}>
+                if (canChangeInput) inputTypeChange('cctv')
+            }}>
                 <NeedSelectTitle>
-                    {cctvId ? <CCTVNameById cctvId={cctvId} /> : '클릭하여 반출할 CCTV 선택'}
+                    {cctvId ? <CCTVNameById cctvId={cctvId} /> : 'CCTV 선택'}
                 </NeedSelectTitle>
                 {canChangeInput && <EditIconContainer>
                     <img src={editIcon} />
                 </EditIconContainer>}
             </CCTVName>
-            <ProgressContainer>
-                <Progress percent={progress.videoPercent} color={TextActivateColor} outString icon={ProgressVideoIcon} />
-            </ProgressContainer>
-            <ProgressContainer>
-                <Progress percent={progress.aiPercent} color={TextActivateColor} outString icon={ProgressAIIcon} />
-            </ProgressContainer>
             <CCTVName disabled={!canChangeInput} onClick={() => {
-                    if (canChangeInput) inputTypeChange('time')
-                }}>
+                if (canChangeInput) inputTypeChange('time')
+            }}>
                 <NeedSelectTitle>
-                    {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '클릭하여 반출할 날짜 선택'}
+                    {time ? `${convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(time.endTime!)}` : '날짜 선택'}
                 </NeedSelectTitle>
                 {canChangeInput && <EditIconContainer>
                     <img src={editIcon} />
                 </EditIconContainer>}
             </CCTVName>
+            <ProgressContainer>
+                <Progress percent={progress.videoPercent || 0} color={TextActivateColor} outString icon={ProgressVideoIcon} />
+            </ProgressContainer>
+            <ProgressContainer>
+                <Progress percent={progress.deIdentificationPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
+            </ProgressContainer>
+            <ProgressContainer>
+                <Progress percent={progress.encodingPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
+            </ProgressContainer>
             {options.description && <ETCContainer>
                 <div>
                     비고 :
@@ -195,14 +203,18 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
                     <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
-                        if (status === 'downloading') videoExportCancelFunc()
-                        if (status === 'canDownload') exportCallback()
+                        console.debug(status)
+                        if (status === 'downloading') {
+                            setCount(0)
+                            videoExportCancelFunc()
+                        }
+                        if (status === 'canDownload' || status === 'cancel') exportCallback()
                         if (status === 'complete') {
                             setData({
                                 ...data,
                                 status: 'downloadComplete'
                             })
-                            videoDownloadByPath(path!, `${cctvName}_${time?.startTime}_${time?.endTime}`)
+                            videoDownloadByPath(path!, `${cctvInfo?.name}_${time?.startTime}_${time?.endTime}`)
                         }
                     }}>
                         {btnMsgByStatus(status)}
@@ -351,21 +363,22 @@ const NewExport = () => {
         }
     }
 
-    const sseSetting = (callback: () => void) => {
-        sseRef.current = CustomEventSource(SseStartApi)
+    const sseSetting = async (callback: () => void) => {
+        sseRef.current = await CustomEventSource(SseStartApi)
         sseRef.current.onopen = async (e) => {
             console.debug('video export sse open')
             if (callback) callback()
         }
         sseRef.current.onmessage = (res: MessageEvent) => {
             console.debug('video export sse message : ', JSON.parse(res.data.replace(/\\/gi, '')))
-            const { type, aiPercent, videoPercent, path, status, videoUUID } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
+            const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
             if (videoUUID) {
                 if (type === 'complete') {
                     currentData.current = {
                         ...currentData.current,
                         progress: {
-                            aiPercent,
+                            encodingPercent,
+                            deIdentificationPercent,
                             videoPercent,
                             status: 'RUNNING'
                         }
@@ -395,6 +408,7 @@ const NewExport = () => {
                 }))
             }
             if (status && SSEResponseErrorMsg.includes(status)) {
+                console.debug("current State : ", status, datasRef.current, currentUUIDRef.current)
                 setDatas(datasRef.current.map(_ => _.videoUUID === currentUUIDRef.current ? ({
                     ..._,
                     status: 'cancel'
@@ -498,14 +512,16 @@ const NewExport = () => {
 
 export default NewExport
 
+const RowHeight = 240
+
 const RowContainer = styled.div`
     border: 1px solid ${ContentsBorderColor};
     border-radius: 10px;
     padding: 12px 24px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
-    height: 200px;
-    min-height: 200px;
-    max-height: 200px;
+    height: ${RowHeight}px;
+    min-height: ${RowHeight}px;
+    max-height: ${RowHeight}px;
     width: 100%;
     margin-bottom: 8px;
 `
@@ -514,7 +530,7 @@ const EmptyRowContainer = styled.div`
     border-radius: 10px;
     border: 2.5px dotted ${ContentsBorderColor};
     ${globalStyles.flex({ gap: '16px' })}
-    height: 200px;
+    height: ${RowHeight}px;
     width: 100%;
     &:hover {
         background-color: ${ButtonBackgroundColor};
@@ -558,7 +574,6 @@ const TitleContainer = styled.div`
 `
 
 const StatusTitle = styled.div<{ status: VideoExportRowDataType['status'] }>`
-    flex: 0 0 120px;
     color: ${({ status }) => status === 'canDownload' ? TextActivateColor : 'white'};
     opacity: ${({ status }) => status === 'complete' ? 0.5 : 1};
 `

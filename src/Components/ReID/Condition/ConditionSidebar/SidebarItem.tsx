@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { globalStyles, TextActivateColor } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
-import { ObjectTypeSelectRoute } from "../Constants/RouteInfo"
+import { ReIDConditionFormRoute } from "../Constants/RouteInfo"
 
 type SidebarItemProps = {
     title: string
@@ -14,7 +14,7 @@ const SidebarItem = ({ title, index, selected, onSelect }: SidebarItemProps) => 
     const {routeJump} = useConditionRoutes()
     return <SidebarItemContainer index={index} selected={selected} onClick={() => {
         if(index === 0 && selected) {
-            routeJump(ObjectTypeSelectRoute.key)
+            routeJump(ReIDConditionFormRoute.key)
         } else if(!selected) {
             if (onSelect) onSelect()
 

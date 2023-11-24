@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 import MapComponent from "../../../Constants/Map"
 import styled from "styled-components";
-import { ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
+import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
 import CCTVIcon from '../../../../assets/img/CCTVSelectedIcon.png'
 import CCTVStartIcon from '../../../../assets/img/CCTVStartIcon.png'
 import CCTVEndIcon from '../../../../assets/img/CCTVEndIcon.png'
@@ -21,6 +21,9 @@ type MapViewProps = {
     reIdId: number
 }
 
+const ResultItemWidth = 220
+const ResultItemHeight = 160
+
 const MapView = ({ opened, reIdId }: MapViewProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
@@ -36,11 +39,11 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
 
     useEffect(() => {
         console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
-    },[selectedData, selectedCondition, selectedTarget])
-    
+    }, [selectedData, selectedCondition, selectedTarget])
+
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
-    
+
     const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox key={_.resultId + '1'} onClick={() => {
         setDetailResult([_])
     }}>
@@ -54,21 +57,28 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
             <DetectedTime>
                 {convertFullTimeStringToHumanTimeFormat(_.foundDateTime)}
             </DetectedTime>
+            {_.accuracy ? <ResultBoxBottomContainer>
+                유사율 : {_.accuracy}%
+            </ResultBoxBottomContainer> : <></>}
         </ResultBoxMiddleContainer>
-        {_.accuracy ? <ResultBoxBottomContainer>
-            유사율 : {_.accuracy}%
-        </ResultBoxBottomContainer> : <></>}
     </ResultBox>, [])
+
+    const createResultLine = () => <LineContainer>
+        <ResultLine/>
+        <ResultLine/>
+        <ResultLine/>
+        <ResultLine/>
+    </LineContainer>
 
     useEffect(() => {
         setDetailResult(null)
     }, [opened])
 
     useEffect(() => {
-        if(detailResult) {
-            
+        if (detailResult) {
+
         }
-    },[detailResult])
+    }, [detailResult])
 
     return <>
         <Container opened={opened}>
@@ -92,16 +102,19 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                         <ImageView src={detailResult ? detailResult[0].imgUrl : undefined} style={{
                             width: detailResult ? '100%' : '50%',
                             height: detailResult ? '100%' : '50%'
-                        }}/>
+                        }} />
                     </TargetMediaContainer>
                     <TargetMediaContainer>
-                        <Video src={detailResult ? detailResult[0].searchCameraUrl : undefined}/>
+                        <Video src={detailResult ? detailResult[0].searchCameraUrl : undefined} />
                     </TargetMediaContainer>
                 </TargetContainer>
                 <ResultsContainer>
                     {
                         filteredSelectedData && filteredSelectedData.flatMap((_, ind, arr) => {
-                            if (arr.length - 1 > ind) return [createResultBox(_, ind === 0, ind === arr.length - 1), <ResultLine key={_.resultId + '2'} src={resultLineImg} />]
+                            if (arr.length - 1 > ind) return [createResultBox(_, ind === 0, ind === arr.length - 1), <LineContainer key={_.resultId + '2'} >
+                                {createResultLine()}
+                                {/* <ResultLine key={_.resultId + '2'} src={resultLineImg} /> */}
+                            </LineContainer>]
                             else return createResultBox(_, ind === 0 && arr.length !== 1, ind === arr.length - 1 || arr.length === 1)
                         })
                     }
@@ -115,7 +128,7 @@ export default MapView
 
 const Container = styled.div<{ opened: boolean }>`
     height: 100%;
-    ${({ opened }) => opened ? globalStyles.flex({ gap: '32px' }) : `display: none;`}
+    ${({ opened }) => opened ? globalStyles.flex({ gap: '12px' }) : `display: none;`}
     ${globalStyles.fadeOut()}
 `
 
@@ -127,10 +140,10 @@ const MapContainer = styled.div`
 
 const ShowContainer = styled.div`
     width: 100%;
-    height: 320px;
+    height: 360px;
     border-radius: 12px;
-    padding: 18px 28px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '80px' })}
+    padding: 6px 12px;
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '40px' })}
     `
 
 const TargetContainer = styled.div`
@@ -146,31 +159,23 @@ const TargetMediaContainer = styled.div`
     border: 1px solid ${ContentsBorderColor};
 `
 
-const TargetImage = styled.img`
-`
-
-const TargetVideo = styled.video`
-    width: 100%;
-    height: 100%;
-`
-
 const ResultsContainer = styled.div`
     flex: 1;
     height: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px', justifyContent: 'flex-start' })}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '16px', justifyContent: 'flex-start', alignItems: 'flex-start', flexWrap: 'wrap' })}
     overflow: auto;
 `
 
 const ResultBox = styled.div`
-    flex: 0 0 200px;
+    flex: 0 0 ${ResultItemWidth}px;
     padding: 16px 0;
     cursor: pointer;
-    height: 100%;
-    ${globalStyles.flex({ gap: '32px' })}
+    height: ${ResultItemHeight}px;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
 `
 
 const CCTVImgContainer = styled.div`
-    height: 100px;
+    height: 60px;
 `
 
 const CCTVImg = styled.img`
@@ -180,26 +185,42 @@ const CCTVImg = styled.img`
 
 const ResultBoxMiddleContainer = styled.div`
     flex: 1 1 60px;
-    ${globalStyles.flex()}
+    ${globalStyles.flex({ gap: '8px' })}
 `
 
 const CCTVName = styled.div`
     text-align: center;
-    font-size: 1.6rem;
+    font-size: 1rem;
+    max-height: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical
 `
 
 const DetectedTime = styled.div`
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
 `
 
 const ResultBoxBottomContainer = styled.div`
-    flex: 1 1 40px;
-    font-size: 1.3rem;
+    flex: 1;
+    font-size: 1rem;
 `
 
-const ResultLine = styled.img`
-    width: 200px;
-    align-self: flex-start;
-    padding-top: 50px;
+const LineContainer = styled.div`
+    width: ${ResultItemWidth - 130}px;
+    height: ${ResultItemHeight}px;
+    ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
 `
+
+const ResultLine = styled.div`
+    flex: 1;
+    border-top: 2px solid ${ContentsActivateColor};
+`
+
+// const ResultLine = styled.img`
+//     width: 100px;
+// `

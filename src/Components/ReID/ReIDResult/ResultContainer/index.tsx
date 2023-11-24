@@ -16,7 +16,6 @@ import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
 import Progress from "../../../Layout/Progress"
 import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
-import { getLastTargetListId } from "../../Condition/Constants/ImageViewWithCanvas"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
 import { conditionTargetDatas } from "../../../../Model/ConditionDataModel"
 import useMessage from "../../../../Hooks/useMessage"
@@ -41,7 +40,7 @@ const getConditionPercent = (data: ProgressDataType['times']) => {
 
 const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
     const cctvIds = Object.keys(data.data)
-    return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
+    return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent! + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
 }
 
 const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
@@ -52,9 +51,7 @@ const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
         e.preventDefault()
         const image = new Image();
         image.crossOrigin = "Anonymous";
-        console.debug("load start")
         image.onload = () => {
-            console.debug("load end")
             const canvas = document.createElement("canvas") as HTMLCanvasElement;
             const ctx = canvas.getContext("2d");
             canvas.width = image.width;
@@ -66,7 +63,6 @@ const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
                 image.width,
                 image.height
             );
-            console.debug("draw end")
             ctx!.beginPath();
             const coord = GetCoordByUrl(subSrc);
             let width = coord[2] - coord[0];
@@ -77,13 +73,12 @@ const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
                 width,
                 height
             );
-            ctx!.strokeStyle = "red";
+            ctx!.strokeStyle = "rgb(0,255,0)";
             ctx!.lineWidth = 4;
             ctx!.lineJoin = "round";
             ctx!.stroke();
             ctx!.globalCompositeOperation =
                 "destination-over";
-                console.debug("draw path")
             setFrameImage(canvas.toDataURL())
             image.src = '';
         }
@@ -159,7 +154,13 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                     </DescriptionEtcTextContainer>
                 </ResultDescriptionContainer>
                 <ResultListItemsContainer isProgress={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']}>
-                    {!_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.some(__ => Array.from(__.results).some(([key, val]) => val.length > 0)) && <NoDataContainer>
+                    {!_.resultList.find(__ => {
+                        return __.objectId === selectedTarget
+                    })?.timeAndCctvGroup.some(__ => {
+                        return Array.from(__.results).some(([key, val]) => {
+                        return val.length > 0
+                    })
+                }) && <NoDataContainer>
                         {
                             (globalCurrentReIdId === reidId && progressStatus.status === PROGRESS_STATUS['RUNNING']) ? <>
                                 현재 분석중입니다.
@@ -190,15 +191,14 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                 <SelectBtn hover onClick={async () => {
                                                     let type = _.resultList.find(r => r.objectId === selectedTarget)?.objectType!
                                                     type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
-                                                    console.debug("result : ", result)
                                                     const res = await GetObjectIdByImage([{
-                                                        type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
+                                                        type,
                                                         image: result.imgUrl
                                                     }])
                                                     if (res) {
                                                         const { cctvId, imgUrl, accuracy } = { ...result, cctvId: key }
                                                         setGlobalTargetDatas([...globalTargetDatas, {
-                                                            type: type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type,
+                                                            type,
                                                             cctvId,
                                                             selected: false,
                                                             src: imgUrl,

@@ -110,7 +110,7 @@ const ReIDLogs = () => {
                 logs.data.totalCount > 0 ? <>
                     <ContentsContainer>
                         {
-                            logs.data.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId}>
+                            logs.data.results.map((_, ind) => <ContentsItemContainer opened={opened === _.reidId} key={_.reidId} nums={_.requestGroups.length}>
                                 <ContentsItemTitleContainer onClick={() => {
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
@@ -357,8 +357,8 @@ const ContentsContainer = styled.div`
     color: white;
 `
 
-const ContentsItemContainer = styled.div<{ opened: boolean }>`
-    height: ${({ opened }) => opened ? 'auto' : (44 + 'px')};
+const ContentsItemContainer = styled.div<{ opened: boolean, nums: number }>`
+    height: ${({ opened, nums }) => opened ? `${nums * 352 + 40}px`: (44 + 'px')};
     transition: height .25s ease-out;
     border: 2px solid ${ContentsBorderColor};
     border-radius: 12px;
@@ -375,7 +375,7 @@ const ContentsItemTitleContainer = styled.div`
 `
 
 const ContentsItemSubContainer = styled.div<{ opened: boolean }>`
-    height: ${({ opened }) => opened ? 348 : 40}px;
+height: ${({ opened }) => opened ? 348 : 40}px;
     transition: height .25s ease-out;
     margin-bottom: 4px;
     overflow: auto;

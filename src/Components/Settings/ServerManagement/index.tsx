@@ -142,23 +142,23 @@ const ServerManagement = () => {
       sse.close();
     }
 
-    sse = CustomEventSource(serverMgmtInfoApi);
+    // sse = CustomEventSource(serverMgmtInfoApi);
 
-    sse.onopen = () => {
-      console.log('server mgmt sse open');
-    }
+    // sse.onopen = () => {
+    //   console.log('server mgmt sse open');
+    // }
 
-    sse.onmessage = (res: MessageEvent) => {
-      const response = JSON.parse(res.data);
-      console.log('response', response);
-      const { serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
-      setSeverMgmtInfo(response);
-    }
+    // sse.onmessage = (res: MessageEvent) => {
+    //   const response = JSON.parse(res.data);
+    //   console.log('response', response);
+    //   const { serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
+    //   setSeverMgmtInfo(response);
+    // }
 
-    sse.onerror = (e: any) => {
-      e.target.close();
-      console.log('server mgmt sse error');
-    }
+    // sse.onerror = (e: any) => {
+    //   e.target.close();
+    //   console.log('server mgmt sse error');
+    // }
   },[])
 
   return (

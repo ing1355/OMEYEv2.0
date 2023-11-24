@@ -9,7 +9,7 @@ type CardProps = {
 }
 
 const Card = ({title, onSelect, icon}: CardProps) => {
-    return <Container onClick={() => {
+    return <Container onClick={(e) => {
         if(onSelect) onSelect()
     }}>
         <Icon src={icon} width="80%" height="45%"/>

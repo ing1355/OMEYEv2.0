@@ -38,7 +38,7 @@ const getConditionPercent = (data: ProgressDataType['times']) => {
 
 const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
     const cctvIds = Object.keys(data.data)
-    return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
+    return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent! + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
 }
 
 const getSuccessByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
@@ -84,7 +84,7 @@ const CCTVProgressRow = ({ data, cctvId }: {
             <CCTVProgressDataIconContainer>
                 <CCTVProgressDataIconContents src={ProgressAIIcon} />
             </CCTVProgressDataIconContainer>
-            <ProgressWrapper noString percent={aiPercent} color={loadingAIAnalysisColor} />
+            <ProgressWrapper noString percent={aiPercent || 0} color={loadingAIAnalysisColor} />
             <CCTVProgressDataLabelContainer>
                 {aiPercent}%
             </CCTVProgressDataLabelContainer>
@@ -773,9 +773,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
         }
     }, [isProgress])
 
-    function sseSetting() {
+    async function sseSetting() {
         try {
-            sseRef.current = CustomEventSource(SseStartApi);
+            sseRef.current = await CustomEventSource(SseStartApi);
             sseRef.current.onopen = async (e) => {
                 console.debug(`${_progressRequestParams.type} sse setting open : `, _progressRequestParams.params)
                 switch (_progressRequestParams.type) {

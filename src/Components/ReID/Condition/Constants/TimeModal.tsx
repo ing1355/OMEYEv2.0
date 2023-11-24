@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { AddZeroFunc, convertFullDatestring } from '../../../../Functions/GlobalFunctions'
 import useMessage from "../../../../Hooks/useMessage"
 import TimeSelect from "./TimeSelect"
+import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
 
 export type TimeModalDataType = {
     startTime: string
@@ -33,23 +34,8 @@ type TimeInputProps = {
 
 export const TimeInput = ({value, label, onChange, maxLength, inputRef, isHour}: TimeInputProps) => {
     const [focus, setFocus] = useState(false)
-    const containerRef = useRef<HTMLDivElement>(null)
 
-    const mouseDownCallback = useCallback((e: MouseEvent) => {
-        if(containerRef.current && !containerRef.current.contains(e.target as Node)) {
-            setFocus(false)
-        }
-    },[])
-
-    useEffect(() => {
-        if(focus) {
-            document.addEventListener('mousedown', mouseDownCallback)
-        } else {
-            document.removeEventListener('mousedown', mouseDownCallback)
-        }
-    },[focus])
-
-    return <TimeInputContainer ref={containerRef}>
+    return <TimeInputContainer visible={focus} setVisible={setFocus}>
         <SingleTimeInput value={value} onlyNumber onChange={onChange} maxLength={maxLength} inputRef={inputRef} onFocus={() => {
             setFocus(true)
         }} onKeyDown={(e) => {
@@ -281,7 +267,7 @@ const SingleTimeInput = styled(Input)`
     font-size: 1.4rem;
 `
 
-const TimeInputContainer = styled.div`
+const TimeInputContainer = styled(VisibleToggleContainer)`
     flex: 1;
     ${globalStyles.flex({flexDirection:'row', gap: '12px'})}
     position: relative;

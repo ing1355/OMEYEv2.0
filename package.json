@@ -1,6 +1,6 @@
 {
   "name": "omeye_renewal",
-  "version": "2.0(35)",
+  "version": "2.0(38)",
   "private": true,
   "proxy": "https://omsecurity.kr:58082",
   "dependencies": {
@@ -33,7 +33,7 @@
     "build": "cross-env GENERATE_SOURCEMAP=true NODE_ENV=development react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "deploy": "scp -P 9992 -r ./build/* omeye@125.138.98.82:/usr/local/oms/ReID/Front_2.0",
+    "deploy": "scp -P 9992 -r ./build/* omeye@125.138.98.82:/usr/local/oms/omeye/omeye2/front",
     "deploy2": "scp -P 9922 -r ./build/* oms@125.138.98.82:/usr/local/oms/omeye/omeye2/front",
     "deployAll": "npm run deploy&npm run deploy2"
   },

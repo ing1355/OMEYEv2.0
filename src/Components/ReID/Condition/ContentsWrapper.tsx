@@ -23,7 +23,6 @@ import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag
 import AreaSelect from "./Constants/AreaSelect"
 import useMessage from "../../../Hooks/useMessage"
 import { PersonDescriptionResultImageID } from "./Constants/ConstantsValues"
-import { getLastTargetListId } from "./Constants/ImageViewWithCanvas"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 
@@ -106,8 +105,7 @@ const ContentsWrapper = () => {
             case ReIDConditionFormRoute.key: {
                 const filteredTarget = targets.filter(_ => _.selected)
                 if(filteredTarget.length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
-                    if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간 그룹을 1개 이상 선택해주세요."})
-                    if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV 그룹을 1대 이상 선택해주세요."})
+                if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV 그룹을 1대 이상 선택해주세요."})
                     if(filteredTarget.some(_ => filteredTarget.find(__ => __.type !== _.type))) return message.error({title: "입력값 에러", msg:`여러 타입의 대상을 선택하셨습니다.\n하나의 타입만 선택해주세요.\n선택된 타입 : ${targets.map(_ => ReIDObjectTypes.find(__ => __.key === _.type)?.title).deduplication().join(',')}`})
                 if (isRealTime) {
                     if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
@@ -135,12 +133,13 @@ const ContentsWrapper = () => {
                     setRtStatus(PROGRESS_STATUS['RUNNING'])
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
                 } else {
+                    if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간 그룹을 1개 이상 선택해주세요."})
                     setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
                         params: [
                             {
-                                title: name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색",
+                                title: name || "빈 타이틀",
                                 timeGroups: time.filter(_ => _.selected).map(_ => ({
                                     startTime: _.time[0],
                                     endTime: _.time[1]
@@ -227,6 +226,7 @@ const ContentsWrapper = () => {
                 <HeaderSubContainer>
                     {routeInfo.length > 1 && <BackButton onClick={() => {
                         routeJump(ReIDConditionFormRoute.key)
+                        setHomeHover(false)
                     }} icon={homeHover ? hoverHomeIcon : homeIcon} 
                     onMouseOver={() => {
                         setHomeHover(true)
@@ -380,11 +380,11 @@ const CompleteButton = styled(Button)`
 const ContentsContainer = styled.div<{ index: number, routeInfo: ConditionRouteType['key'][], current: ConditionRouteType['key'] }>`
     position: absolute;
     top: ${HeaderHeight}px;
-    left: ${({ current, routeInfo }) => routeInfo.includes(current) ? '0%' : '100%'};
-    visibility: ${({ current, routeInfo }) => routeInfo.at(-1) === current ? 'visible' : 'hidden'};
+    display: ${({ current, routeInfo }) => routeInfo.at(-1) === current ? 'block' : 'none'};
     z-index: ${({ current, routeInfo, index }) => (routeInfo.at(-1) === current || routeInfo.length >= index) ? 2 : 1};
     padding: 12px 24px 0 24px;
     width: 100%;
+    ${globalStyles.slideToLeft({animationDuration: '.5s'})}
     background-color: ${GlobalBackgroundColor};
     transition: all .5s;
     height: calc(100% - ${HeaderHeight}px);

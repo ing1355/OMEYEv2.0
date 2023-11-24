@@ -16,6 +16,7 @@ import resetIcon from '../../../../assets/img/resetDisabledIcon.png'
 import useMessage from "../../../../Hooks/useMessage"
 import { ReIDObjectTypes } from "../../ConstantsValues"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
+import ForLog from "../../../Constants/ForLog"
 
 let listId = 0
 
@@ -27,7 +28,6 @@ const ReIDConditionForm = () => {
     const [title, setTitle] = useRecoilState(conditionTitleData)
     const [datas, setDatas] = useRecoilState(conditionData)
     const [allDatas, setAllDatas] = useRecoilState(conditionData)
-    const [currentObjectType, setCurrentObjectType] = useRecoilState(conditionSelectedType)
     const [conditionList, setConditionList] = useRecoilState(conditionListDatas)
     const message = useMessage()
     const { targets, rank, time, name, cctv, isRealTime, etc } = datas
@@ -42,23 +42,14 @@ const ReIDConditionForm = () => {
                     setDatas(createDefaultConditionData())
                     message.success({
                         title: '데이터 초기화',
-                        msg: `${ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title} 타입 검색 조건 초기화 되었습니다.`
+                        msg: `검색 조건이 초기화 되었습니다.`
                     })
                 }}>
                     전체 초기화
                 </TopButton>
                 <TopButton hover icon={conditionDataUploadIcon} onClick={() => {
                     UploadSingleConditionJsonData((json: ConditionDataType) => {
-                        if (json.targets.length > 0 && !ReIDObjectTypeKeys.includes(json.targets[0].type)) return message.error({
-                            title: "입력값 에러",
-                            msg: "올바르지 않은 객체 타입 입니다."
-                        })
-                        const type = json.targets[0].type
-                        setAllDatas({
-                            ...allDatas,
-                            [type]: json
-                        })
-                        setCurrentObjectType(json.targets[0].type)
+                        setAllDatas(json)
                     }, () => {
                         message.error({
                             title: "입력값 에러",
@@ -73,13 +64,13 @@ const ReIDConditionForm = () => {
                 }}>
                     내보내기
                 </TopButton>
-                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, selected: _.selected, id: _.id }))} onClick={() => {
+                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, targets: targets.filter(_ => _.selected), cctv: cctv.filter(_ => _.selected), time: time.filter(_ => _.selected), name: datas.name || "빈 타이틀", selected: _.selected, id: _.id }))} onClick={() => {
                     if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
                     let tempConditionData: ConditionListType = { ...datas, selected: false, id: createConditionList() }
                     tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
                     tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
                     tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
-                    tempConditionData.name = tempConditionData.name || ReIDObjectTypes.find(_ => _.key === currentObjectType)?.title + " 검색"
+                    tempConditionData.name = tempConditionData.name || "빈 타이틀"
                     setConditionList(conditionList.concat(tempConditionData))
                     message.success({
                         title: "저장 성공",

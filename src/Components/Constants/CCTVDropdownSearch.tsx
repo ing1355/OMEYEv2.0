@@ -3,9 +3,10 @@ import Input from "./Input"
 import { GlobalBackgroundColor, InputTextColor, TextActivateColor } from "../../styles/global-styled"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRecoilValue } from "recoil"
-import { SitesData } from "../../Model/SiteDataModel"
+import { GetAllSiteCameras, SitesData } from "../../Model/SiteDataModel"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useThrottle from "../../Hooks/useThrottle"
+import VisibleToggleContainer from "./VisibleToggleContainer"
 
 type DropdownSearchProps = {
     onChange: (value: CameraDataType) => void
@@ -17,9 +18,17 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const [searchInputValue, setSearchInputValue] = useState('')
     const [searchInputOpen, setSearchOpen] = useState(false)
     const [selectedIndex, setSelectedIndex] = useState(0)
-    const sitesData = useRecoilValue(SitesData)
-    const cameraList = useMemo(() => sitesData.flatMap(_ => _.cameras), [sitesData])
-    const viewList = useMemo(() => searchInputOpen ? cameraList.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true) : [], [cameraList, searchInputValue, searchInputOpen])
+    const allCameras = useRecoilValue(GetAllSiteCameras)
+    const viewList = useMemo(() => {
+        if(searchInputOpen) {
+            console.time("viewList")
+            const temp = allCameras.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true)
+            console.timeEnd("viewList")
+            return temp
+        } else {
+            return []
+        }
+    }, [allCameras, searchInputValue, searchInputOpen])
     const viewListRef = useRef(viewList)
     const arrowUpIsDown = useRef(false)
     const arrowDownIsDown = useRef(false)
@@ -28,7 +37,6 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const arrowUpDownTimer = useRef<NodeJS.Timer>()
     const arrowDownDownTimer = useRef<NodeJS.Timer>()
     const containerRef = useRef<HTMLDivElement>(null)
-    const globalContainerRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
     const throttling = useThrottle()
 
@@ -107,29 +115,9 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
         setSelectedIndex(0)
     }, [searchInputValue])
 
-    const blurClickCallback = useCallback((e: MouseEvent) => {
-        if (
-            globalContainerRef.current &&
-            !globalContainerRef.current.contains(e.target as Node)
-        ) {
-            e.preventDefault()
-            e.stopPropagation()
-            if (globalContainerRef.current && !globalContainerRef.current.contains(e.target as Node)) {
-                setSearchOpen(false);
-                inputRef.current?.blur()
-            }
-        }
-    }, [])
-
-    useEffect(() => {
-        if (searchInputOpen) {
-            document.addEventListener('mousedown', blurClickCallback)
-        } else {
-            document.removeEventListener('mousedown', blurClickCallback)
-        }
-    }, [searchInputOpen])
-
-    return <SearchControlContainer ref={globalContainerRef}>
+    return <SearchControlContainer visible={searchInputOpen} setVisible={setSearchOpen} callback={() => {
+        if(inputRef.current) inputRef.current.blur()
+    }}>
         <SearchInput
             maxLength={40}
             defaultValue={searchInputValue}
@@ -181,7 +169,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
 
 export default CCTVDropdownSearch
 
-const SearchControlContainer = styled.div`
+const SearchControlContainer = styled(VisibleToggleContainer)`
     position: absolute;
     right: 12px;
     top: 12px;

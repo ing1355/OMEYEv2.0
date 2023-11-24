@@ -28,6 +28,7 @@ type InputProps = {
     autoFocus?: InputType['autoFocus']
     enableAsterisk?: boolean
     maxNumber?: number
+    canEmpty?: boolean
 }
 
 const _Input = (props?: InputProps) => {
@@ -36,7 +37,7 @@ const _Input = (props?: InputProps) => {
         if (props?.type === 'textarea') {
             if (!props?.value) {
                 const target = props.inputRef?.current
-                if(target) target.style.height = 30 + 'px'
+                if(target) target.style.height = 32 + 'px'
             }
         }
     }, [props?.value, props?.type])
@@ -57,12 +58,12 @@ const _Input = (props?: InputProps) => {
     const inputAttributes = {
         ...attributes,
         tabIndex: props?.tabIndex,
-        pattern: props?.pattern,
-        style: props?.style
+        pattern: props?.pattern
     }
     if (props?.type === 'textarea') return <textarea
         style={{
             resize: 'none',
+            maxHeight: '100%',
             ...props.style
         }}
         onInput={(e) => {
@@ -94,9 +95,13 @@ const _Input = (props?: InputProps) => {
             if(props) {
                 if(props.onBlur) props.onBlur(e)
                 if(props.onlyNumber && props.onChange) {
-                    if(e.currentTarget.value.length === 0) props.onChange('1')
+                    if(e.currentTarget.value.length === 0 && !props.canEmpty) props.onChange('1')
                 }
             }
+        }}
+        style={{
+            ...props?.style,
+            letterSpacing: props?.type === 'password' ? '-4px' : 0
         }}
         onInput={e => {
             if (props?.onlyNumber) {
@@ -106,7 +111,6 @@ const _Input = (props?: InputProps) => {
                     if (props.maxNumber) {
                         if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
                     }
-                    console.debug(temp)
                     // if(temp.length === 0) temp = '0'
                     e.currentTarget.value = temp
                 }

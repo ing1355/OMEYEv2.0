@@ -244,17 +244,17 @@ const DetailInfoCol = styled.div`
 `
 
 const CaptureResultListItemsContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '12px', flexWrap: 'wrap' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '4px', flexWrap: 'wrap' })}
 `
 
 const CaptureResultListItemBox = styled.div<{ selected: boolean }>`
     flex: 0 0 200px;
     height: 200px;
-    ${globalStyles.flex()}
+    ${globalStyles.flex({gap: '3px'})}
 `
 
 const CaptureResultListItemImageContainer = styled.div`
-    height: calc(100% - 40px);
+    height: calc(100% - 43px);
     border: 1px solid ${ContentsBorderColor};
     width: 100%;
     ${globalStyles.flex()}
@@ -282,13 +282,12 @@ const MaskSelect = styled(Button)`
 const CaptureResultListItemFaceSelectContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     width: 100%;
-    height: 40px;
+    height: 36px;
 `
 
 const CaptureResultListItemSelectButton = styled(Button) <{ selected: boolean, isMask: boolean }>`
     ${({ isMask }) => `flex: 0 0 ${isMask ? 75 : 100}%;`}
     height: 100%;
-    margin-top: 3px;
     border-radius: 12px;
 `
 

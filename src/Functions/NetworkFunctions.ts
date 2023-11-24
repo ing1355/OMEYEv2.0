@@ -29,7 +29,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         method,
         url,
         responseType: 'json',
-        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
+        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 50000,
         headers: {
             "Content-Type": "application/json",
             'Authorization': GetAuthorizationToken()

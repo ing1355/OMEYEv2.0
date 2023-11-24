@@ -22,7 +22,10 @@ const Button = ({ icon, children, iconStyle, activate, concept, onClick, ...prop
         onClick={(e) => {
             if(!clickedRef.current) {
                 clickedRef.current = true
-                if(onClick) onClick(e)
+                if(onClick) {
+                    onClick(e)
+                }
+                e.currentTarget.blur()
                 setTimeout(() => {
                     clickedRef.current = false
                 }, 300);

@@ -1,13 +1,12 @@
 import styled from "styled-components"
 import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
-import { useRecoilState, useRecoilValue } from "recoil"
+import { useRecoilState } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
-import { conditionData } from "../../../Model/ConditionDataModel"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import Video from "../../Constants/Video"
@@ -20,6 +19,8 @@ import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
 import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys } from "../Condition/TargetSelect/PersonDescription/DescriptionType"
 import CCTVNameById from "../../Constants/CCTVNameById"
+import realtimeStartIcon from '../../../assets/img/realtimeStartIcon.png'
+import realtimeStopIcon from '../../../assets/img/realtimeStopIcon.png'
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -116,7 +117,6 @@ const RealTimeReID = () => {
     const [images, setImages] = useState<RealTimeDataType[]>([])
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const [rtData, setRtData] = useRecoilState(realTimeData)
-    const { cctv, targets } = useRecoilValue(conditionData)
     const message = useMessage()
     const sseRef = useRef<EventSource>()
     const selectedRef = useRef(selected)
@@ -164,17 +164,9 @@ const RealTimeReID = () => {
     useEffect(() => {
         console.debug("RealTime Status Change : ", rtStatus)
         if (rtStatus === PROGRESS_STATUS['RUNNING']) {
-            if (cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication().length === 0) {
+            if(!rtData.objectId) {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
-                return message.error({ title: '입력값 에러', msg: 'cctv 목록이 선택되지 않았습니다.' })
-            }
-            if (targets.filter(_ => _.selected).length === 0) {
-                setRtStatus(PROGRESS_STATUS['IDLE'])
-                return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' })
-            }
-            if (targets.filter(_ => _.selected).length > 1) {
-                setRtStatus(PROGRESS_STATUS['IDLE'])
-                return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
+                return message.error({ title: '입력값 에러', msg: '분석 대상이 존재하지 않습니다.\n검색 조건 설정에서 먼저 실시간 분석을 진행해주세요.' })
             }
             window.addEventListener("unload", cancelFunc);
             RealTimeSseSetting()
@@ -183,9 +175,9 @@ const RealTimeReID = () => {
         }
     }, [rtStatus])
 
-    const RealTimeSseSetting = () => {
+    const RealTimeSseSetting = async () => {
         console.debug("RealTime Sse Setting")
-        sseRef.current = CustomEventSource(SseStartApi);
+        sseRef.current = await CustomEventSource(SseStartApi);
         sseRef.current.onopen = async (e: any) => {
             console.debug("sse open realtime: ", e);
             const res = await Axios("POST", RealTimeReidApi, {
@@ -256,8 +248,9 @@ const RealTimeReID = () => {
     };
 
     useEffect(() => {
-        if (rtStatus === PROGRESS_STATUS['RUNNING']) {
+        if (rtStatus === PROGRESS_STATUS['RUNNING'] && sseRef.current) {
             if (changeTimer.current) clearTimeout(changeTimer.current)
+            console.debug("test????")
             changeTimer.current = setTimeout(() => {
                 Axios("PUT", UpdateRealTimeThresholdApi, {
                     threshold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold || 1
@@ -328,7 +321,7 @@ const RealTimeReID = () => {
                 }}>
                     변경
                 </RequestBtn> */}
-                <RequestBtn disabled={!rtData.type} hover onClick={async () => {
+                <RequestBtn icon={rtStatus === PROGRESS_STATUS['RUNNING'] ? realtimeStopIcon : realtimeStartIcon} disabled={!rtData.type} hover onClick={async () => {
                     if (rtStatus === PROGRESS_STATUS['IDLE']) {
                         // if (rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
                         setRtStatus(PROGRESS_STATUS['RUNNING'])
@@ -338,7 +331,7 @@ const RealTimeReID = () => {
                         // }
                     }
                 }}>
-                    {rtStatus === PROGRESS_STATUS['RUNNING'] ? '실시간 분석 중지' : '실시간 분석 시작'}
+                    {rtStatus === PROGRESS_STATUS['RUNNING'] ? '실시간 분석 중지' : '실시간 분석 재시작'}
                 </RequestBtn>
             </LocalParamsContainer>
         </InputRow>

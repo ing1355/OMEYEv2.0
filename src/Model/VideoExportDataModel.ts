@@ -3,7 +3,7 @@ import { Axios } from "../Functions/NetworkFunctions";
 import { BasicLogDataType, CameraDataType, TimeDataType } from "../Constants/GlobalTypes";
 import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
 import { GetVideoHistoryApi } from "../Constants/ApiRoutes";
-import { ProgressDataPercentType, SSEResponseStatusType } from "./ProgressModel";
+import { ProgressDataPercentType, ProgressDataVideoExportPercentType, SSEResponseStatusType } from "./ProgressModel";
 import { useEffect, useState } from "react";
 import { LoadableDataType } from "../Constants/NetworkTypes";
 import { menuState } from "./MenuModel";
@@ -34,7 +34,7 @@ export type VideoExportRowDataType = {
         description: string
     }
     path?: string
-    progress: ProgressDataPercentType
+    progress: ProgressDataVideoExportPercentType
 }
 
 export type VideoExoprtHistoryDataType = {
@@ -60,7 +60,7 @@ export type VideoExportApiParameterType = {
     }
 }
 
-export type VideoExportSseResponseType = ProgressDataPercentType & {
+export type VideoExportSseResponseType = ProgressDataVideoExportPercentType & {
     videoUUID: string
     path?: string
     type: 'complete' | 'done'

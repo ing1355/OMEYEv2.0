@@ -393,30 +393,30 @@ export class OlMap extends CustomMap<Map> {
     }
 
     fitWithPaddingByExtent(ext: Extent): void {
-        this.map.getView().fit(ext, {
-            callback: () => {
-                let padding: number = 500
-                let x_padding = (ext[2] - ext[0]) / 2.5
-                let y_padding = (ext[3] - ext[1]) / 2.5
-                const currentZoomLv = this.map.getView().getZoom()
-                // console.debug("ext : ", ext, currentZoomLv)
-                // if (currentZoomLv) {
-                //     if (currentZoomLv > 20) {
-                //         padding = 100
-                //     } else if (currentZoomLv > 18) {
-                //         padding = 250
-                //     } else if (currentZoomLv > 16) {
-                //         padding = 500
-                //     } else if (currentZoomLv > 14) {
-                //         padding = 1000
-                //     } else {
-                //         padding = 2000
-                //     }
-                // } // 14~15 - 5000
-                // this.map.getView().fit(ext.map((_, ind) => ind < 2 ? _ - padding : _ + padding))
-                this.map.getView().fit([ext[0] - x_padding, ext[1] - y_padding, ext[2] + x_padding, ext[3] + y_padding])
-            }
-        })
+        let padding: number = 500
+        let x_padding = (ext[2] - ext[0]) / 2.5
+        let y_padding = (ext[3] - ext[1]) / 2.5
+        this.map.getView().fit([ext[0] - x_padding, ext[1] - y_padding, ext[2] + x_padding, ext[3] + y_padding])
+        // this.map.getView().fit(ext, {
+        //     callback: () => {
+        //         // console.debug("ext : ", ext, currentZoomLv)
+        //         // if (currentZoomLv) {
+        //         //     if (currentZoomLv > 20) {
+        //         //         padding = 100
+        //         //     } else if (currentZoomLv > 18) {
+        //         //         padding = 250
+        //         //     } else if (currentZoomLv > 16) {
+        //         //         padding = 500
+        //         //     } else if (currentZoomLv > 14) {
+        //         //         padding = 1000
+        //         //     } else {
+        //         //         padding = 2000
+        //         //     }
+        //         // } // 14~15 - 5000
+        //         // this.map.getView().fit(ext.map((_, ind) => ind < 2 ? _ - padding : _ + padding))
+        //         this.map.getView().fit([ext[0] - x_padding, ext[1] - y_padding, ext[2] + x_padding, ext[3] + y_padding])
+        //     }
+        // })
     }
 
     registerMouseMoveHandler(): void {

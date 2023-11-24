@@ -36,8 +36,8 @@ const DescriptionGeneralRow = <T extends DescriptionCategoryKeyType>({ data, typ
 }
 
 const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
-    const { cctvName, cctvId, time, accuracy, type, mask, method, description } = data
-
+    const { cctvName, cctvId, time, accuracy, type, mask, method, description, ocr } = data
+    
     return <>
         {
             method && <ItemDescriptionContentText>
@@ -84,6 +84,11 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
         {
             accuracy && <ItemDescriptionContentText>
                 유사율 : {accuracy}%
+            </ItemDescriptionContentText>
+        }
+        {
+            ocr && <ItemDescriptionContentText>
+                번호판 : {ocr}
             </ItemDescriptionContentText>
         }
         {
