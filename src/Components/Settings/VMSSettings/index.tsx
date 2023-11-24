@@ -49,6 +49,8 @@ const VMSSettings = () => {
     if (res) {
       setVmsList(res.siteList);
       VmsDropdownListFun(res.siteList);
+    } else {
+      message.error({ title: 'vms 설정 사이트 리스트', msg: 'vms 설정 사이트 정보를 가져오지 못했습니다' })
     }
   }
 

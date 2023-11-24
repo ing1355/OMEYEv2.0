@@ -55,7 +55,7 @@ const ContentsWrapper = () => {
         if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
         return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
     },[_conditionData])
-    console.debug(_conditionData)
+    
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])

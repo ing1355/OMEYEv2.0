@@ -5,7 +5,7 @@ import Button from "../../Constants/Button"
 import { useState } from "react"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { IdCheckApi, UserAccountApi } from "../../../Constants/ApiRoutes"
-import { IsAddMember } from "../../../Model/AccountDataModel"
+import { IsAddMember, UpdateMemeberList } from "../../../Model/AccountDataModel"
 import { useRecoilState } from "recoil"
 import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
@@ -37,6 +37,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
+  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
   const message = useMessage();
@@ -85,6 +86,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
       if(res !== undefined) {
         if(res) {
           message.success({ title: '멤버 추가', msg: '멤버를 추가했습니다' })
+          setUpdateMemeberList(!updateMemeberList);
         } else {
           message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
         }

@@ -2,9 +2,9 @@ import styled from "styled-components"
 import Button from "../../../Constants/Button"
 import Dropdown from "../../../Layout/Dropdown"
 import serverRebootIcon from "../../../../assets/img/serverRebootIcon.png"
-import { GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
+import { ButtonBorderColor, GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { StorageThreshHoldApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
+import { StorageMgmtApi, StorageThreshHoldApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
 import Input from "../../../Constants/Input";
 import clearIcon from '../../../../assets/img/rankUpIcon.png'
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
@@ -59,13 +59,24 @@ const logFileDownloadList = [
 
 type commandType = 'start' | 'stop' | 'restart';
 type logFileType = 'BE' | 'AI';
-type logFileDateType = {
+type dateType = {
   startDate: string,
   endDate: string,
 }
 
 type GetStorageThreshHoldType = {
   threshold: number
+}
+
+const dateInit = {
+  startDate: '',
+  endDate: ''
+}
+
+type GetStorageDataType = {
+  avail: string;
+  availPercent: number;
+  used: string;
 }
 
 const ServerMgmtSidebar = () => {
@@ -77,11 +88,14 @@ const ServerMgmtSidebar = () => {
   const [isServiceControlling, setIsServiceControlling] = useState<boolean>(false);
   const [serviceCommand, setServiceCommand] = useState<commandType | undefined>(undefined);
   const [selectedLogFile, setSelectedLogFile] = useState<logFileType>('BE');
-  const [logFileDate, setLogFileDate] = useState<logFileDateType | null>(null);
+  const [logFileDate, setLogFileDate] = useState<dateType | null>(null);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
   const [storageThreshHold, setStorageThreshHold] = useState<number>(0);
+  const [deleteStoragePercent, setDeleteStoragePercent] = useState<number>(0);
+  const [deleteStorageDate, setDeleteStorageDate] = useState<dateType>(dateInit);
+  const [storageData, setStorageData] = useState<GetStorageDataType | undefined>(undefined);
 
   const message = useMessage();
 
@@ -174,13 +188,11 @@ const ServerMgmtSidebar = () => {
       if (res.status === 204) {
         message.error({ title: '로그 파일 다운로드', msg: '해당 날짜의 로그 파일이 없습니다' })
       } else {
-        console.log('다운로드 성공', res)
         const versionName = res.headers['content-disposition'].split(';').filter((str:any) => str.includes('filename'))[0].match(/filename="([^"]+)"/)[1];
         const fileDownlaoadUrl = URL.createObjectURL(res.data);
         const downloadLink = document.createElement('a');
         downloadLink.href = fileDownlaoadUrl;
         downloadLink.download = versionName;
-        // downloadLink.download = '다운로드';
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -197,14 +209,14 @@ const ServerMgmtSidebar = () => {
 
     if(res !== undefined) {
       if(res.data.success) {
-        message.success({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 성공했습니다' })
+        message.success({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 성공했습니다' })
         setFileName('');
       } else {
-        message.error({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 실패했습니다' })
+        message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
         setFileName('');
       }
     } else {
-      message.error({ title: '엑셀 파일 업로드', msg: '엑셀 파일 업로드에 실패했습니다' })
+      message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
       setFileName('');
     }
 
@@ -239,15 +251,51 @@ const ServerMgmtSidebar = () => {
     }
   }
 
+  const DeleteStorageFun = async (type: string) => {
+    const percentPayload = {
+      percent: deleteStoragePercent
+    }
+
+    const datePayload = {
+      from: deleteStorageDate.startDate,
+      to: deleteStorageDate.endDate
+    }
+    const res = await Axios('DELETE', StorageMgmtApi, (type === 'percent' ? percentPayload : datePayload))
+    if(type === 'percent') setDeleteStoragePercent(0);
+    if(type === 'date') setDeleteStorageDate(dateInit);
+
+    if(res) {
+      message.success({ title: '저장공간 정리', msg: '저장공간을 정리했습니다' })
+      GetStorageDataFun();
+    } else {
+      message.error({ title: '저장공간 정리 에러', msg: '저장공간 정리에 실패했습니다' })
+    }
+    // if(res !== undefined) {
+    //   if (res.data.success) {
+    //     message.success({ title: '알림 기준 저장공간 사용량 설정', msg: '수정에 성공했습니다' })
+    //   } else {
+    //     message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+    //   }
+    // } else {
+    //   message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+    // }
+  }
+
+  const GetStorageDataFun = async () => {
+    const res:GetStorageDataType = await Axios('GET', StorageMgmtApi)
+    if(res) setStorageData(res);
+  }
+
   useEffect(() => {
     GetStorageThreshHoldFun();
+    GetStorageDataFun();
   },[])
 
   return (
     <div>
       <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>제어</div>
       <div style={{display: 'flex', marginBottom: '25px'}}>
-        <div style={{lineHeight: '40px'}}>서버 재부팅</div>
+        <div style={{lineHeight: '35px', fontSize: '1.1rem'}}>서버 재부팅</div>
         <ServerControlButton 
           icon={serverRebootIcon}
           onClick={() => {
@@ -256,9 +304,9 @@ const ServerMgmtSidebar = () => {
         >
         </ServerControlButton>
       </div>
-      <div style={{marginBottom: '25px'}}>
+      <div style={{marginBottom: '35px'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px'}}>
-          <div style={{lineHeight: '30px'}}>서비스 제어</div>
+          <div style={{lineHeight: '35px', fontSize: '1.1rem'}}>서비스 제어</div>
           <div>
             <ServerControlButton
               onClick={() => {
@@ -296,8 +344,8 @@ const ServerMgmtSidebar = () => {
           />
         </div>
       </div>
-      <div style={{marginBottom: '25px', lineHeight: '30px'}}>
-        <div style={{marginBottom: '10px'}}>로그 파일 다운로드</div>
+      <div style={{marginBottom: '35px', lineHeight: '35px'}}>
+        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>로그 파일 다운로드</div>
         <div style={{marginBottom: '10px'}}>
           {/* <DateSearch onClick={() => {
               setTimeVisible(true)
@@ -347,6 +395,9 @@ const ServerMgmtSidebar = () => {
             <ServerControlDropdown 
               itemList={logFileDownloadList}
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1}}
+              onChange={val => {
+                setSelectedLogFile(val.value as logFileType);
+              }}
             />
           </div>
           <div>
@@ -363,8 +414,8 @@ const ServerMgmtSidebar = () => {
         setTimeVisible(false)
       }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" /> */}
 
-      <div style={{marginBottom: '25px', lineHeight: '30px'}}>
-        <div style={{marginBottom: '10px'}}>모델 파일 업로드</div>
+      <div style={{marginBottom: '35px', lineHeight: '35px'}}>
+        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>모델 파일 업로드</div>
         <div>
           <form
             id='fileUpload'
@@ -384,7 +435,7 @@ const ServerMgmtSidebar = () => {
             }}
           >
             <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
-              <div style={{lineHeight: '30px'}}>
+              <div style={{lineHeight: '35px'}}>
                 <label 
                   htmlFor='uploadFile'
                   style={{border: '1px solid #ccc', padding: '10px', borderRadius: '5px'}}
@@ -416,22 +467,107 @@ const ServerMgmtSidebar = () => {
         </div>
       </div>
       <div style={{marginBottom: '25px', lineHeight: '30px'}}>
-        <div style={{marginBottom: '10px'}}>저장공간 관리</div>
-        <div style={{display: 'flex'}}>
-          <div style={{marginRight: '10px'}}>
-            알림 기준 저장공간 사용량 설정(%) : 
+        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>저장공간 관리</div>
+        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', marginBottom: '10px', padding: '10px'}}>
+          <div>총 저장공간:
+            <span style={{marginLeft: '10px'}}>
+            {storageData?.used &&
+              storageData?.avail &&
+              (
+                parseInt(storageData.used.split(" ")[0]) +
+                parseInt(storageData.avail.split(" ")[0])
+              ).toFixed(2)}{" "}
+              {storageData && storageData.avail.split(" ")[1]}
+            </span>
           </div>
-          <StorageInput value={storageThreshHold} onChange={(e) => {
-            setStorageThreshHold(parseInt(e));
-          }}/>
-          <ServerControlButton
-            onClick={SaveStorageThreshHoldFun}
-          >
-            저장
-          </ServerControlButton>
+          <div>잔여 저장공간: 
+            <span style={{marginLeft: '10px'}}>
+              {storageData?.avail &&
+                parseInt(storageData.avail.split(" ")[0]).toFixed(2)}{" "}
+              {storageData?.avail && storageData.avail.split(" ")[1]}
+            </span>
+          </div>
+          <div>사용 저장공간: 
+            <span style={{marginLeft: '10px'}}>
+              {storageData?.used &&
+                parseInt(storageData.used.split(" ")[0]).toFixed(2)}{" "}
+              {storageData?.used && storageData.used.split(" ")[1]}
+            </span>
+          </div>
+        </div>
+        <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
+          <div style={{marginRight: '10px', lineHeight: '35px'}}>
+            알림 기준 저장공간 사용량 설정 (%) 
+          </div>
+          <div>
+            <StorageInput value={storageThreshHold} onChange={(e) => {
+              setStorageThreshHold(parseInt(e));
+            }}/>
+            <ServerControlButton
+              onClick={SaveStorageThreshHoldFun}
+            >
+              저장
+            </ServerControlButton>
+          </div>
+        </div>
+        <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
+          <div style={{marginRight: '10px', lineHeight: '35px'}}>용량 기준으로 정리하기 (%)</div>
+          <div>
+            <StorageInput value={deleteStoragePercent} onChange={(e) => {
+              setDeleteStoragePercent(parseInt(e));
+            }}/>
+            <ServerControlButton
+              onClick={() => DeleteStorageFun('percent')}
+            >
+              정리
+            </ServerControlButton>
+          </div>
         </div>
         <div>
-
+          <div style={{marginBottom: '10px', display: 'flex'}}>
+            <div style={{lineHeight: '35px'}}>날짜 기준으로 정리하기</div>
+            <div>
+              <ServerControlButton
+                onClick={() => {
+                  DeleteStorageFun('date')
+                }}
+              >
+                정리
+              </ServerControlButton>
+            </div>
+          </div>
+          <div style={{marginBottom: '10px', marginLeft: '20px'}}>
+            <span style={{marginRight: '10px'}}>
+              시작 날짜:
+            </span>
+            <DateInput 
+              placeholder="YYYYMMDD" 
+              maxLength={8}
+              value={deleteStorageDate.startDate}
+              onChange={(e) => {
+                setDeleteStorageDate((pre) => ({
+                  ...pre,
+                  startDate: e
+                }))
+              }}
+            />
+          </div>
+          <div>
+            <span style={{marginRight: '10px', marginLeft: '20px'}}>
+              종료 날짜:
+            </span>
+            <DateInput 
+              placeholder="YYYYMMDD" 
+              maxLength={8}
+              value={deleteStorageDate.endDate}
+              onChange={(e) => {
+                setDeleteStorageDate((pre) => ({
+                  ...pre,
+                  endDate: e
+                }))
+              }}
+            />
+          </div> 
         </div>
       </div>
 

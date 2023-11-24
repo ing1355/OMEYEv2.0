@@ -56,7 +56,7 @@ const App = () => {
         window.addEventListener('beforeunload', e => {
           e.preventDefault()
           e.returnValue = ''
-          refreshFunction()
+          // refreshFunction()
         })
       }
     }
@@ -89,7 +89,7 @@ const App = () => {
     })
     setHandlerComplete(true)
     if(loginState) {
-      Axios('POST', AliveApi)
+      // Axios('POST', AliveApi)
     }
   }, [])
 

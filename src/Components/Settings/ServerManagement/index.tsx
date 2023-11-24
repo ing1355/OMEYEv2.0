@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ButtonBackgroundColor, ButtonBorderColor, InputBackgroundColor } from "../../../styles/global-styled";
 import { serverMgmtInfoApi } from "../../../Constants/ApiRoutes";
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues";
@@ -86,10 +86,11 @@ const aiServicesName = [
   'rt2',
 ];
 
-let sse: EventSource | null;
+// let sse: EventSource | null;
 const init = [0,0,0,0,0,0,0,0];
 
 const ServerManagement = () => {
+  const sseRef = useRef<EventSource>()
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -124,7 +125,7 @@ const ServerManagement = () => {
     const serviceStatus = isService?.serviceStatus;
 
     return (
-      <div style={{display: 'flex', justifyContent: 'space-between'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap'}}>
         <div>{serviceName} </div>
         <div>
           {(serviceStatus === 'active' || serviceStatus === 'activating') && 
@@ -292,18 +293,17 @@ const ServerManagement = () => {
   }, []); 
 
   async function sseSetting() {
-    console.debug('ssesetting')
-    if(sse) {
-      sse.close();
+    if(sseRef.current) {
+      sseRef.current.close();
     }
 
-    sse = await CustomEventSource(serverMgmtInfoApi);
+    sseRef.current = await CustomEventSource(serverMgmtInfoApi);
 
-    sse.onopen = () => {
+    sseRef.current.onopen = () => {
       console.log('server mgmt sse open');
     }
 
-    sse.onmessage = (res: MessageEvent) => {
+    sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
       // console.log('response', response);
       const { monitorVersion, serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
@@ -396,10 +396,10 @@ const ServerManagement = () => {
         });
       }
     }
-    sse.onerror = (e: any) => {
+    // sse.onerror = (e: any) => {
       // e.target.close();
       // console.log('server mgmt sse error');
-    }
+    // }
   }
 
   useEffect(() => {
@@ -475,14 +475,13 @@ const ServerManagement = () => {
       </div>
 
       <div>
-
         <div style={{display: 'flex', justifyContent: 'space-between'}}>
           <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
             <div style={{marginBottom: '10px'}}>GPU</div>
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
               <div>
-                {serverMgmtInfo?.gpu && serverMgmtInfo?.gpu.map((data) => (
-                  <div>
+                {serverMgmtInfo?.gpu && serverMgmtInfo?.gpu.map((data, index) => (
+                  <div key={'gpu' + index}>
                     GPU{data.id + 1} 사용률: {data.use}%
                   </div>
                 ))}
@@ -520,7 +519,6 @@ const ServerManagement = () => {
                   height={271}
                   series={[
                     { data: cpuData, label: 'CPU', showMark: false, color: '#4ADAE5' },
-                    // { data: gpuData, label: 'GPU', showMark: false },
                   ]}
                   xAxis={[{ scaleType: 'point', data: xLabels }]}
                   yAxis={[{ label: 'CPU (%)', min: 0, max: 100 }]}
