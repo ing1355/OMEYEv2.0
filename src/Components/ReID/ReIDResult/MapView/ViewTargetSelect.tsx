@@ -1,6 +1,9 @@
 import styled from "styled-components"
-import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled"
-import { CSSProperties, useEffect, useMemo, useRef, useState } from "react"
+import { ButtonActiveBackgroundColor, ButtonDisabledBackgroundColor, ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { useEffect, useRef, useState } from "react"
+import Button from "../../../Constants/Button"
+import { IS_PRODUCTION } from "../../../../Constants/GlobalConstantsValues"
+import pathToggleIcon from '../../../../assets/img/pathToggleIcon.png'
 
 type ViewTargetSelectProps = {
     datas: {
@@ -16,17 +19,15 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
     const [selectedView, setSelectedView] = useState(0)
+    const [visible, setVisible] = useState(false)
     const conditionRef = useRef(selectedCondition)
     const targetRef = useRef(selectedTarget)
-
+    
     useEffect(() => {
         if (datas.length > 0) {
-            if (selectedCondition.length === 0) {
-                setSelectedCondition([datas[0].index])
-                setSelectedTarget(Array.from({length: datas.length}).map(_ => []))
-            } else if (selectedTarget.length !== datas.length){
-                setSelectedTarget(selectedTarget.concat([[]]))
-            }
+            setSelectedCondition(datas.map(_ => _.index))
+            if(!IS_PRODUCTION) setSelectedTarget(datas.map(_ => _.objectIds))
+            else setSelectedTarget(datas.map(_ => []))
         }
     }, [datas])
     
@@ -41,7 +42,40 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
     }, [selectedTarget])
 
     return <>
-        <Container>
+        <ToggleBtn hover onClick={() => {
+            setVisible(!visible)
+        }}>
+            <img src={pathToggleIcon}/>
+        </ToggleBtn>
+        <Container visible={visible}>
+            <SubContainer>
+                <CCTVsContainer>
+                    {datas.map(_ => <CCTVRowContainer key={_.index} selected={selectedView === _.index} onClick={() => {
+                        setSelectedView(_.index)
+                    }}>
+                        <Circle selected={selectedView === _.index}/>
+                        <Title>
+                            {_.title}
+                        </Title>
+                    </CCTVRowContainer>)}
+                </CCTVsContainer>
+                <TargetsContainer nums={datas.length}>
+                    {
+                        datas[selectedView] && datas[selectedView].objectIds.map((_, ind) => <TargetRowContainer key={ind} onClick={() => {
+                            if(selectedTarget[selectedView].includes(_)) {
+                                setSelectedTarget(selectedTarget.map(__ => __.filter(___ => ___ !== _)))
+                            } else {
+                                setSelectedTarget(selectedTarget.map((__, _ind) => _ind === selectedView ? __.concat(_) : __))
+                            }
+                        }}>
+                            <Circle selected={selectedTarget[selectedView] && selectedTarget[selectedView].includes(_)}/>
+                            대상 {ind + 1}
+                        </TargetRowContainer>)
+                    }
+                </TargetsContainer>
+            </SubContainer>
+        </Container>
+        {/* <Container>
             {
                 datas.map((_, ind) => <ItemContainer key={ind} onClick={(e) => {
                     e.stopPropagation()
@@ -59,8 +93,8 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
                     </Text>
                 </ItemContainer>)
             }
-        </Container>
-        {
+        </Container> */}
+        {/* {
             datas[selectedView] && <TargetContainer>
                 {
                     datas[selectedView].objectIds.map((_, ind) => <ItemContainer key={ind} onClick={() => {
@@ -77,51 +111,96 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
                     </ItemContainer>)
                 }
             </TargetContainer>
-        }
+        } */}
     </>
 }
 
 export default ViewTargetSelect
 
-const Container = styled.div`
+const RowHeight = 40;
+
+const ToggleBtn = styled(Button)`
     position: absolute;
     left: 16px;
     top: 12px;
-    background-color: ${SectionBackgroundColor};
     z-index: 10;
-    border-radius: 12px;
-    padding: 12px 24px;
     height: 40px;
-    max-width: calc(100% - 300px);
-    overflow: auto;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '16px', justifyContent: 'flex-start' })}
+    border: none;
+    ${globalStyles.flex()}
+    padding: 8px;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
-const TargetContainer = styled.div`
+const Container = styled.div<{visible: boolean}>`
     position: absolute;
     left: 16px;
-    top: 60px;
+    top: 56px;
     background-color: ${SectionBackgroundColor};
     z-index: 10;
     border-radius: 12px;
-    padding: 12px 24px;
-    overflow: auto;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '16px', justifyContent: 'flex-start' })}
+    padding: 12px;
+    max-height: 300px;
+    width: 400px;
+    display: ${({visible}) => visible ? 'block' : 'none'}
 `
 
-const ItemContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px', justifyContent:'flex-start' })}
-    white-space: nowrap;
+const SubContainer = styled.div`
+    width: 100%;
+    height: 100%;
+    ${globalStyles.flex({ flexDirection: 'row', alignItems: 'flex-start' })}
+`
+
+const CCTVsContainer = styled.div`
+    flex: 1;
+`
+
+const CCTVRowContainer = styled.div<{ selected: boolean }>`
+    width: 250px;
+    height: ${RowHeight}px;
+    padding: 6px 14px;
     cursor: pointer;
+    background-color: ${({ selected }) => selected ? ContentsBorderColor : 'transparent'};
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    &:hover {
+        background-color: ${ContentsBorderColor};
+    }
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '8px' })}
 `
 
-const Icon = styled.div<{ selected: boolean, targetColor: CSSProperties['color'] }>`
-    width: 16px;
-    height: 16px;
-    border-radius: 100%;
-    opacity: ${({ selected }) => selected ? 1 : 0.5};
-    background-color: ${({targetColor}) => targetColor};
+const TargetsContainer = styled.div<{nums: number}>`
+    flex: 1;
+    overflow: auto;
+    height: ${({nums}) => nums * RowHeight}px;
+    background-color: ${ContentsBorderColor};
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 `
 
-const Text = styled.div`
+const TargetRowContainer = styled.div`
+    flex: 0 0 1;
+    height: ${RowHeight}px;
+    padding: 6px 14px;
+    cursor: pointer;
+    &:hover {
+        background-color: ${ContentsBorderColor};
+    }
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '8px' })}
+`
+
+const Circle = styled.div<{selected: boolean}>`
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: ${({selected}) => selected ? ButtonActiveBackgroundColor : ButtonDisabledBackgroundColor};
+`
+
+const Title = styled.div`
+    max-width: calc(100% - 30px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `

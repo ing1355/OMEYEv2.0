@@ -12,14 +12,15 @@ import MapView from "./MapView"
 import { GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import Modal from "../../Layout/Modal"
 import { ReIDObjectTypeEmptyIcons } from "../ConstantsValues"
-import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
+import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
 import ForLog from "../../Constants/ForLog"
 import { ReIDResultTestData } from "../../../Model/TestDatas"
+import { IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
 
 const ReIDResult = () => {
     const [isMapView, setIsMapView] = useState(false)
-    const [modalVisible, setModalVisible] = useState<number|null>(null)
+    const [modalVisible, setModalVisible] = useState<number | null>(null)
     const [selectedView, setSelectedView] = useRecoilState(ReIDResultSelectedView)
     const reidSelectedDatas = useRecoilValue(AllReIDSelectedResultData)
     const progressStatus = useRecoilValue(ProgressStatus)
@@ -27,7 +28,8 @@ const ReIDResult = () => {
     const [resultDatas, setResultDatas] = useRecoilState(ReIDAllResultData)
     const reIDResultKeys = useRecoilValue(ReIDResultDataKeys)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
-    
+    const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
+
     const mapViewToggle = () => {
         setIsMapView(!isMapView)
     }
@@ -38,12 +40,29 @@ const ReIDResult = () => {
 
     const test = async () => {
         // setResultDatas(ReIDResultTestData)
-        // const res = await GetReIDResultById(170)
-        // if (res) setResultDatas([res])
+        const testReid = 806
+        const temp = await GetReIDResultById(testReid)
+        const newData: ReIDResultType = {
+            ...temp, data: temp.data.map(d => ({
+                ...d,
+                resultList: d.resultList.map(r => ({
+                    ...r,
+                    timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                        return {
+                            ...t,
+                            results: Object.entries(t.results) as any
+                        }
+                    })
+                }))
+            }))
+        }
+        // setReidSelectedCondition(0)
+        // setReIDResultSelectedView([testReid])
+        if (newData) setResultDatas([newData])
     }
 
     useEffect(() => {
-        if(process.env.NODE_ENV === 'development') test()
+        // if (!IS_PRODUCTION) test()
     }, [])
 
     return <>
@@ -62,8 +81,8 @@ const ReIDResult = () => {
                             <img src={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.data[0].resultList[0].objectType)]} style={{
                                 height: '80%',
                                 width: '30px'
-                            }}/>
-                            {ind+1}
+                            }} />
+                            {ind + 1}
                             <DeleteIconContainer onClick={(e) => {
                                 e.stopPropagation()
                                 setModalVisible(_.reIdId)
@@ -130,8 +149,8 @@ const TitleContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '6px' })}
     position: relative;
 `
-    
-    const Title = styled.div<{ isSelected: boolean }>`
+
+const Title = styled.div<{ isSelected: boolean }>`
     color: white;
     font-size: 1.1rem;
     cursor: pointer;

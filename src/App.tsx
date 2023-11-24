@@ -65,7 +65,7 @@ const App = () => {
 
   useLayoutEffect(() => {
     axios.interceptors.request.use(async req => {
-      req.headers['X-Forwarded-For'] = await getLocalIp()
+      req.headers['X-Forwarded-For'] = await getLocalIp(req.url!)
       return req
     })
     axios.interceptors.response.use(res => {

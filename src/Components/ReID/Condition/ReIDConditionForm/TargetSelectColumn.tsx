@@ -4,14 +4,11 @@ import { conditionIsRealTimeData, conditionTargetDatas } from "../../../../Model
 import styled from "styled-components"
 import { ButtonBackgroundColor, ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled"
 import useConditionRoutes from "../Hooks/useConditionRoutes"
-import { ObjectTypeSelectRoute, ReIDConditionTargetSelectMethodRoute, ReIDConditionTargetSelectPersonDescriptionRoute } from "../Constants/RouteInfo"
+import { ObjectTypeSelectRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
 import Button from "../../../Constants/Button"
 import { useState } from "react"
-import PlateTarget from "./PlateTarget"
 import IconBtn from "../../../Constants/IconBtn"
-import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
-import { ObjectTypes, ReIDObjectTypeEmptyIcons, ReIDObjectTypes } from "../../ConstantsValues"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 import useMessage from "../../../../Hooks/useMessage"
 import checkIcon from '../../../../assets/img/checkIcon.png'
@@ -32,9 +29,6 @@ const TargetSelectColumn = () => {
 
     const addAction = () => {
         routePush(ObjectTypeSelectRoute.key)
-        // if (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']]) setPlateStatus('add')
-        // else if (selectedType === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) routePush(ReIDConditionTargetSelectPersonDescriptionRoute.key)
-        // else routePush(ReIDConditionTargetSelectMethodRoute.key)
     }
 
     const allSelectAction = () => {
@@ -44,15 +38,11 @@ const TargetSelectColumn = () => {
     return <Container>
         <ConditionParamsInputColumnComponent
             title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
-            // titleIcon={ReIDObjectTypeEmptyIcons[ReIDObjectTypes.findIndex(_ => _.key === selectedType)]}
             isTarget
             initAction={initAction}
             dataAddAction={addAction}
             noDataText="대상 추가"
             isDataExist={datas.length > 0}
-            // isDataExist={datas.length > 0 || (selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
-            // dataAddDelete={selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add'}
-            // disableAllSelect={(selectedType === ReIDObjectTypeKeys[ObjectTypes['PLATE']] && plateStatus === 'add')}
             allSelectAction={allSelectAction}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
             {datas.map((_, ind) => <ItemContainer key={ind} selected={_.selected || false} onClick={() => {
@@ -92,9 +82,6 @@ const TargetSelectColumn = () => {
                         </ItemDescriptionContents>
                     </ItemDescription>
                 </ItemSubContainer>
-                {/* <ItemSelectBtn hover activate={_.selected}>
-                    {_.selected ? '해제' : '선택'}
-                </ItemSelectBtn> */}
             </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
     </Container>

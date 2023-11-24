@@ -292,12 +292,12 @@ const ServerManagement = () => {
     };
   }, []); 
 
-  useEffect(() => {
-    if(sseRef) {
-      sseRef.current?.close();
+  async function sseSetting() {
+    if(sseRef.current) {
+      sseRef.current.close();
     }
 
-    sseRef.current = CustomEventSource(serverMgmtInfoApi);
+    sseRef.current = await CustomEventSource(serverMgmtInfoApi);
 
     sseRef.current.onopen = () => {
       console.log('server mgmt sse open');
@@ -396,11 +396,15 @@ const ServerManagement = () => {
         });
       }
     }
+  }
 
-    sseRef.current.onerror = (e: any) => {
-      e.target.close();
-      console.log('server mgmt sse error');
-    }
+  useEffect(() => {
+    sseSetting()
+
+    // sse.onerror = (e: any) => {
+    //   e.target.close();
+    //   console.log('server mgmt sse error');
+    // }
   },[])
 
   return (

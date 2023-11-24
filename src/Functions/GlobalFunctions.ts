@@ -163,7 +163,6 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
             time: [_.startTime, _.endTime]
         })),
         targets: data.targetObjects.map(_ => ({
-            id: 0,
             objectId: _.id,
             type: _.type,
             src: _.imgUrl,
@@ -319,6 +318,8 @@ export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys)
             return '분석 결과'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['JSONUPLOAD']]:
             return 'JSON 업로드'
+        case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['PLATE']]:
+            return '번호판 입력'
         default: return '알 수 없음';
     }
 }

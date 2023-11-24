@@ -1,4 +1,5 @@
 import { EventSourcePolyfill } from "event-source-polyfill"
+import { getLocalIp } from "../Functions/NetworkFunctions"
 
 const EventSource = EventSourcePolyfill
 
@@ -22,9 +23,10 @@ export const SettingsMenuKey: SettingsMenuKeyType = 'SETTINGSMENU'
 
 export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
 
-export const CustomEventSource = (url: string) => new EventSource(url, {
+export const CustomEventSource = async (url: string) => new EventSource(url, {
     headers: {
-        Authorization: GetAuthorizationToken()!
+        Authorization: GetAuthorizationToken()!,
+        'X-Forwarded-For': await getLocalIp(url) as string
     },
     heartbeatTimeout: 3600000,
 })

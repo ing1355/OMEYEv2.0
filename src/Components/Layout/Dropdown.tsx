@@ -3,6 +3,7 @@ import styled from "styled-components"
 import Button from "../Constants/Button"
 import downArrowIcon from "../../assets/img/downArrowIcon.png"
 import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../styles/global-styled"
+import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
 
 export type DropdownItemType<T> = {
     key: T
@@ -22,8 +23,6 @@ export type DropdownProps<T> = {
 
 const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
-    const openedRef = useRef(opened)
-    const dropdownRef = useRef<HTMLDivElement>(null)
     const [value, setValue] = useState<DropdownItemType<T>>(itemList[0])
     
     // useEffect(() => {
@@ -32,33 +31,11 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFun
     //     }
     // },[opened])
 
-    const handleMouseDown = useCallback((event: MouseEvent) => {
-        if (
-            dropdownRef.current &&
-            !dropdownRef.current.contains(event.target as Node)
-        ) {
-            event.preventDefault()
-            event.stopPropagation()
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setOpened(false);
-            }
-        }
-    }, []);
-
-    useLayoutEffect(() => {
-        openedRef.current = opened
-        if (opened) {
-            window.addEventListener('click', handleMouseDown)
-        } else {
-            window.removeEventListener('click', handleMouseDown)
-        }
-    }, [opened])
-
     useEffect(() => {
         if (onChange) onChange(value)
     }, [value])
 
-    return <DropdownContainer ref={dropdownRef}>
+    return <DropdownContainer visible={opened} setVisible={setOpened}>
         <DropdownButton className={className} onClick={(e) => {
             setOpened(!opened)
         }} type="button">
@@ -89,7 +66,7 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFun
 
 export default Dropdown
 
-const DropdownContainer = styled.div`
+const DropdownContainer = styled(VisibleToggleContainer)`
     position: relative;
     width: 100%;
     height: 100%;

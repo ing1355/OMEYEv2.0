@@ -6,29 +6,34 @@ import Button from "../Constants/Button"
 
 type ModalProps = PropsWithChildren & {
     visible: boolean
-    complete?: (data?: any) => void|boolean
+    complete?: (data?: any) => void|boolean|Promise<unknown>
     close: () => void
     title: string
     noComplete?: boolean
     isConfirm?: boolean
+    completeText?: string
 }
 
-const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm }: ModalProps) => {
+const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText }: ModalProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
+    const visibleRef = useRef<(e: KeyboardEvent) => void>()
+    const completeRef = useRef(false)
 
-    const escKeydownCallback = useCallback((e: KeyboardEvent) => {
+    const escKeydownCallback = useCallback(async (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             close()
         } else if(e.key === 'Enter') {
-            if(isConfirm) {
-                if(complete) {
-                    if(!complete()) {
+            if(!noComplete) {
+                if(complete && completeRef.current === false) {
+                    completeRef.current = true
+                    if(!(await complete())) {
                         close()
                     }
+                    completeRef.current = false
                 }
             }
         }
-    }, [complete])
+    }, [visible])
 
     const mouseDownCallback = useCallback((e: MouseEvent) => {
         if (containerRef.current) {
@@ -38,10 +43,14 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
 
     useEffect(() => {
         if (visible) {
+            console.debug(containerRef.current)
+            if(containerRef.current) containerRef.current.focus()
             document.addEventListener('keydown', escKeydownCallback)
+            visibleRef.current = escKeydownCallback
             if (containerRef.current) containerRef.current.addEventListener('mousedown', mouseDownCallback)
         } else {
-            document.removeEventListener('keydown', escKeydownCallback)
+            if(visibleRef.current) document.removeEventListener('keydown', visibleRef.current)
+            visibleRef.current = undefined
             if (containerRef.current) containerRef.current.removeEventListener('mousedown', mouseDownCallback)
         }
     }, [visible])
@@ -51,16 +60,20 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
             e.stopPropagation()
         }}>
             <Header>
-                {!noComplete && <CompleteBtn activate onClick={() => {
+                {!noComplete && <CompleteBtn activate onClick={async () => {
                     if(complete) {
-                        if(!complete()) {
-                            close()
+                        if(complete && completeRef.current === false) {
+                            completeRef.current = true
+                            if(!(await complete())) {
+                                close()
+                            }
+                            completeRef.current = false
                         }
                     } else {
                         close()
                     }
                 }}>
-                    {isConfirm ? '확인' : '완료'}
+                    {completeText ? completeText : (isConfirm ? '확인' : '완료')}
                 </CompleteBtn>}
                 {title}
                 <CloseIcon src={ModalCloseIcon} onClick={close}/>
@@ -81,7 +94,7 @@ const Container = styled.div<{ visible: boolean }>`
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,.3);
+    background-color: rgba(0,0,0,.4);
     ${globalStyles.flex()}
     display: ${({ visible }) => visible ? 'flex' : 'none'};
     ${globalStyles.fadeOut({animationDuration: '.1s'})}

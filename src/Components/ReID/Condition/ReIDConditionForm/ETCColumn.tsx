@@ -124,9 +124,7 @@ const ReIDDescriptionComponent = () => {
 }
 
 const ETCColumn = () => {
-    return <Container style={{
-        gap: '24px'
-    }}>
+    return <Container>
         <RankComponent />
         <ReIDDescriptionComponent />
     </Container>
@@ -208,7 +206,7 @@ const DescriptionContainer = styled.div`
 const DescriptionInputContainer = styled.div<{disabled: boolean}>`
     width: 100%;
     flex: 1 1 auto;
-    padding: 12px 36px;
+    padding: 16px 36px;
     cursor: pointer;
     border-radius: 6px;
     pointer-events: ${({disabled}) => disabled ? 'none' : 'all'};
@@ -224,7 +222,7 @@ const DescriptionInput = styled(Input)`
     outline: none;
     height: auto;
     font-size: 1rem;
-    padding: 4px 8px;
+    padding: 8px;
     ${globalStyles.flex()}
     background-color: ${InputBackgroundColor};
 `

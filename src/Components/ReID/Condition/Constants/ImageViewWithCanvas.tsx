@@ -16,12 +16,6 @@ type ImageViewProps = {
     userCaptureOn: boolean
 }
 
-let targetListId = 0
-
-export const getLastTargetListId = () => {
-    return targetListId++
-}
-
 function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
     let ctx = rectCanvas.getContext('2d');
 
