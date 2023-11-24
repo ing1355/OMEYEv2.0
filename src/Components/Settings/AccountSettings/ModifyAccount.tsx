@@ -3,7 +3,7 @@ import Modal from "../../Layout/Modal"
 import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import { useRecoilState } from "recoil"
-import { IsModifyMember, ModifySelectMember, modifySelectMemberInit } from "../../../Model/AccountDataModel"
+import { IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
 import { useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
@@ -30,6 +30,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const [modifyAccountEmail, setModifyAccountEmail] = useState<string>(modifySelectMember.email);
   const [modifyAccountPhoneNumber, setModifyAccountPhoneNumber] = useState<string>(modifySelectMember.phoneNumber);
   const [modifyAccountOrg, setModifyAccountOrg] = useState<string>(modifySelectMember.organization);
+  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
@@ -59,6 +60,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
       })
       if(res) {
         setIsModifyMember(false);
+        setUpdateMemeberList(!updateMemeberList);
         setModifySelectMember(modifySelectMemberInit);
         setModifyAccountPassword('');
         setModifyAccountPasswordConfirm('');

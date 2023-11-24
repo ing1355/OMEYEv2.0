@@ -124,7 +124,7 @@ const ServerManagement = () => {
     const serviceStatus = isService?.serviceStatus;
 
     return (
-      <div style={{display: 'flex', justifyContent: 'space-between'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap'}}>
         <div>{serviceName} </div>
         <div>
           {(serviceStatus === 'active' || serviceStatus === 'activating') && 

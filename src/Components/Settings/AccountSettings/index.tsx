@@ -10,7 +10,7 @@ import { useEffect, useState } from "react"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { useRecoilState } from "recoil"
-import { IsAddMember, IsModifyMember, ModifySelectMember, modifySelectMemberInit } from "../../../Model/AccountDataModel"
+import { IsAddMember, IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
 import Modal from "../../Layout/Modal"
 import AddAccount from "./AddAccount"
 import ModifyAccount from "./ModifyAccount"
@@ -111,6 +111,7 @@ const AccountSettings = () => {
   const [searchValue, setSearchValue] = useState<AccountSearchValues>('username');
   const [searchInputValue, setSearchInputValue] = useState<string>('');
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
+  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
   const message = useMessage();
@@ -141,6 +142,7 @@ const AccountSettings = () => {
       uuid: selectUsers.join(',')
     }, true)
     setIsDeleteMember(false);
+    setUpdateMemeberList(!updateMemeberList);
     setSelectUsers([]);
 
     if(res !== undefined) {
@@ -173,7 +175,7 @@ const AccountSettings = () => {
 
   useEffect(() => {
     getUsersAccountList();
-  },[isAddMember, isModifyMember, currentPage, isDeleteMember])
+  },[currentPage, updateMemeberList])
 
   return (
     <div>

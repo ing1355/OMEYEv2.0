@@ -35,3 +35,8 @@ export const ModifySelectMember = atom<selectMemberType>({
   key: 'AccountDataModel/ModifySelectMember',
   default: modifySelectMemberInit
 })
+
+export const UpdateMemeberList = atom<boolean>({
+  key: 'AccountDataModel/UpdateMemeberList',
+  default: false
+})
