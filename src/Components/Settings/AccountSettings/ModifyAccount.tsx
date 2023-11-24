@@ -4,7 +4,7 @@ import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import { useRecoilState } from "recoil"
 import { IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import useMessage from "../../../Hooks/useMessage"
@@ -26,10 +26,6 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember);
   const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('');
   const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('');
-  const [modifyAccountName, setModifyAccountName] = useState<string>(modifySelectMember.name);
-  const [modifyAccountEmail, setModifyAccountEmail] = useState<string>(modifySelectMember.email);
-  const [modifyAccountPhoneNumber, setModifyAccountPhoneNumber] = useState<string>(modifySelectMember.phoneNumber);
-  const [modifyAccountOrg, setModifyAccountOrg] = useState<string>(modifySelectMember.organization);
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
@@ -37,26 +33,24 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
   const message = useMessage();
 
   const putUsersAccount = async () => {
-    if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber && modifyAccountOrg)) {
-      message.error({ title: '계정 생성 에러', msg: '모든 항목을 입력해주세요' })
-    } else if(!passwordRegex.test(modifyAccountPassword)) {
+    if(!passwordRegex.test(modifyAccountPassword)) {
       message.error({ title: '계정 생성 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
     } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
       message.error({ title: '계정 생성 에러', msg: '비밀번호가 일치하지 않습니다' })
-    } else if(!nameRegex.test(modifyAccountName)) {
+    } else if(!nameRegex.test(modifySelectMember.name)) {
       message.error({ title: '계정 생성 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
-    } else if(!emailRegex.test(modifyAccountEmail)) {
+    } else if(!emailRegex.test(modifySelectMember.email)) {
       message.error({ title: '계정 생성 에러', msg: '잘못된 E-MAIL 형식 입니다' })
-    } else if(!phoneNumberRegex.test(modifyAccountPhoneNumber)) {
+    } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
       message.error({ title: '계정 생성 에러', msg: '9~11자리 숫자로만 입력해주세요' })
     } else {
       const res = await Axios("PUT", UserAccountApi, {
         id: modifySelectMember.id,
         password: modifyAccountPassword,
-        name: modifyAccountName,
-        email: modifyAccountEmail,
-        phoneNumber: modifyAccountPhoneNumber,
-        organization: modifyAccountOrg
+        name: modifySelectMember.name,
+        email: modifySelectMember.email,
+        phoneNumber: modifySelectMember.phoneNumber,
+        organization: modifySelectMember.organization
       })
       if(res) {
         setIsModifyMember(false);
@@ -65,11 +59,17 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         setModifyAccountPassword('');
         setModifyAccountPasswordConfirm('');
         setSearchRoleValue('USER');
-        setModifyAccountName('');
-        setModifyAccountEmail('');
-        setModifyAccountPhoneNumber('');
-        setModifyAccountOrg('');
       }
+    }
+  }
+
+  const SelectedRoleValueIndexFun = () => {
+    console.log('modifySelectMember.role',modifySelectMember.role)
+    console.log(RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role))
+    if(userInfo.user.role === 'DEVELOPER') {
+      return RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role)
+    } else if(userInfo.user.role === 'ADMIN') {
+      return AdminRoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role)
     }
   }
 
@@ -117,9 +117,12 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           조직 :
         </div>
         <AccountInput 
-          value={modifyAccountOrg}
+          value={modifySelectMember.organization}
           onChange={(e) => {
-            setModifyAccountOrg(e);
+            setModifySelectMember((pre) => ({
+              ...pre,
+              organization: e
+            }))
           }}
         />
       </div>
@@ -128,9 +131,12 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           이름 :
         </div>
         <AccountInput 
-          value={modifyAccountName}
+          value={modifySelectMember.name}
           onChange={(e) => {
-            setModifyAccountName(e);
+            setModifySelectMember((pre) => ({
+              ...pre,
+              name: e
+            }))
           }}
         />
       </div>
@@ -146,6 +152,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
               onChange={val => {
                 setSearchRoleValue(val.value as RoleValues);
               }}
+              // valueIndex={SelectedRoleValueIndexFun()}
             />
             :
             <div style={{ width: '240px', textAlign: 'center', lineHeight: '30px' }}>
@@ -161,10 +168,13 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           이메일: 
         </div>
         <AccountInput 
-          value={modifyAccountEmail}
+          value={modifySelectMember.email}
           maxLength={48}
           onChange={(e) => {
-            setModifyAccountEmail(e);
+            setModifySelectMember((pre) => ({
+              ...pre,
+              email: e
+            }))
           }}
         />
       </div>
@@ -174,23 +184,22 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
         </div>
         <AccountInput 
           maxLength={11}
-          value={modifyAccountPhoneNumber}
+          value={modifySelectMember.phoneNumber}
           onChange={(e) => {
-            setModifyAccountPhoneNumber(e);
+            setModifySelectMember((pre) => ({
+              ...pre,
+              phoneNumber: e
+            }))
           }}
         />
       </div>
       <div style={{ textAlign: 'center' }}>
         <AccountButton hover
           onClick={() => {
-            if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifyAccountName && modifyAccountEmail && modifyAccountPhoneNumber)) {
+            if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
               message.error({ title: '계정 수정 에러', msg: '모든 항목을 입력해주세요.' })
             } else {
-              if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-                message.error({ title: '계정 수정 에러', msg: '비밀번호가 일치하지 않습니다.' })
-              } else {
-                putUsersAccount();
-              }
+              putUsersAccount();
             }
           }}
         >수정하기</AccountButton>

@@ -474,21 +474,21 @@ const ServerMgmtSidebar = () => {
                 parseInt(storageData.used.split(" ")[0]) +
                 parseInt(storageData.avail.split(" ")[0])
               ).toFixed(2)}{" "}
-              GB
+              {storageData && storageData.avail.split(" ")[1]}
             </span>
           </div>
           <div>잔여 저장공간: 
             <span style={{marginLeft: '10px'}}>
               {storageData?.avail &&
                 parseInt(storageData.avail.split(" ")[0]).toFixed(2)}{" "}
-              GB
+              {storageData?.avail && storageData.avail.split(" ")[1]}
             </span>
           </div>
           <div>사용 저장공간: 
             <span style={{marginLeft: '10px'}}>
               {storageData?.used &&
                 parseInt(storageData.used.split(" ")[0]).toFixed(2)}{" "}
-              GB
+              {storageData?.used && storageData.used.split(" ")[1]}
             </span>
           </div>
         </div>
