@@ -40,7 +40,7 @@ const ReIDResult = () => {
 
     const test = async () => {
         // setResultDatas(ReIDResultTestData)
-        const testReid = 788
+        const testReid = 806
         const temp = await GetReIDResultById(testReid)
         const newData: ReIDResultType = {
             ...temp, data: temp.data.map(d => ({
@@ -56,8 +56,8 @@ const ReIDResult = () => {
                 }))
             }))
         }
-        setReidSelectedCondition(0)
-        setReIDResultSelectedView([testReid])
+        // setReidSelectedCondition(0)
+        // setReIDResultSelectedView([testReid])
         if (newData) setResultDatas([newData])
     }
 

@@ -206,7 +206,7 @@ const DescriptionContainer = styled.div`
 const DescriptionInputContainer = styled.div<{disabled: boolean}>`
     width: 100%;
     flex: 1 1 auto;
-    padding: 12px 36px;
+    padding: 16px 36px;
     cursor: pointer;
     border-radius: 6px;
     pointer-events: ${({disabled}) => disabled ? 'none' : 'all'};

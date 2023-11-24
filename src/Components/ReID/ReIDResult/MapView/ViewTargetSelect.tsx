@@ -26,8 +26,8 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
     useEffect(() => {
         if (datas.length > 0) {
             setSelectedCondition(datas.map(_ => _.index))
-            // setSelectedTarget(datas.map(_ => []))
             if(!IS_PRODUCTION) setSelectedTarget(datas.map(_ => _.objectIds))
+            else setSelectedTarget(datas.map(_ => []))
         }
     }, [datas])
     
@@ -173,6 +173,7 @@ const CCTVRowContainer = styled.div<{ selected: boolean }>`
 
 const TargetsContainer = styled.div<{nums: number}>`
     flex: 1;
+    overflow: auto;
     height: ${({nums}) => nums * RowHeight}px;
     background-color: ${ContentsBorderColor};
     border-top-right-radius: 6px;

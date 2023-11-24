@@ -26,7 +26,7 @@ export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
 export const CustomEventSource = async (url: string) => new EventSource(url, {
     headers: {
         Authorization: GetAuthorizationToken()!,
-        'X-Forwarded-For': await getLocalIp() as string
+        'X-Forwarded-For': await getLocalIp(url) as string
     },
     heartbeatTimeout: 3600000,
 })
