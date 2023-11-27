@@ -32,6 +32,11 @@ const AccountSearchDropdownList = [
     label: '등급'
   }, 
   {
+    key: 'organization',
+    value: 'organization',
+    label: '소속'
+  }, 
+  {
     key: 'name',
     value: 'name',
     label: '이름'
@@ -101,20 +106,20 @@ type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber
 export type RoleValues = 'USER' | 'ADMIN' | 'DEVELOPER' ;
 
 const AccountSettings = () => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectUsers, setSelectUsers] = useState<string[]>([]);
-  const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
-  const [isDeleteMember, setIsDeleteMember] = useState<boolean>(false);
-  const [usersAccountRows, setUsersAccountRows] = useState<ResType>({totalCount: 0, results: []});
-  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember);
-  const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember);
-  const [searchValue, setSearchValue] = useState<AccountSearchValues>('username');
-  const [searchInputValue, setSearchInputValue] = useState<string>('');
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
-  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [selectUsers, setSelectUsers] = useState<string[]>([])
+  const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember)
+  const [isDeleteMember, setIsDeleteMember] = useState<boolean>(false)
+  const [usersAccountRows, setUsersAccountRows] = useState<ResType>({totalCount: 0, results: []})
+  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember)
+  const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember)
+  const [searchValue, setSearchValue] = useState<AccountSearchValues>('username')
+  const [searchInputValue, setSearchInputValue] = useState<string>('')
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
+  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
-  const message = useMessage();
+  const message = useMessage()
 
   const getUsersAccountList = async () => {
     const res:ResType = await Axios('GET', UserAccountApi, {
@@ -126,7 +131,7 @@ const AccountSettings = () => {
       email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
       phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
     })
-    if (res) setUsersAccountRows(res);
+    if (res) setUsersAccountRows(res)
   }
 
   const getUsersAccountListReset = async () => {
@@ -134,16 +139,16 @@ const AccountSettings = () => {
       size: 10,
       page: 1,
     })
-    if (res) setUsersAccountRows(res);
+    if (res) setUsersAccountRows(res)
   }
 
   const deleteUsersAccount = async () => {
     const res = await Axios('DELETE', UserAccountApi, {
       uuid: selectUsers.join(',')
     }, true)
-    setIsDeleteMember(false);
-    setUpdateMemeberList(!updateMemeberList);
-    setSelectUsers([]);
+    setIsDeleteMember(false)
+    setUpdateMemeberList(!updateMemeberList)
+    setSelectUsers([])
 
     if(res !== undefined) {
       if(res.data.success) {
@@ -157,15 +162,15 @@ const AccountSettings = () => {
   }
 
   const allCheckFun = () => {
-    let isAll = false;
-    let usersAccountAllTemp = usersAccountRows.results;
+    let isAll = false
+    let usersAccountAllTemp = usersAccountRows.results
 
     if(userInfo.user.role === 'ADMIN') {
       usersAccountAllTemp = usersAccountRows.results.filter((_)=>_.role !== 'DEVELOPER')
     }
 
     if(usersAccountAllTemp.length > 0) {
-      isAll = usersAccountAllTemp.every((_) => selectUsers.includes(_.id));
+      isAll = usersAccountAllTemp.every((_) => selectUsers.includes(_.id))
     } else {
       isAll = false
     }
@@ -174,7 +179,7 @@ const AccountSettings = () => {
   }
 
   useEffect(() => {
-    getUsersAccountList();
+    getUsersAccountList()
   },[currentPage, updateMemeberList])
 
   return (
@@ -187,7 +192,7 @@ const AccountSettings = () => {
               itemList={AccountSearchDropdownList} 
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
               onChange={val => {
-                setSearchValue(val.value as AccountSearchValues);
+                setSearchValue(val.value as AccountSearchValues)
               }}
             />
           </div>
@@ -196,12 +201,12 @@ const AccountSettings = () => {
               itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
               bodyStyle={{backgroundColor: `${InputBackgroundColor}`}}
               onChange={val => {
-                setSearchRoleValue(val.value as RoleValues);
+                setSearchRoleValue(val.value as RoleValues)
               }}
             />
           :
             <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
-              setSearchInputValue(value);
+              setSearchInputValue(value)
             }} 
             />
           }
@@ -223,8 +228,8 @@ const AccountSettings = () => {
                 organization: searchValue === 'organization' ? searchInputValue === '' ? null : searchInputValue : null
               })
               if (res) {
-                setUsersAccountRows(res);
-                setCurrentPage(1);
+                setUsersAccountRows(res)
+                setCurrentPage(1)
               }
             }}
           >
@@ -236,9 +241,9 @@ const AccountSettings = () => {
           <div
             style={{ cursor: 'pointer' }}
             onClick={() => {
-              setSearchInputValue('');
-              setCurrentPage(1);
-              getUsersAccountListReset();
+              setSearchInputValue('')
+              setCurrentPage(1)
+              getUsersAccountListReset()
             }}
           >
             <img 
@@ -253,13 +258,13 @@ const AccountSettings = () => {
               hover 
               disabled={!(selectUsers.length > 0)}
               onClick={() => {
-                if(selectUsers.length > 0) setIsDeleteMember(true);
+                if(selectUsers.length > 0) setIsDeleteMember(true)
               }}
             >
               멤버 삭제
             </TopButton>
             <TopButton hover onClick={() => {
-              setIsAddMember(true);
+              setIsAddMember(true)
             }}>멤버 추가</TopButton>
           </div>
         }
@@ -270,14 +275,14 @@ const AccountSettings = () => {
           {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
             <div style={{width: '2%'}}
               onClick={() => {
-                let userUuidAllTemp:string[] = [];
+                let userUuidAllTemp:string[] = []
   
                 if(!allCheckFun()) {
-                  if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = usersAccountRows.results.map((_) => _.id);
-                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = usersAccountRows.results.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id);
+                  if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = usersAccountRows.results.map((_) => _.id)
+                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = usersAccountRows.results.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id)
                 }
                 
-                setSelectUsers(userUuidAllTemp);
+                setSelectUsers(userUuidAllTemp)
               }}
             >
               <input type="checkbox" checked={allCheckFun()}/>
@@ -304,15 +309,15 @@ const AccountSettings = () => {
                       style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
                       onClick={() => {
                         if(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) {
-                          const isDelete = selectUsers.find((_) => _ === data.id);
-                          let selectTemp:string[] = [];
+                          const isDelete = selectUsers.find((_) => _ === data.id)
+                          let selectTemp:string[] = []
   
                           if(isDelete) {
-                            selectTemp = selectUsers.filter((_) => _ !== data.id);
+                            selectTemp = selectUsers.filter((_) => _ !== data.id)
                           } else {
                             selectTemp = selectUsers.concat(data.id)
                           }
-                          setSelectUsers(selectTemp);
+                          setSelectUsers(selectTemp)
                         }
                       }}
                     >
@@ -361,28 +366,25 @@ const AccountSettings = () => {
       <AddAccount 
         visible={isAddMember} 
         close={() => {
-          setIsAddMember(false);
-          setSearchInputValue('');
+          setIsAddMember(false)
+          setSearchInputValue('')
         }}
-        noComplete={true}
       />
       <ModifyAccount 
         visible={isModifyMember} 
         close={() => {
-          setIsModifyMember(false);
-          setModifySelectMember(modifySelectMemberInit);
-          setSearchInputValue('');
+          setIsModifyMember(false)
+          setModifySelectMember(modifySelectMemberInit)
+          setSearchInputValue('')
         }}
-        noComplete={true}
       />
       <Modal 
         visible={isDeleteMember}
         close={() => {
-          setIsDeleteMember(false);
-          setSearchInputValue('');
+          setIsDeleteMember(false)
+          setSearchInputValue('')
         }}
         title="멤버 삭제"
-        noComplete={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
           <div>삭제하시겠습니까?</div>
@@ -396,7 +398,7 @@ const AccountSettings = () => {
             <DeleteModalButton 
               hover
               onClick={() => {
-                setIsDeleteMember(false);
+                setIsDeleteMember(false)
               }}
             >
               취소
