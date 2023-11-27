@@ -12,6 +12,7 @@ import { ReIDObjectTypeKeys } from '../../../../Constants/GlobalTypes'
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from '../Constants/Params'
 import useConditionRoutes from '../Hooks/useConditionRoutes'
 import { ReIDConditionFormRoute } from '../Constants/RouteInfo'
+import useMessage from '../../../../Hooks/useMessage'
 
 const PlateModal = ({ visible, close }: {
     visible: boolean
@@ -22,15 +23,30 @@ const PlateModal = ({ visible, close }: {
     const { routeJump } = useConditionRoutes()
     const imgRef = useRef<HTMLImageElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
-
+    const message = useMessage()
+    
     const addCompleteCallback = async () => {
+        let isError = false
+        console.debug(plateInput, plateInput.length)
+        if (plateInput.length !== 4) {
+            message.error({ title: "입력값 에러", msg: "번호판 4자리를 입력해주세요." })
+            isError = true
+        }
+        if (plateInput.match(/[\*]{3}/g)) {
+            message.error({ title: "입력값 에러", msg: "번호판을 최소 2자리는 입력해주세요." })
+            isError = true
+        }
+        if (globalData.find(_ => _.ocr === plateInput)) {
+            message.error({ title: "입력값 에러", msg: "동일한 번호판 대상이 이미 존재합니다." })
+            isError = true
+        }
+        if(isError) return true
         const vrpObjectId = await GetObjectIdByImage([{
             image: imgRef.current!.src,
             type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
             ocr: plateInput
         }])
         if (vrpObjectId) {
-            console.debug('input : ', plateInput)
             setGlobalData(globalData.concat({
                 src: imgRef.current!.src,
                 ocr: plateInput,
@@ -40,6 +56,7 @@ const PlateModal = ({ visible, close }: {
                 objectId: vrpObjectId[0]
             }))
             routeJump(ReIDConditionFormRoute.key)
+            close()
         }
     }
 

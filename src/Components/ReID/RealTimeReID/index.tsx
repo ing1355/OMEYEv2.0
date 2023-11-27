@@ -250,7 +250,6 @@ const RealTimeReID = () => {
     useEffect(() => {
         if (rtStatus === PROGRESS_STATUS['RUNNING'] && sseRef.current) {
             if (changeTimer.current) clearTimeout(changeTimer.current)
-            console.debug("test????")
             changeTimer.current = setTimeout(() => {
                 Axios("PUT", UpdateRealTimeThresholdApi, {
                     threshold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold || 1

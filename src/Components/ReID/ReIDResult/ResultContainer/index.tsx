@@ -10,7 +10,7 @@ import CCTVNameById from "../../../Constants/CCTVNameById"
 import LazyVideo from "../LazyVideo"
 import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ForLog from "../../../Constants/ForLog"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressStatus } from "../../../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressRequestParams, ProgressStatus } from "../../../../Model/ProgressModel"
 import { ObjectTypes } from "../../ConstantsValues"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
@@ -102,6 +102,7 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
     const [selectedTarget, setSelectedTarget] = useState<number>(0)
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reidId))
     const [globalTargetDatas, setGlobalTargetDatas] = useRecoilState(conditionTargetDatas)
+    const requestParams = useRecoilValue(ProgressRequestParams)
     const selectedView = useRecoilValue(ReIDResultSelectedView)
     const progressStatus = useRecoilValue(ProgressStatus)
     const progressData = useRecoilValue(ProgressData)
@@ -142,8 +143,13 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                 }
             </TargetsContainer>
             <ResultListGroupContainer>
-                {globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && <ProgressContainer>
-                    <ProgressItem percent={Math.floor(getConditionPercent(progressData[selectedCondition].times))} color={ContentsActivateColor} />
+                {/* <ForLog data={globalCurrentReIdId}/>
+                <ForLog data={progressStatus.status}/>
+                <ForLog data={requestParams.type}/>
+                <ForLog data={data.data}/>
+                <ForLog data={selectedCondition}/> */}
+                {globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) && <ProgressContainer>
+                    <ProgressItem percent={progressData[selectedCondition] ? Math.floor(getConditionPercent(progressData[selectedCondition].times)) : 0} color={ContentsActivateColor} />
                 </ProgressContainer>}
                 <ResultDescriptionContainer>
                     <DescriptionReIdIdTextContainer>

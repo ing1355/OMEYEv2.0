@@ -413,15 +413,15 @@ const ServerManagement = () => {
         });
       }
     }
+    // sse.onerror = (e: any) => {
+      // e.target.close();
+      // console.log('server mgmt sse error');
+    // }
   }
 
   useEffect(() => {
     sseSetting()
 
-    // sse.onerror = (e: any) => {
-    //   e.target.close();
-    //   console.log('server mgmt sse error');
-    // }
   },[])
 
   return (

@@ -15,7 +15,7 @@ const ObjectTypeSelect = () => {
     const setSelected = useSetRecoilState(conditionSelectedType)
     const { routePush } = useConditionRoutes()
     const [plateVisible, setPlateVisible] = useState(false)
-    console.debug('visible : ' ,plateVisible)
+    
     return <>
         <Container>
             {

@@ -11,7 +11,8 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
 import { IS_PRODUCTION } from './Constants/GlobalConstantsValues';
-import { getLocalIp } from './Functions/NetworkFunctions';
+import { Axios, getLocalIp, refreshFunction } from './Functions/NetworkFunctions';
+import { AliveApi } from './Constants/ApiRoutes';
 
 type ServerErrorDataType = {
   code: number
@@ -51,10 +52,11 @@ const App = () => {
 
   useEffect(() => {
     if (loginState) {
-      if(IS_PRODUCTION) {
+      if(!IS_PRODUCTION) {
         window.addEventListener('beforeunload', e => {
           e.preventDefault()
           e.returnValue = ''
+          // refreshFunction()
         })
       }
     }
@@ -86,6 +88,9 @@ const App = () => {
       return Promise.reject(err)
     })
     setHandlerComplete(true)
+    if(loginState) {
+      // Axios('POST', AliveApi)
+    }
   }, [])
 
   return handlerComplete ? <ErrorHandleComponent>

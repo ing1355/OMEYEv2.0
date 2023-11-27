@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, RefreshApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -118,6 +118,10 @@ export const videoExportCancelFunc = (): void => {
 
 export const streamingAllStopRequest = () => {
     navigator.sendBeacon(StopAllVMSVideoApi, GetAuthorizationToken());
+};
+
+export const refreshFunction = () => {
+    navigator.sendBeacon(RefreshApi, GetAuthorizationToken());
 };
 
 export const streamingStopRequest = async (uuids: string[]) => {
