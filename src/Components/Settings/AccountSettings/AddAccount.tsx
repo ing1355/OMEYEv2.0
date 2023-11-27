@@ -68,7 +68,7 @@ const AddAccount = ({ visible, close, noComplete }: AddAccountType) => {
     } else if(!emailRegex.test(newAccountEmail)) {
       message.error({ title: '계정 생성 에러', msg: '잘못된 E-MAIL 형식 입니다' })
     } else if(!phoneNumberRegex.test(newAccountPhoneNumber)) {
-      message.error({ title: '계정 생성 에러', msg: '9~11자리 숫자로만 입력해주세요' })
+      message.error({ title: '계정 생성 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
     } else if(isSameId) {
       message.error({ title: '계정 생성 에러', msg: '이미 사용중인 아이디입니다' })
     } else {

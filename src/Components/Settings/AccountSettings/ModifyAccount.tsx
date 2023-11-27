@@ -42,7 +42,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
     } else if(!emailRegex.test(modifySelectMember.email)) {
       message.error({ title: '계정 생성 에러', msg: '잘못된 E-MAIL 형식 입니다' })
     } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
-      message.error({ title: '계정 생성 에러', msg: '9~11자리 숫자로만 입력해주세요' })
+      message.error({ title: '계정 생성 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
     } else {
       const res = await Axios("PUT", UserAccountApi, {
         id: modifySelectMember.id,

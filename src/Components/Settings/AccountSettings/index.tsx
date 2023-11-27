@@ -220,6 +220,7 @@ const AccountSettings = () => {
                 name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
                 email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
                 phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
+                organization: searchValue === 'organization' ? searchInputValue === '' ? null : searchInputValue : null
               })
               if (res) {
                 setUsersAccountRows(res);
@@ -286,7 +287,7 @@ const AccountSettings = () => {
           }
           <div style={{width: '15%', lineHeight: '20px'}}>아이디</div>
           <div style={{width: '15%', lineHeight: '20px'}}>등급</div>
-          <div style={{width: '13%', lineHeight: '20px'}}>조직</div>
+          <div style={{width: '13%', lineHeight: '20px'}}>소속</div>
           <div style={{width: '12%', lineHeight: '20px'}}>이름</div>
           <div style={{width: '20%', lineHeight: '20px'}}>이메일</div>
           <div style={{width: '18%', lineHeight: '20px'}}>전화번호</div>
@@ -352,7 +353,7 @@ const AccountSettings = () => {
             </>
           :
             <NoDataContentsContainer style={{}}>
-              서버에 저장된 분석 결과가 존재하지 않습니다.
+              계정 정보가 존재하지 않습니다.
             </NoDataContentsContainer>
           }
         </div>

@@ -8,7 +8,8 @@ import { useRecoilState } from "recoil";
 import { isLogin } from "../../../Model/LoginModel";
 import { decodedJwtToken } from "../../Layout/Header/UserMenu";
 
-type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
+// type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
+type serviceType = 'detect' | 'main' | 'back' | 'rt' | 'mediaserver' | '';
 
 type GetSSEServerMgmtInfoType = {
   monitorVersion: string,
@@ -72,18 +73,34 @@ type networkBandwidthType = {
   downlink: string,
 }
 
+// const servicesName = [
+//   'detect2',
+//   'main2',
+//   'rt2',
+//   'reid2',
+//   'mediaserver',
+// ];
+
+
+// const aiServicesName = [  
+//   'detect2',
+//   'main2',
+//   'rt2',
+// ];
+
 const servicesName = [
-  'detect2',
-  'main2',
-  'rt2',
-  'reid2',
+  'detect',
+  'main',
+  'rt',
+  'back',
   'mediaserver',
 ];
 
+
 const aiServicesName = [  
-  'detect2',
-  'main2',
-  'rt2',
+  'detect',
+  'main',
+  'rt',
 ];
 
 // let sse: EventSource | null;
@@ -435,7 +452,8 @@ const ServerManagement = () => {
                 백엔드
               </div>
               <div style={{margin: '10px'}}>
-                {serviceStatusDiv('reid2' as serviceType)}
+                {/* {serviceStatusDiv('reid2' as serviceType)} */}
+                {serviceStatusDiv('back' as serviceType)}
               </div>
             </div>
             <div style={{width: '30%', backgroundColor: `${InputBackgroundColor}`}}>
@@ -486,7 +504,7 @@ const ServerManagement = () => {
                   </div>
                 ))}
               </div>
-              <div style={{backgroundColor: '#ddd'}}>
+              <div style={{backgroundColor: 'white'}}>
                 <LineChart
                   width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
                   height={271}
@@ -513,7 +531,7 @@ const ServerManagement = () => {
                   <Progress type="circle" percent={memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)} width={75} strokeWidth={10} trailColor='#ccc' strokeColor='#4AA372' format={(percent) => `${percent}%`} />
                 </div> */}
               </div>
-              <div style={{backgroundColor: '#ddd'}}>
+              <div style={{backgroundColor: 'white'}}>
                 <LineChart
                   width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
                   height={271}
@@ -542,7 +560,7 @@ const ServerManagement = () => {
                   <Progress type="circle" percent={memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)} width={75} strokeWidth={10} trailColor='#ccc' strokeColor='#4AA372' format={(percent) => `${percent}%`} />
                 </div> */}
               </div>
-              <div style={{backgroundColor: '#ddd'}}>
+              <div style={{backgroundColor: 'white'}}>
                 <LineChart
                   width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
                   height={271}
@@ -565,7 +583,7 @@ const ServerManagement = () => {
                   <div><span>Downlink : </span><span>{serverMgmtInfo?.networkBandwidth.downlink}</span></div>
                 </div>
               </div>
-              <div style={{backgroundColor: '#ddd'}}>
+              <div style={{backgroundColor: 'white'}}>
                 <LineChart
                   width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
                   height={271}
@@ -599,7 +617,7 @@ const ServerManagement = () => {
                   <div><span>사용률 : </span><span>{serverMgmtInfo?.disk.use}</span></div>
                 </div>
               </div>
-              <div style={{backgroundColor: '#ddd'}}>
+              <div style={{backgroundColor: 'white'}}>
                 <LineChart
                   width={userInfo.user.role === 'USER' ? windowDimensions.width/3 : windowDimensions.width/4}
                   height={271}

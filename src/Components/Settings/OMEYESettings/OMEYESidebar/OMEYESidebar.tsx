@@ -17,7 +17,7 @@ const OMEYESidebar = () => {
     if (res) setOmeyeSettingsInfo(res);
   }
 
-  const ChangeMapTypeFun = async () => {
+  const ChangeFPSTypeFun = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', fpsSettingApi, {
       personFrame: omeyeSettingsInfo.personFrame,
       faceFrame: omeyeSettingsInfo.faceFrame,
@@ -26,8 +26,10 @@ const OMEYESidebar = () => {
     })
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
+      message.error({title: '', msg: '저장 에러'});
+    } else {
+      ChangeMaxCCTVCountFun();
     }
   }
 
@@ -35,8 +37,10 @@ const OMEYESidebar = () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxAnalyzeDurationApi(duration))
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
+      message.error({title: '', msg: '저장 에러'});
+    } else {
+      ChangeFPSTypeFun();
     }
   }
   
@@ -47,20 +51,18 @@ const OMEYESidebar = () => {
     })
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
+      message.error({title: '', msg: '저장 에러'});
+    } else {
+      setTimeout(()=>{
+        message.success({title: '', msg: '저장 완료'});
+        GetOMEYESettingsInfo();
+      },2000)
     }
   } 
 
   const SaveDataFun = () => {
-    ChangeMapTypeFun();
     ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
-    ChangeMaxCCTVCountFun();
-
-    setTimeout(()=>{
-      message.success({title: '', msg: '저장 완료'});
-      GetOMEYESettingsInfo();
-    },2000)
   }
 
   useEffect(() => {
