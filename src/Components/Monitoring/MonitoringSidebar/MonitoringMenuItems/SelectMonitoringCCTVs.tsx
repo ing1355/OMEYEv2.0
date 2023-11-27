@@ -51,8 +51,8 @@ const ListContainer = styled.div<{ visible: boolean, index: number }>`
     position: absolute;
     width: ${({ visible }) => visible ? 810 : 0}px;
     height: ${({ visible }) => visible ? 800 : 0}px;
-    right: 76px;
-    top: ${({index}) => index * 56 + 32}px;
+    right: 66px;
+    top: ${({index}) => index * 56 - 14}px;
     transition: top .3s ease-out;
     z-index: 1004;
     overflow: ${({visible}) => visible ? 'visible' : 'hidden'};

@@ -7,7 +7,7 @@ import { globalSettings } from "../../Model/GlobalSettingsModel";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { GetAllSitesData } from "../../Functions/NetworkFunctions";
 
-const LoadingComponent = ({visible}: {
+const LoadingComponent = ({ visible }: {
     visible: boolean
 }) => {
     const [count, setCount] = useState(0)
@@ -49,15 +49,13 @@ const Main = () => {
         if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue') {
             if (isLoading) setTimeout(() => {
                 setIsComplete(true)
-            }, 2000);
+            }, 1000);
         }
     }, [sitesState, vmsStoredTime, isLoading])
 
     return <>
-        <LoadingComponent visible={!isComplete}/>
-        <ContentsContainer visible={isComplete}>
-            <Menus />
-        </ContentsContainer>
+        <LoadingComponent visible={!isComplete} />
+        {isComplete && <Menus />}
     </>
 }
 

@@ -8,15 +8,18 @@ import OMEYESettings from "./OMEYESettings";
 import ServerManagement from "./ServerManagement";
 import OMEYESidebar from "./OMEYESettings/OMEYESidebar/OMEYESidebar";
 import ServerMgmtSidebar from "./ServerManagement/ServerMgmtSidebar/ServerMgmtSidebar";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { isLogin } from "../../Model/LoginModel";
 import { decodedJwtToken } from "../Layout/Header/UserMenu";
+import { menuState } from "../../Model/MenuModel";
+import { SettingsMenuKey } from "../../Constants/GlobalConstantsValues";
 
 type settingsCategoryType = 'account' | 'vms' | 'omeye' | 'server';
 
 const Settings = () => {
   const [category, setCategory] = useState<settingsCategoryType>('account')
   const [login, setIsLogin] = useRecoilState(isLogin)
+  const currentMenu = useRecoilValue(menuState)
   const userInfo = decodedJwtToken(login!)
 
   const ViewByCategory = ({ type }: {
@@ -24,10 +27,10 @@ const Settings = () => {
   }) => {
     return <>
       <ChangedView selected={type === 'account'}>
-        <AccountSettings />
+        <AccountSettings visible={type === 'account' && currentMenu === SettingsMenuKey}/>
       </ChangedView>
       <ChangedView selected={type === 'vms'}>
-        <VMSSettings />
+        <VMSSettings visible={type === 'vms' && currentMenu === SettingsMenuKey}/>
       </ChangedView>
       {type === 'omeye' &&
         <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
@@ -42,8 +45,8 @@ const Settings = () => {
       {type === 'server' && 
         (userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
           <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-            <ChangedView selected={type === 'server'} style={{width:'77%', marginRight: '0.5%'}}>
-              <ServerManagement />
+            <ChangedView selected={true} style={{width:'77%', marginRight: '0.5%'}}>
+              <ServerManagement visible={currentMenu === SettingsMenuKey}/>
             </ChangedView>
             <ChangedView selected={type === 'server'} style={{width:'22%', marginRight: '0.5%'}}>
               <ServerMgmtSidebar />
@@ -51,8 +54,8 @@ const Settings = () => {
           </div>
         :
           <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-            <ChangedView selected={type === 'server'}>
-              <ServerManagement />
+            <ChangedView selected={true}>
+              <ServerManagement visible={type === 'server' && currentMenu === SettingsMenuKey}/>
             </ChangedView>
           </div>
       }

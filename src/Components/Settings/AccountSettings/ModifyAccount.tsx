@@ -14,53 +14,56 @@ import { ButtonBackgroundColor } from "../../../styles/global-styled"
 import { emailRegex, nameRegex, passwordRegex, phoneNumberRegex } from "./AddAccount"
 import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
+import { async } from "q"
+import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
 
 type ModifyAccountType = {
   visible: boolean
   close: () => void
-  noComplete: boolean
 }
 
-const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
-  const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember);
-  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember);
-  const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('');
-  const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('');
-  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
-  const [login, setIsLogin] = useRecoilState(isLogin);
-  const userInfo = decodedJwtToken(login!);
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
-  const message = useMessage();
+const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
+  const [modifySelectMember, setModifySelectMember] = useRecoilState(ModifySelectMember)
+  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember)
+  const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('')
+  const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('')
+  const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
+  const [login, setIsLogin] = useRecoilState(isLogin)
+  const userInfo = decodedJwtToken(login!)
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
+  const message = useMessage()
+
+  const modifyInit = () => {
+    setIsModifyMember(false)
+    setUpdateMemeberList(!updateMemeberList)
+    setModifySelectMember(modifySelectMemberInit)
+    setModifyAccountPassword('')
+    setModifyAccountPasswordConfirm('')
+    setSearchRoleValue('USER')
+  }
 
   const putUsersAccount = async () => {
-    if(!passwordRegex.test(modifyAccountPassword)) {
-      message.error({ title: '계정 생성 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
-    } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-      message.error({ title: '계정 생성 에러', msg: '비밀번호가 일치하지 않습니다' })
-    } else if(!nameRegex.test(modifySelectMember.name)) {
-      message.error({ title: '계정 생성 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
-    } else if(!emailRegex.test(modifySelectMember.email)) {
-      message.error({ title: '계정 생성 에러', msg: '잘못된 E-MAIL 형식 입니다' })
-    } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
-      message.error({ title: '계정 생성 에러', msg: '9~11자리 숫자로만 입력해주세요' })
-    } else {
-      const res = await Axios("PUT", UserAccountApi, {
-        id: modifySelectMember.id,
-        password: modifyAccountPassword,
-        name: modifySelectMember.name,
-        email: modifySelectMember.email,
-        phoneNumber: modifySelectMember.phoneNumber,
-        role: searchRoleValue,
-        organization: modifySelectMember.organization
-      })
+    const res = await Axios("PUT", UserAccountApi, {
+      id: modifySelectMember.id,
+      password: modifyAccountPassword,
+      name: modifySelectMember.name,
+      email: modifySelectMember.email,
+      phoneNumber: modifySelectMember.phoneNumber,
+      role: searchRoleValue,
+      organization: modifySelectMember.organization
+    })
+    
+    if(res !== undefined) {
       if(res) {
-        setIsModifyMember(false);
-        setUpdateMemeberList(!updateMemeberList);
-        setModifySelectMember(modifySelectMemberInit);
-        setModifyAccountPassword('');
-        setModifyAccountPasswordConfirm('');
-        setSearchRoleValue('USER');
+        message.success({ title: '멤버 정보 수정', msg: '멤버의 정보를 수정했습니다' })
+        modifyInit()
+      } else {
+        message.error({ title: '멤버 정보 수정 에러', msg: '멤버 정보 수정에 실패했습니다' })
+        modifyInit()
       }
+    } else {
+      message.error({ title: '멤버 정보 수정 에러', msg: '멤버 정보 수정에 실패했습니다' })
+      modifyInit()
     }
   }
 
@@ -74,14 +77,42 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
     }
   }
 
+  const modifyAccountFun = async () => {
+    if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
+      message.error({ title: '멤버 수정 에러', msg: '모든 항목을 입력해주세요.' })
+      return true
+    } else if(!passwordRegex.test(modifyAccountPassword)) {
+      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
+      return true
+    } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
+      message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
+      return true
+    } else if(!nameRegex.test(modifySelectMember.name)) {
+      message.error({ title: '멤버 수정 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
+      return true
+    } else if(!emailRegex.test(modifySelectMember.email)) {
+      message.error({ title: '멤버 수정 에러', msg: '잘못된 이메일 형식 입니다' })
+      return true
+    } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
+      message.error({ title: '멤버 수정 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
+      return true
+    } else {
+      putUsersAccount()
+    }
+  }
+
   return (
     <Modal
       visible={visible}
-      close={close}
-      title="멤버 수정"
-      noComplete={noComplete}      
+      close={() => {
+        close()
+        setModifyAccountPassword('')
+        setModifyAccountPasswordConfirm('')
+      }}
+      title="멤버 수정"   
+      complete={modifyAccountFun}  
     >
-      <div style={{ display: 'flex', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', marginBottom: '10px', justifyContent: 'space-between' }}>
         <div style={{ width: '100px' }}>
           ID:
         </div>
@@ -89,17 +120,19 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           {modifySelectMember.username}
         </div>
       </div>
-      <div style={{ display: 'flex', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', marginBottom: '10px', justifyContent: 'space-between' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
           PW:
         </div>
-        <AccountInput 
-          value={modifyAccountPassword}
-          type="password"
-          onChange={(e) => {
-            setModifyAccountPassword(e);
-          }}
-        />
+        <div>
+          <AccountInput 
+            value={modifyAccountPassword}
+            type="password"
+            onChange={(e) => {
+              setModifyAccountPassword(e)
+            }}
+          />
+        </div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -111,6 +144,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           onChange={(e) => {
             setModifyAccountPasswordConfirm(e);
           }}
+          onEnter={modifyAccountFun}
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
@@ -125,6 +159,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
               organization: e
             }))
           }}
+          onEnter={modifyAccountFun}
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
@@ -139,6 +174,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
               name: e
             }))
           }}
+          onEnter={modifyAccountFun}
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
@@ -151,7 +187,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
               itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
               bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
               onChange={val => {
-                setSearchRoleValue(val.value as RoleValues);
+                setSearchRoleValue(val.value as RoleValues)
               }}
               // valueIndex={SelectedRoleValueIndexFun()}
             />
@@ -162,7 +198,6 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           }
 
         </div>
-        <div style={{width: '130px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -177,6 +212,7 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
               email: e
             }))
           }}
+          onEnter={modifyAccountFun}
         />
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
@@ -187,23 +223,14 @@ const ModifyAccount = ({ visible, close, noComplete }: ModifyAccountType) => {
           maxLength={11}
           value={modifySelectMember.phoneNumber}
           onChange={(e) => {
+            const num = OnlyInputNumberFun(e)
             setModifySelectMember((pre) => ({
               ...pre,
               phoneNumber: e
             }))
           }}
+          onEnter={modifyAccountFun}
         />
-      </div>
-      <div style={{ textAlign: 'center' }}>
-        <AccountButton hover
-          onClick={() => {
-            if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
-              message.error({ title: '계정 수정 에러', msg: '모든 항목을 입력해주세요.' })
-            } else {
-              putUsersAccount();
-            }
-          }}
-        >수정하기</AccountButton>
       </div>
     </Modal>
   )
@@ -219,8 +246,8 @@ const AccountInput = styled(Input)`
   border-radius: 10px
   font-size: 2.3rem;
   text-align: center;
-  flex: 0 0 240px;
   color: white;
+  width: 240px;
 `
 
 const AccountButton = styled(Button)`

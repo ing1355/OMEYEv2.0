@@ -19,7 +19,7 @@ type ImageViewProps = {
 
 function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
     let ctx = rectCanvas.getContext('2d');
-
+    
     targets.forEach((target, ind) => {
         const { type, points } = target;
         ctx!.beginPath();
@@ -79,9 +79,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const mouseY = useRef(0)
     const clickTemp = useRef<number[]>([])
     const currentObjectType = useRecoilValue(conditionSelectedType)
-    const globalTargetList = useRecoilValue(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
     const [imgSize, setImgSize] = useState<number[]>([])
-
+    
     useEffect(() => {
         if (rectCanvasRef.current) {
             const canvas = rectCanvasRef.current
@@ -123,7 +122,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
         if (captureResult.length > 0) {
             drawRectFunc(captureResult)
         }
-    }, [captureResult, globalTargetList])
+    }, [captureResult])
 
     useEffect(() => {
         if (src) {

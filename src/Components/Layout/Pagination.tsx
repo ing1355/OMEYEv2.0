@@ -44,11 +44,11 @@ const Pagination = ({ currentPage, setCurrentPage, totalCount, dataPerPage }: Pa
             <RightArrow onClick={() => {
                 if (currentPage <= (totalCount / dataPerPage)) setCurrentPage(currentPage + 1)
                 paginationInputRef.current!.value = (currentPage + 1).toString()
-            }} disabled={currentPage > (totalCount / dataPerPage)} />
+            }} disabled={currentPage >= (totalCount / dataPerPage)} />
             <RightDoubleArrow onClick={() => {
                 if ((currentPage) <= (totalCount / dataPerPage)) setCurrentPage(Math.ceil(totalCount / dataPerPage))
                 paginationInputRef.current!.value = (Math.ceil(totalCount / dataPerPage)).toString()
-            }} disabled={currentPage > (totalCount / dataPerPage)} />
+            }} disabled={currentPage >= (totalCount / dataPerPage)} />
         </PaginationNumbersContainer>
         <PaginationInputContainer>
             <Form style={{

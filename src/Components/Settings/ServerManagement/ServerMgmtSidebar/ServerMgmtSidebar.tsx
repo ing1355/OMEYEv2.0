@@ -7,7 +7,7 @@ import { Axios } from "../../../../Functions/NetworkFunctions";
 import { StorageMgmtApi, StorageThreshHoldApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
 import Input from "../../../Constants/Input";
 import clearIcon from '../../../../assets/img/rankUpIcon.png'
-import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
+import { OnlyInputNumberFun, convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
 import { useEffect, useState } from "react";
 import TimeModal, { TimeModalDataType } from "../../../ReID/Condition/Constants/TimeModal";
 import Modal from "../../../Layout/Modal";
@@ -16,26 +16,54 @@ import { DatePicker } from "antd";
 import { RangePickerProps } from "antd/es/date-picker";
 import moment from 'moment';
 
+// const ServerControlDropdownList = [
+//   {
+//     key: 'detect2',
+//     value: 'detect2',
+//     label: 'detect2'
+//   }, 
+//   {
+//     key: 'main2',
+//     value: 'main2',
+//     label: 'main2'
+//   },  
+//   {
+//     key: 'rt2',
+//     value: 'rt2',
+//     label: 'rt2'
+//   },  
+//   {
+//     key: 'reid2',
+//     value: 'reid2',
+//     label: 'reid2'
+//   },
+//   {
+//     key: 'mediaserver',
+//     value: 'mediaserver',
+//     label: 'mediaserver'
+//   },
+// ];
+
 const ServerControlDropdownList = [
   {
-    key: 'detect2',
-    value: 'detect2',
-    label: 'detect2'
+    key: 'detect',
+    value: 'detect',
+    label: 'detect'
   }, 
   {
-    key: 'main2',
-    value: 'main2',
-    label: 'main2'
+    key: 'main',
+    value: 'main',
+    label: 'main'
   },  
   {
-    key: 'rt2',
-    value: 'rt2',
-    label: 'rt2'
+    key: 'rt',
+    value: 'rt',
+    label: 'rt'
   },  
   {
-    key: 'reid2',
-    value: 'reid2',
-    label: 'reid2'
+    key: 'back',
+    value: 'back',
+    label: 'back'
   },
   {
     key: 'mediaserver',
@@ -92,8 +120,8 @@ const ServerMgmtSidebar = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [storageThreshHold, setStorageThreshHold] = useState<number>(0);
-  const [deleteStoragePercent, setDeleteStoragePercent] = useState<number>(0);
+  const [storageThreshHold, setStorageThreshHold] = useState<string>('');
+  const [deleteStoragePercent, setDeleteStoragePercent] = useState<string>('0');
   const [deleteStorageDate, setDeleteStorageDate] = useState<dateType>(dateInit);
   const [storageData, setStorageData] = useState<GetStorageDataType | undefined>(undefined);
 
@@ -164,9 +192,7 @@ const ServerMgmtSidebar = () => {
   };
 
   const logFileDownloadFun = async () => {
-    console.log('isNumeric(startDate)',isNumeric(startDate))
     isNumeric(startDate)
-    console.log('length',startDate.length)
     if(!(isNumeric(startDate) && isNumeric(endDate))) {
       message.error({ title: '로그 파일 날짜 입력 에러', msg: '숫자로 입력해주세요' })
     } else if(!(startDate.length === 8 && endDate.length === 8)) {
@@ -233,35 +259,39 @@ const ServerMgmtSidebar = () => {
 
   const GetStorageThreshHoldFun = async () => {
     const res:GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
-    if(res) setStorageThreshHold(res.threshold);
+    if(res) setStorageThreshHold(res.threshold.toString());
   }
 
   const SaveStorageThreshHoldFun = async () => {
     const res = await Axios('PUT', StorageThreshHoldApi, {
-      threshold: storageThreshHold
+      threshold: parseInt(storageThreshHold)
     }, true)
     if(res !== undefined) {
       if (res.data.success) {
         message.success({ title: '알림 기준 저장공간 사용량 설정', msg: '수정에 성공했습니다' })
+        GetStorageThreshHoldFun();
       } else {
         message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+        GetStorageThreshHoldFun();
       }
     } else {
       message.error({ title: '알림 기준 저장공간 사용량 설정 에러', msg: '수정에 실패했습니다' })
+      GetStorageThreshHoldFun();
     }
   }
 
   const DeleteStorageFun = async (type: string) => {
     const percentPayload = {
-      percent: deleteStoragePercent
+      percent: parseInt(deleteStoragePercent)
     }
 
     const datePayload = {
       from: deleteStorageDate.startDate,
       to: deleteStorageDate.endDate
     }
+
     const res = await Axios('DELETE', StorageMgmtApi, (type === 'percent' ? percentPayload : datePayload))
-    if(type === 'percent') setDeleteStoragePercent(0);
+    if(type === 'percent') setDeleteStoragePercent('0');
     if(type === 'date') setDeleteStorageDate(dateInit);
 
     if(res) {
@@ -372,7 +402,8 @@ const ServerMgmtSidebar = () => {
               maxLength={8}
               value={startDate}
               onChange={(e) => {
-                setStartDate(e);
+                const date = OnlyInputNumberFun(e);
+                setStartDate(date);
               }}
             />
           </div>
@@ -385,7 +416,8 @@ const ServerMgmtSidebar = () => {
               maxLength={8}
               value={endDate}
               onChange={(e) => {
-                setEndDate(e);
+                const date = OnlyInputNumberFun(e);
+                setEndDate(date);
               }}
             />
           </div>          
@@ -494,17 +526,32 @@ const ServerMgmtSidebar = () => {
               {storageData?.used && storageData.used.split(" ")[1]}
             </span>
           </div>
+          <div>저장 공간 사용량: 
+            <span style={{marginLeft: '10px'}}>
+              {100 - storageData?.availPercent!} %
+            </span>
+          </div>
         </div>
         <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
           <div style={{marginRight: '10px', lineHeight: '35px'}}>
             알림 기준 저장공간 사용량 설정 (%) 
           </div>
           <div>
-            <StorageInput value={storageThreshHold} onChange={(e) => {
-              setStorageThreshHold(parseInt(e));
-            }}/>
+            <StorageInput 
+              maxLength={3}
+              value={storageThreshHold} 
+              onChange={(e) => {
+                const num = OnlyInputNumberFun(e);
+                setStorageThreshHold(num);
+              }}
+            />
             <ServerControlButton
-              onClick={SaveStorageThreshHoldFun}
+              onClick={() => {
+                if(parseInt(storageThreshHold) > 100) {
+                  return message.error({ title: '저장공간 사용량 설정 에러', msg: '100 이하로 입력해주세요' })
+                } 
+                SaveStorageThreshHoldFun()
+              }}
             >
               저장
             </ServerControlButton>
@@ -513,11 +560,23 @@ const ServerMgmtSidebar = () => {
         <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
           <div style={{marginRight: '10px', lineHeight: '35px'}}>용량 기준으로 정리하기 (%)</div>
           <div>
-            <StorageInput value={deleteStoragePercent} onChange={(e) => {
-              setDeleteStoragePercent(parseInt(e));
-            }}/>
+            <StorageInput 
+              maxLength={3}
+              value={deleteStoragePercent} 
+              onChange={(e) => {
+                const num = OnlyInputNumberFun(e);
+                setDeleteStoragePercent(num);
+              }}
+            />
             <ServerControlButton
-              onClick={() => DeleteStorageFun('percent')}
+              onClick={() => {
+                if(parseInt(deleteStoragePercent) > 100) {
+                  return message.error({ title: '용량 정리하기 에러', msg: '100 이하로 입력해주세요' })
+                } else if(parseInt(deleteStoragePercent) > 100-storageData?.availPercent!) {
+                  return message.error({ title: '용량 정리하기 에러', msg: '저장 공간 사용량 이하로 입력해주세요' })
+                }
+                DeleteStorageFun('percent')
+              }}
             >
               정리
             </ServerControlButton>
@@ -545,9 +604,10 @@ const ServerMgmtSidebar = () => {
               maxLength={8}
               value={deleteStorageDate.startDate}
               onChange={(e) => {
+                const startDate = OnlyInputNumberFun(e)
                 setDeleteStorageDate((pre) => ({
                   ...pre,
-                  startDate: e
+                  startDate
                 }))
               }}
             />
@@ -561,9 +621,10 @@ const ServerMgmtSidebar = () => {
               maxLength={8}
               value={deleteStorageDate.endDate}
               onChange={(e) => {
+                const endDate = OnlyInputNumberFun(e)
                 setDeleteStorageDate((pre) => ({
                   ...pre,
-                  endDate: e
+                  endDate
                 }))
               }}
             />

@@ -353,3 +353,9 @@ export const getLoadingTimeString = (time: number) => {
 export const ObjectKeyMaps = (obj: Object) => {
     return Object.keys(obj).map
 }
+
+export const OnlyInputNumberFun = (e: string) => {
+    const inputValue = e;
+    const replacedValue = inputValue.replace(/[^0-9]/g, '');
+    return replacedValue
+  }

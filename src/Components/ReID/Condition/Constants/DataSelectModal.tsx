@@ -24,7 +24,6 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
 
     const escCallback = (e: KeyboardEvent) => {
-        console.debug("??? : " , e.key)
         if(e.key === 'Escape') {
             if(close) close()
         }
@@ -41,7 +40,7 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
     },[visible, escCallback])
 
     useEffect(() => {
-        close()
+        if(visible) close()
     },[c_menu, c_route, menu])
     
     return <Background visible={visible}>

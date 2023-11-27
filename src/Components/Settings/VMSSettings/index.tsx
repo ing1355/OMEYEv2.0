@@ -9,6 +9,7 @@ import { InputBackgroundColor } from "../../../styles/global-styled"
 import useMessage from "../../../Hooks/useMessage"
 import { SitesState } from "../../../Model/SiteDataModel"
 import { useRecoilState } from "recoil"
+import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
 
 type getVmsListType = {
   siteList: string[];
@@ -24,13 +25,15 @@ type vmsInfoType = {
   vmsServerIp: string[];
   vmsId: string;
   vmsPw: string;
-  maxStoredDay: number;
+  maxStoredDay: string;
   vmsGroup: string;
   vmsLic: string;
   installSite: string;
 }
 
-const VMSSettings = () => {
+const VMSSettings = ({visible}: {
+  visible: boolean
+}) => {
   const [vmsList, setVmsList] = useState<string[]>([]);
   const [vmsDropdownList, setVmsDropdownList] = useState<DropdownItemType<string>[]>([{
     key: '',
@@ -67,7 +70,6 @@ const VMSSettings = () => {
   const GetVmsInfoFun = async () => {
     const res = await Axios('GET', GetVmsInfoApi(selectedSiteName))
     if (res) {
-      // console.log('res', res);
       const resTemp = {...res, installSite: selectedSiteName}
       setVmsInfo(resTemp);
     }
@@ -133,8 +135,8 @@ const VMSSettings = () => {
   }
 
   useEffect(() => {
-    GetVmsList();
-  },[])
+    if(visible) GetVmsList();
+  },[visible])
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
@@ -237,9 +239,10 @@ const VMSSettings = () => {
             <SiteInput 
               value={vmsInfo.maxStoredDay}
               onChange={(e) => {
+                const num = OnlyInputNumberFun(e)
                 setVmsInfo((pre) => ({
                   ...pre!,
-                  maxStoredDay: parseInt(e)
+                  maxStoredDay: num
                 }))
               }}                  
             />

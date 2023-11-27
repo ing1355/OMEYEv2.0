@@ -44,208 +44,232 @@ const hasCameraInSite = (siteData: SiteDataType) => {
 }
 
 const findSiteByDuplicatedCCTVs = (cctvs: CameraDataType['cameraId'][], siteData: SiteDataType[]): SiteDataType[] => {
-    const filteredTreeData = siteData.length > 0 ? siteData.map(_ => ({
+    const filteredTreeData = siteData.map(_ => ({
         ..._,
         cameras: _.cameras.filter(__ => cctvs.includes(__.cameraId)),
         sites: _.sites ? findSiteByDuplicatedCCTVs(cctvs, _.sites) : []
-    })) : []
+    }))
     return filteredTreeData.filter(_ => hasCameraInSite(_))
 }
 
 const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
-    // const [trafficOverlayView, setTrafficOverlayView] = useState(false)
-    // const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
-    // const [r, setR] = useState('1')
-    // const [rUnit, setRUnit] = useState<'m' | 'km'>('m')
-    // const map = useRef<CustomMap<unknown>>()
-    // const mapElement = useRef<HTMLDivElement>(null)
-    // const addTrafficInputContainer = useRef<HTMLDivElement>(null)
-    // const circleSelectContainer = useRef<HTMLDivElement>(null)
-    // const { mapPlatformType } = useRecoilValue(globalSettings);
-    // const sitesData = useRecoilValue(SitesData)
-    // const treeData = useRecoilValue(SitesDataForTreeView)
-    // const [timeVisible, setTimeVisible] = useState(false)
-    // const [timeValue, setTimeValue] = useRecoilState(AdditionalReIDTimeValue)
-    // const [rankInput, setRankInput] = useState(10)
-    // const [titleInput, setTitleinput] = useState('추가 동선')
-    // const [etcInput, setEtcInput] = useState('')
-    // const [selectedAddtionalTarget, setSelectedAddtionalTarget] = useState<{
-    //     src: string,
-    //     id: number,
-    //     type: ReIDObjectTypeKeys
-    // }[]>([])
-    // const [duplicatedCCTVs, setDuplicatedCCTVs] = useState<CameraDataType['cameraId'][]>([])
-    // const [collapseOpen, setCollapseOpen] = useState<SiteDataType['fullName'][]>([])
-    // const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
-    // const progressStatus = useRecoilValue(ProgressStatus)
-    // const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
-    // const globalMenuState = useRecoilValue(menuState)
-    // const conditionMenuState = useRecoilValue(conditionMenu)
-    // const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
-    // const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
-    // const message = useMessage()
-    // const selectedReIdResultDataRef = useRef(selectedReIdResultData)
-    
-    // useEffect(() => {
-    //     if (duplicatedCCTVs.length > 0) {
+    const [trafficOverlayView, setTrafficOverlayView] = useState(false)
+    const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
+    const [r, setR] = useState('1')
+    const [rUnit, setRUnit] = useState<'m' | 'km'>('m')
+    const map = useRef<CustomMap<unknown>>()
+    const mapElement = useRef<HTMLDivElement>(null)
+    const addTrafficInputContainer = useRef<HTMLDivElement>(null)
+    const circleSelectContainer = useRef<HTMLDivElement>(null)
+    const { mapPlatformType } = useRecoilValue(globalSettings);
+    const sitesData = useRecoilValue(SitesData)
+    const treeData = useRecoilValue(SitesDataForTreeView)
+    const [timeVisible, setTimeVisible] = useState(false)
+    const [timeValue, setTimeValue] = useRecoilState(AdditionalReIDTimeValue)
+    const [rankInput, setRankInput] = useState(10)
+    const [titleInput, setTitleinput] = useState('추가 동선')
+    const [etcInput, setEtcInput] = useState('')
+    const [selectedAddtionalTarget, setSelectedAddtionalTarget] = useState<{
+        src: string,
+        id: number,
+        type: ReIDObjectTypeKeys
+    }[]>([])
+    const [duplicatedCCTVs, setDuplicatedCCTVs] = useState<CameraDataType['cameraId'][]>([])
+    const [collapseOpen, setCollapseOpen] = useState<SiteDataType['fullName'][]>([])
+    const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
+    const progressStatus = useRecoilValue(ProgressStatus)
+    const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
+    const globalMenuState = useRecoilValue(menuState)
+    const conditionMenuState = useRecoilValue(conditionMenu)
+    const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
+    const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
+    const message = useMessage()
+    const selectedReIdResultDataRef = useRef(selectedReIdResultData)
 
-    //     } else {
-    //         setCollapseOpen([])
-    //     }
-    // }, [duplicatedCCTVs])
+    useEffect(() => {
+        if (duplicatedCCTVs.length > 0) {
 
-    // useEffect(() => {
-    //     selectedReIdResultDataRef.current = selectedReIdResultData
-    // }, [selectedReIdResultData])
+        } else {
+            setCollapseOpen([])
+        }
+    }, [duplicatedCCTVs])
 
-    // useEffect(() => {
-    //     switch (mapPlatformType) {
-    //         case 'ol':
-    //         default:
-    //             map.current = new OlMap(mapElement.current!, forAddtraffic, forAddtraffic ? addTrafficInputContainer.current! : circleSelectContainer.current!, forSingleCamera, noSelect)
-    //             break;
-    //     }
-    //     map.current.init()
-    //     if (forAddtraffic) {
-    //         map.current?.addTrafficOverlayViewChangeListener((view, targetId) => {
-    //             if (targetId) {
-    //                 const temp = selectedReIdResultDataRef.current?.flatMap(_ => Object.keys(_).flatMap(__ => _[Number(__)])).sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1)
-    //                 if (temp && temp.length > 0) {
-    //                     setTimeValue({
-    //                         startTime: temp[temp.length - 1].foundDateTime,
-    //                         endTime: undefined
-    //                     })
-    //                 } else {
-    //                     setTimeValue(undefined)
-    //                 }
+    useEffect(() => {
+        selectedReIdResultDataRef.current = selectedReIdResultData
+    }, [selectedReIdResultData])
+
+    useEffect(() => {
+        switch (mapPlatformType) {
+            case 'ol':
+            default:
+                map.current = new OlMap(mapElement.current!, forAddtraffic, forAddtraffic ? addTrafficInputContainer.current! : circleSelectContainer.current!, forSingleCamera, noSelect)
+                break;
+        }
+        map.current.init()
+        if (forAddtraffic) {
+            map.current?.addTrafficOverlayViewChangeListener((view, targetId) => {
+                if (targetId) {
+                    const temp = selectedReIdResultDataRef.current?.flatMap(_ => Object.keys(_).flatMap(__ => _[Number(__)])).sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1)
+                    if (temp && temp.length > 0) {
+                        setTimeValue({
+                            startTime: temp[temp.length - 1].foundDateTime,
+                            endTime: undefined
+                        })
+                    } else {
+                        setTimeValue(undefined)
+                    }
+                } else {
+                    valueInit()
+                }
+                setTrafficOverlayView(view)
+            })
+        } else {
+        }
+        map.current?.circleSelectOverlayViewChangeListener((view) => {
+            setCircleSelectOverlayView(view)
+        })
+        map.current.registerContextMenuHandler()
+        if (selectedChange) map.current.addSelectedMarkerChangeEventCallback(selectedChange)
+        if (!noSelect) map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
+            setDuplicatedCCTVs(cctvs)
+        })
+    }, [])
+
+    const valueInit = () => {
+        setR('1')
+        setRUnit('m')
+        setTitleinput('추가 동선')
+        setEtcInput('')
+        setSelectedAddtionalTarget([])
+        if (timeValue && timeValue.endTime) setTimeValue(undefined)
+    }
+
+    useEffect(() => {
+        if (map.current) {
+            map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
+        }
+    }, [selectedCCTVs])
+
+    useEffect(() => {
+        if (forAddtraffic && pathCameras && pathCameras.length > 0) {
+            map.current?.clearPathLines()
+            map.current?.createPathLines(pathCameras, TextActivateColor)
+        } else if (pathCameras && pathCameras.length === 0) {
+            map.current?.clearPathLines()
+        }
+    }, [forAddtraffic, pathCameras])
+
+    useEffect(() => {
+        if (idForViewChange) {
+            map.current?.viewChangeById(idForViewChange)
+        }
+    }, [idForViewChange])
+
+    useEffect(() => {
+        if (viewChangeForPath && viewChangeForPath.length > 0) {
+            map.current?.changeViewForPathCamera(viewChangeForPath[0])
+        }
+    }, [viewChangeForPath])
+
+    useEffect(() => {
+        if (!trafficOverlayView || !circleSelectOverlayView) {
+            valueInit()
+        }
+    }, [trafficOverlayView, circleSelectOverlayView])
+
+    useEffect(() => {
+        setR('1')
+    }, [rUnit])
+
+    useEffect(() => {
+        if (trafficOverlayView || circleSelectOverlayView) {
+            map.current?.drawCircleByR(r, rUnit)
+        }
+    }, [trafficOverlayView, circleSelectOverlayView, r, rUnit])
+
+    const selectCCTVsInCircle = () => {
+        selectedChange!(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || []).deduplication())
+        map.current?.closeOverlayView()
+    }
+
+    const openTimeModal = () => {
+        setTimeVisible(true)
+    }
+
+    const closeOverlayWrapper = (duplicatedFlag?: boolean) => {
+        map.current?.closeOverlayView()
+        valueInit()
+    }
+
+    useEffect(() => {
+        if (map.current) map.current?.closeOverlayView()
+    }, [globalMenuState, conditionMenuState])
+
+    useEffect(() => {
+        valueInit()
+    }, [trafficOverlayView])
+
+    useEffect(() => {
+        if (initEvent && selectedChange) selectedChange([])
+    }, [initEvent])
+
+    useEffect(() => {
+        if (!cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
+    },[sitesData])
+
+    const createCameraRow = (camera: CameraDataType) => {
+        return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
+            if(map.current) {
+                if(forAddtraffic) {
+                    closeOverlayWrapper()
+                    map.current.callAdditionalOverlyByCctvId(camera.cameraId)
+                } else {
+                    if(selectedCCTVs?.includes(camera.cameraId)) {
+                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
+                    } else {
+                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
+                    }
+                }
+            }
+        }}>
+            {camera.name}
+        </CCTVItemContainer>
+    }
+
+    const duplicatedCCTVSelect = useMemo(() => {
+        return findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData)
+    }, [duplicatedCCTVs, treeData])
+
+    const duplicatedCCTVSelectView = useMemo(() => {
+        return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
+    },[duplicatedCCTVSelect])
+
+    // const createSiteRowByCollapse = (data: SiteDataType) => {
+    //     const isOpened = collapseOpen.includes(data.fullName)
+    //     return <CCTVRowContainer opened={isOpened} key={data.fullName}>
+    //         <CCTVTitleContainer onClick={() => {
+    //             if(isOpened) {
+    //                 setCollapseOpen(collapseOpen.filter(_ => _ !== data.fullName))
     //             } else {
-    //                 valueInit()
+    //                 setCollapseOpen(collapseOpen.concat(data.fullName))
     //             }
-    //             setTrafficOverlayView(view)
-    //         })
-    //     } else {
-    //     }
-    //     map.current?.circleSelectOverlayViewChangeListener((view) => {
-    //         setCircleSelectOverlayView(view)
-    //     })
-    //     map.current.registerContextMenuHandler()
-    //     if (selectedChange) map.current.addSelectedMarkerChangeEventCallback(selectedChange)
-    //     if (!noSelect) map.current.addDuplicatedCCTVsSelectCallback((cctvs) => {
-    //         setDuplicatedCCTVs(cctvs)
-    //     })
-    // }, [])
-
-    // const valueInit = () => {
-    //     setR('1')
-    //     setRUnit('m')
-    //     setTitleinput('추가 동선')
-    //     setEtcInput('')
-    //     setSelectedAddtionalTarget([])
-    //     if (timeValue && timeValue.endTime) setTimeValue(undefined)
+    //         }}>
+    //             {data.siteName}
+    //             <CollapseContainer>
+    //                 <CollapseArrow opened={isOpened} style={{
+    //                     width: '100%',
+    //                     height: '100%'
+    //                 }} />
+    //             </CollapseContainer>
+    //         </CCTVTitleContainer>
+    //         <CCTVRowContentsContainer>
+    //             {data.cameras.map(_ => createCameraRow(_))}
+    //         </CCTVRowContentsContainer>
+    //     </CCTVRowContainer>
     // }
-
-    // useEffect(() => {
-    //     if (map.current) {
-    //         map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
-    //     }
-    // }, [selectedCCTVs])
-
-    // useEffect(() => {
-    //     if (forAddtraffic && pathCameras && pathCameras.length > 0) {
-    //         map.current?.clearPathLines()
-    //         map.current?.createPathLines(pathCameras, TextActivateColor)
-    //     } else if (pathCameras && pathCameras.length === 0) {
-    //         map.current?.clearPathLines()
-    //     }
-    // }, [forAddtraffic, pathCameras])
-
-    // useEffect(() => {
-    //     if (idForViewChange) {
-    //         map.current?.viewChangeById(idForViewChange)
-    //     }
-    // }, [idForViewChange])
-
-    // useEffect(() => {
-    //     if (viewChangeForPath && viewChangeForPath.length > 0) {
-    //         map.current?.changeViewForPathCamera(viewChangeForPath[0])
-    //     }
-    // }, [viewChangeForPath])
-
-    // useEffect(() => {
-    //     if (!trafficOverlayView || !circleSelectOverlayView) {
-    //         valueInit()
-    //     }
-    // }, [trafficOverlayView, circleSelectOverlayView])
-
-    // useEffect(() => {
-    //     setR('1')
-    // }, [rUnit])
-
-    // useEffect(() => {
-    //     if (trafficOverlayView || circleSelectOverlayView) {
-    //         map.current?.drawCircleByR(r, rUnit)
-    //     }
-    // }, [trafficOverlayView, circleSelectOverlayView, r, rUnit])
-
-    // const selectCCTVsInCircle = () => {
-    //     selectedChange!(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || []).deduplication())
-    //     map.current?.closeOverlayView()
-    // }
-
-    // const openTimeModal = () => {
-    //     setTimeVisible(true)
-    // }
-
-    // const closeOverlayWrapper = (duplicatedFlag?: boolean) => {
-    //     map.current?.closeOverlayView()
-    //     valueInit()
-    // }
-
-    // useEffect(() => {
-    //     if (map.current) map.current?.closeOverlayView()
-    // }, [globalMenuState, conditionMenuState])
-
-    // useEffect(() => {
-    //     valueInit()
-    // }, [trafficOverlayView])
-
-    // useEffect(() => {
-    //     if (initEvent && selectedChange) selectedChange([])
-    // }, [initEvent])
-
-    // useEffect(() => {
-    //     if (sitesData.length > 0 && !cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
-    // },[sitesData])
-
-    // const createCameraRow = (camera: CameraDataType) => {
-    //     return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
-    //         if(map.current) {
-    //             if(forAddtraffic) {
-    //                 closeOverlayWrapper()
-    //                 map.current.callAdditionalOverlyByCctvId(camera.cameraId)
-    //             } else {
-    //                 if(selectedCCTVs?.includes(camera.cameraId)) {
-    //                     if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
-    //                 } else {
-    //                     if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
-    //                 }
-    //             }
-    //         }
-    //     }}>
-    //         {camera.name}
-    //     </CCTVItemContainer>
-    // }
-
-    // const duplicatedCCTVSelect = useMemo(() => {
-    //     return treeData.length > 0 ? findSiteByDuplicatedCCTVs(duplicatedCCTVs, treeData) : []
-    // }, [duplicatedCCTVs, treeData])
-
-    // const duplicatedCCTVSelectView = useMemo(() => {
-    //     return duplicatedCCTVSelect.length > 0 ? duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_)) : []
-    // },[duplicatedCCTVSelect])
 
     return <>
-        {/* <MapContainer ref={mapElement} 
+        <MapContainer ref={mapElement} 
         onMouseEnter={e => {
             e.stopPropagation()
         }}
@@ -439,7 +463,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         </MapContainer>
         {forAddtraffic && <TimeModal title="추가 동선 시간" defaultValue={timeValue} onChange={setTimeValue} visible={timeVisible} close={() => {
             setTimeVisible(false)
-        }} />} */}
+        }} />}
     </>
 }
 
@@ -450,7 +474,6 @@ export default memo(MapComponent, (prev, next) => {
     if (prev.idForViewChange !== next.idForViewChange) return false
     if (prev.viewChangeForPath !== next.viewChangeForPath) return false
     if (prev.initEvent !== next.initEvent) return false
-    if (prev.reIdId !== next.reIdId) return false
     return true
 })
 
