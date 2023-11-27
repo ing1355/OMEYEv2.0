@@ -52,7 +52,7 @@ const App = () => {
 
   useEffect(() => {
     if (loginState) {
-      if(!IS_PRODUCTION) {
+      if(IS_PRODUCTION) {
         window.addEventListener('beforeunload', e => {
           e.preventDefault()
           e.returnValue = ''

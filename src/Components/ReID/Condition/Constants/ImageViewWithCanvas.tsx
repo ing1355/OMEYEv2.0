@@ -4,7 +4,7 @@ import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType, R
 import ImageView from "./ImageView"
 import { ObjectTypes } from "../../ConstantsValues"
 import { useRecoilValue } from "recoil"
-import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
+import { conditionSelectedType, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp } from "../../../../Model/ConditionDataModel"
 
 type ImageViewProps = {
     src?: string
@@ -14,6 +14,7 @@ type ImageViewProps = {
     captureResult: CaptureResultType[]
     captureCallback?: (val: CaptureResultListItemType[]) => void
     userCaptureOn: boolean
+    type: "CCTV" | "IMAGE"
 }
 
 function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
@@ -23,33 +24,32 @@ function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultTyp
         const { type, points } = target;
         ctx!.beginPath();
         ctx!.lineWidth = 4;
-        drawWithType(rectCanvas, points as PointType, type);
+        drawWithType(rectCanvas, points as PointType, type, target.isSelected);
     });
 }
 
-function drawWithType(rectCanvas: HTMLCanvasElement, Point: PointType, type: ReIDObjectTypeKeys) {
+function drawWithType(rectCanvas: HTMLCanvasElement, Point: PointType, type: ReIDObjectTypeKeys, isSelected: boolean = false) {
     let width = Point[2] - Point[0];
     let height = Point[3] - Point[1];
     let ctx = rectCanvas.getContext('2d')!;
     const selectColor = '#f07f3c';
-    const _isTarget = false
     switch (type) {
         case ReIDObjectTypeKeys[ObjectTypes['PERSON']]:
             ctx.rect(Point[0], Point[1], width, height);
-            if (_isTarget) ctx!.strokeStyle = selectColor;
+            if (isSelected) ctx!.strokeStyle = selectColor;
             else ctx.strokeStyle = '#00F6FF';
             ctx.stroke();
             break;
         case ReIDObjectTypeKeys[ObjectTypes['FACE']]:
             ctx.lineWidth = 3;
             ctx.arc((Point[2] + Point[0]) / 2, (Point[3] + Point[1]) / 2, width > height ? width / 2 : height / 2, 0, Math.PI * 2);
-            if (_isTarget) ctx.strokeStyle = selectColor;
+            if (isSelected) ctx.strokeStyle = selectColor;
             else ctx.strokeStyle = 'yellow';
             ctx.stroke();
             break;
         case ReIDObjectTypeKeys[ObjectTypes['PLATE']]:
             ctx.rect(Point[0], Point[1], width, height);
-            if (_isTarget) ctx.strokeStyle = selectColor;
+            if (isSelected) ctx.strokeStyle = selectColor;
             else ctx.strokeStyle = 'green';
             ctx.stroke();
             break;
@@ -67,7 +67,7 @@ const getImageByCanvas = (width: number, height: number, src: CanvasImageSource,
     return _canvas.toDataURL()
 }
 
-const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captureType, userCaptureOn, containerStyle }: ImageViewProps) => {
+const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captureType, userCaptureOn, containerStyle, type }: ImageViewProps) => {
     const imgRef = useRef<HTMLImageElement>(null)
     const rectCanvasRef = useRef<HTMLCanvasElement>(null)
     const userCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -79,6 +79,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const mouseY = useRef(0)
     const clickTemp = useRef<number[]>([])
     const currentObjectType = useRecoilValue(conditionSelectedType)
+    const globalTargetList = useRecoilValue(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
     const [imgSize, setImgSize] = useState<number[]>([])
 
     useEffect(() => {
@@ -111,7 +112,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
             temp.push({
                 type: _.type,
                 mask: false,
-                src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y)
+                src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y),
+                points: _.points as PointType
             })
         })
         if (captureCallback) captureCallback(temp)
@@ -121,7 +123,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
         if (captureResult.length > 0) {
             drawRectFunc(captureResult)
         }
-    }, [captureResult])
+    }, [captureResult, globalTargetList])
 
     useEffect(() => {
         if (src) {

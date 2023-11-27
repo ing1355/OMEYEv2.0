@@ -16,9 +16,10 @@ import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
 type CaptureContainerProps = {
     src?: string
     captureCallback?: (val: CaptureResultListItemType[]) => void
+    type: "CCTV" | "IMAGE"
 }
 
-const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) => {
+const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerProps) => {
     const [captureType, setCaptureType] = useState<CaptureType>('auto')
     const [userCaptureOn, setUserCaptureOn] = useState(false)
     const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
@@ -31,6 +32,7 @@ const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) 
             userCaptureOn={userCaptureOn}
             captureType={captureType}
             src={src}
+            type={type}
             captureResult={captureResults}
             captureCallback={captureCallback}
             containerStyle={{

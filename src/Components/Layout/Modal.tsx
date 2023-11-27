@@ -16,10 +16,10 @@ type ModalProps = PropsWithChildren & {
 
 const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText }: ModalProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
-    const visibleRef = useRef<(e: KeyboardEvent) => void>()
+    const callbackRef = useRef<(e: KeyboardEvent) => void>()
     const completeRef = useRef(false)
 
-    const escKeydownCallback = useCallback(async (e: KeyboardEvent) => {
+    const escKeydownCallback = async (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             close()
         } else if (e.key === 'Enter') {
@@ -33,9 +33,9 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
                 }
             }
         }
-    }, [visible])
+    }
 
-    const mouseDownCallback = useCallback((e: MouseEvent) => {
+    const mouseDownCallback = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (containerRef.current) {
             if (e.target === containerRef.current) close()
         }
@@ -43,19 +43,18 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
 
     useEffect(() => {
         if (visible) {
-            console.debug(containerRef.current)
             if (containerRef.current) containerRef.current.focus()
-            document.addEventListener('keydown', escKeydownCallback)
-            visibleRef.current = escKeydownCallback
-            if (containerRef.current) containerRef.current.addEventListener('mousedown', mouseDownCallback)
+            callbackRef.current = escKeydownCallback
+            document.addEventListener('keydown', callbackRef.current)
         } else {
-            if (visibleRef.current) document.removeEventListener('keydown', visibleRef.current)
-            visibleRef.current = undefined
-            if (containerRef.current) containerRef.current.removeEventListener('mousedown', mouseDownCallback)
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+            callbackRef.current = undefined
         }
     }, [visible])
 
-    return <Container visible={visible} ref={containerRef}>
+    return <Container visible={visible} ref={containerRef} onMouseDown={e => {
+        mouseDownCallback(e)
+    }}>
         <ContentsContainer onMouseDown={e => {
             e.stopPropagation()
         }}>

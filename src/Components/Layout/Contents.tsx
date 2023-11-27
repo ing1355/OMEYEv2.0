@@ -17,4 +17,5 @@ export default Contents;
 const ContentsContainer = styled.section`
     height: calc(100% - ${HeaderHeight + 24}px);
     width: 100%;
+    position: relative;
 `

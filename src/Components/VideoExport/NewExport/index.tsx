@@ -26,6 +26,7 @@ import useMessage from "../../../Hooks/useMessage"
 import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
 import { useRecoilValue } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
+import ForLog from "../../Constants/ForLog"
 
 type ParameterInputType = {
     index: number
@@ -259,7 +260,7 @@ const NewExport = () => {
     const currentData = useRef<VideoExportRowDataType>(datas[0])
     const tempTimer = useRef<NodeJS.Timer>()
     const message = useMessage()
-
+    
     useEffect(() => {
         datasRef.current = datas
     }, [datas])

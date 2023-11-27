@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { ModalBoxShadow, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import MonitoringSidebarButton from "./MonitoringSidebarButton"
 import Dropdown from "../../../Layout/Dropdown"
 import { useRecoilState, useRecoilValue } from "recoil"
@@ -82,4 +82,6 @@ const InnerContainer = styled.div`
         right: 5px;
         position: absolute;
     }
+    border-radius: 12px;
+    box-shadow: ${ModalBoxShadow};
 `

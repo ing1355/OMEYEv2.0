@@ -21,7 +21,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
     const [needInit, setNeedInit] = useState(false)
     const [confirmVisible, setConfirmVisible] = useState(false)
     const message = useMessage()
-
+    
     useEffect(() => {
         if (visible && defaultSelected && defaultSelected.length > 0) {
             setSelectedCCTVs(defaultSelected)
@@ -32,7 +32,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
             setNeedInit(true)
         }
     }, [visible])
-
+    
     return <>
     <ModalWrapper visible={visible} title={<>
         {title}<SelectedText>({selectedCCTVs.length})</SelectedText>
@@ -48,7 +48,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
             <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} singleSelect={singleSelect} visible={visible} />
         </Container>
     </ModalWrapper>
-    {/* <Modal title="정보 변경" completeText="저장" visible={confirmVisible} close={() => {
+    <Modal title="정보 변경" completeText="저장" visible={confirmVisible} close={() => {
         setConfirmVisible(false)
         close()
     }} complete={() => {
@@ -56,7 +56,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         close()
     }}>
         현재 변경값을 적용하시겠습니까?
-    </Modal> */}
+    </Modal>
     </>
 }
 

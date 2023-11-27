@@ -47,6 +47,7 @@ export type ReIDMenuKeysType = keyof typeof ReIDMenuKeys
 
 export type CaptureResultType = {
   type: ReIDObjectTypeKeys
+  isSelected?: boolean
   points: PointType | number[]
 }
 
@@ -102,6 +103,8 @@ export type CaptureResultListItemType = {
   cctvName?: CameraDataType['name']
   ocr?: string
   description?: descriptionParamType
+  points?: PointType
+  isCurrent?: boolean
 }
 
 export type ReIdSSEResponseType = {

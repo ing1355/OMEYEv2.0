@@ -1,6 +1,6 @@
 import { DetailedHTMLProps, useEffect, useRef } from "react"
 import styled from "styled-components"
-import { InputBackgroundColor, InputTextColor } from "../../styles/global-styled"
+import { InputBackgroundColor, InputTextColor, globalStyles } from "../../styles/global-styled"
 
 type InputType = DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
 type InputProps = {
@@ -33,14 +33,14 @@ type InputProps = {
 
 const _Input = (props?: InputProps) => {
 
-    useEffect(() => {
-        if (props?.type === 'textarea') {
-            if (!props?.value) {
-                const target = props.inputRef?.current
-                if(target) target.style.height = 36 + 'px'
-            }
-        }
-    }, [props?.value, props?.type])
+    // useEffect(() => {
+    //     if (props?.type === 'textarea') {
+    //         if (!props?.value) {
+    //             const target = props.inputRef?.current
+    //             if (target) target.style.height = 36 + 'px'
+    //         }
+    //     }
+    // }, [props?.value, props?.type])
 
     const attributes = {
         ref: props?.inputRef,
@@ -60,78 +60,90 @@ const _Input = (props?: InputProps) => {
         tabIndex: props?.tabIndex,
         pattern: props?.pattern
     }
-    if (props?.type === 'textarea') return <textarea
+    if (props?.type === 'textarea') return <TextAreaContainer>
+        <textarea
         style={{
             resize: 'none',
-            maxHeight: '100%',
-            minHeight: '56px',
-            ...props.style
+            ...props.style,
+            height: '36px'
         }}
         onInput={(e) => {
             const target = e.currentTarget
-            target.style.height = 1 + 'px'
-            if (target.scrollHeight < target.parentElement?.clientHeight!) {
+            const parent = e.currentTarget.parentElement
+            target.style.height = '1px'
+            if (target.scrollHeight < parent?.parentElement?.clientHeight!) {
                 target.style.height = target.scrollHeight + 'px'
             } else {
-                target.style.height = (target.parentElement?.clientHeight! - 12) + 'px'
+                target.style.height = (parent?.parentElement?.clientHeight! - 12) + 'px'
             }
         }}
         onChange={(e) => {
             if (props?.onChange) {
                 props.onChange(e.currentTarget.value)
             }
+        }}
+        onKeyDown={e => {
+            e.stopPropagation()
         }}
         {...attributes}
     />
+    </TextAreaContainer>
     else return <>
-    {props?.type === 'password' && <input type="password" hidden/>}
-    <input
-        onChange={(e) => {
-            if (props?.onChange) {
-                props.onChange(e.currentTarget.value)
-            }
-        }}
-        onFocus={props?.onFocus}
-        onBlur={(e) => {
-            if(props) {
-                if(props.onBlur) props.onBlur(e)
-                if(props.onlyNumber && props.onChange) {
-                    if(e.currentTarget.value.length === 0 && !props.canEmpty) props.onChange('1')
+        {props?.type === 'password' && <input type="password" hidden />}
+        <input
+            onChange={(e) => {
+                if (props?.onChange) {
+                    props.onChange(e.currentTarget.value)
                 }
-            }
-        }}
-        style={{
-            ...props?.style,
-            letterSpacing: props?.type === 'password' ? '-4px' : 0
-        }}
-        onInput={e => {
-            if (props?.onlyNumber) {
-                if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
-                else {
-                    let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
-                    if (props.maxNumber) {
-                        if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+            }}
+            onFocus={props?.onFocus}
+            onBlur={(e) => {
+                if (props) {
+                    if (props.onBlur) props.onBlur(e)
+                    if (props.onlyNumber && props.onChange) {
+                        if (e.currentTarget.value.length === 0 && !props.canEmpty) props.onChange('1')
                     }
-                    // if(temp.length === 0) temp = '0'
-                    e.currentTarget.value = temp
                 }
-            }
-            if (props?.onInput) {
-                props.onInput(e)
-            }
-        }}
-        onClick={props?.onClick}
-        onKeyDown={(e) => {
-            if (e.key === 'Enter' && props?.onEnter) {
-                e.preventDefault()
-                e.stopPropagation()
-                props.onEnter(e)
-            } else if (props?.onKeyDown) props.onKeyDown(e)
-        }}
-        {...inputAttributes}
-    />
+            }}
+            style={{
+                ...props?.style,
+                letterSpacing: props?.type === 'password' ? '-4px' : 0
+            }}
+            onInput={e => {
+                if (props?.onlyNumber) {
+                    if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
+                    else {
+                        let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+                        if (props.maxNumber) {
+                            if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+                        }
+                        // if(temp.length === 0) temp = '0'
+                        e.currentTarget.value = temp
+                    }
+                }
+                if (props?.onInput) {
+                    props.onInput(e)
+                }
+            }}
+            onClick={props?.onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' && props?.onEnter) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    props.onEnter(e)
+                } else if (props?.onKeyDown) props.onKeyDown(e)
+            }}
+            {...inputAttributes}
+        />
     </>
 }
+
+const TextAreaContainer = styled.div`
+    ${globalStyles.flex()}
+    max-height: 100%;
+    min-height: 56px;
+    background-color: ${InputBackgroundColor};
+`
 
 const Input = styled(_Input)`
     border: none;
