@@ -58,7 +58,7 @@ const ReIDConditionForm = () => {
                     가져오기
                 </TopButton>
                 <TopButton hover icon={exportIcon} onClick={() => {
-                    DownloadSingleConditionJsonData(datas)
+                    DownloadSingleConditionJsonData(datas, datas.title)
                 }}>
                     내보내기
                 </TopButton>

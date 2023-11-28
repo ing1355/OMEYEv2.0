@@ -91,5 +91,5 @@ const LoadingContainer = styled.div`
     height: 100%;
     z-index: 9999;
     background-color: ${GlobalBackgroundColor};
-    pointer-event: none;
+    pointer-events: none;
 `

@@ -244,30 +244,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
     },[duplicatedCCTVSelect])
 
-    // const createSiteRowByCollapse = (data: SiteDataType) => {
-    //     const isOpened = collapseOpen.includes(data.fullName)
-    //     return <CCTVRowContainer opened={isOpened} key={data.fullName}>
-    //         <CCTVTitleContainer onClick={() => {
-    //             if(isOpened) {
-    //                 setCollapseOpen(collapseOpen.filter(_ => _ !== data.fullName))
-    //             } else {
-    //                 setCollapseOpen(collapseOpen.concat(data.fullName))
-    //             }
-    //         }}>
-    //             {data.siteName}
-    //             <CollapseContainer>
-    //                 <CollapseArrow opened={isOpened} style={{
-    //                     width: '100%',
-    //                     height: '100%'
-    //                 }} />
-    //             </CollapseContainer>
-    //         </CCTVTitleContainer>
-    //         <CCTVRowContentsContainer>
-    //             {data.cameras.map(_ => createCameraRow(_))}
-    //         </CCTVRowContentsContainer>
-    //     </CCTVRowContainer>
-    // }
-
     return <>
         <MapContainer ref={mapElement} 
         onMouseEnter={e => {
@@ -313,7 +289,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 </CCTVListContainer>}
             </ControlsContainer>
             {children || <></>}
-            {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
+            {forAddtraffic && <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
                 <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
                     setSelectedAddtionalTarget(data)
                 }} value={selectedAddtionalTarget} />
@@ -424,7 +400,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         더 찾아보기
                     </AddReIDInputBtn>
                 </AddReIDInputSubContainer>
-            </AddReIDInputContainer> : <AddReIDInputContainer forAddTraffic={false} ref={circleSelectContainer}>
+            </AddReIDInputContainer>}
+            {!forAddtraffic && <AddReIDInputContainer forAddTraffic={false} ref={circleSelectContainer}>
                 <AddReIDInputSubContainer>
                     <AddReIDInputRow>
                         <AddReIDInputLabel>

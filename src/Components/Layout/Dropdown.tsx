@@ -25,12 +25,6 @@ export type DropdownProps<T> = {
 const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle, valueIndex }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
     const [value, setValue] = useState<DropdownItemType<T>>(valueIndex ? itemList[valueIndex] : itemList[0])
-    
-    // useEffect(() => {
-    //     if(defaultValue) {
-    //         setValue(itemList.find(_ => _.value === defaultValue)!)
-    //     }
-    // },[opened])
 
     useEffect(() => {
         if (onChange) onChange(value)

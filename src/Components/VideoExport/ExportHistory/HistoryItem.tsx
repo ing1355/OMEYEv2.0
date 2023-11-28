@@ -80,7 +80,6 @@ const Container = styled.div`
     border-radius: 12px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '1%' })}
     position: relative;
-    margin-bottom: 1%;
 `
 
 const CloseIconContainer = styled.div`
@@ -133,7 +132,7 @@ const Tag = styled.div`
 const SubContentsContainer = styled.div`
     width: 100%;
     flex: 1;
-    ${globalStyles.flex({justifyContent:'flex-start', alignItems:'flex-start', gap: '6px'})}
+    ${globalStyles.flex({gap: '6px'})}
 `
 
 const SubContentRowContainer = styled.div`

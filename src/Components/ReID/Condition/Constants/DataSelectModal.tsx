@@ -3,6 +3,7 @@ import { PropsWithChildren, useCallback, useEffect, useRef } from "react"
 import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import ModalCloseIcon from '../../../../assets/img/modalCloseIcon.png'
+import checkIcon from '../../../../assets/img/whiteCheckIcon.png'
 import { useRecoilValue } from "recoil"
 import { conditionMenu } from "../../../../Model/ConditionMenuModel"
 import { conditionRoute } from "../../../../Model/ConditionRouteModel"
@@ -24,25 +25,25 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
 
     const escCallback = (e: KeyboardEvent) => {
-        if(e.key === 'Escape') {
-            if(close) close()
+        if (e.key === 'Escape') {
+            if (close) close()
         }
     }
 
     useEffect(() => {
-        if(visible) {
-            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+        if (visible) {
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
             callbackRef.current = escCallback
-            if(callbackRef.current) document.addEventListener('keydown', callbackRef.current)
+            if (callbackRef.current) document.addEventListener('keydown', callbackRef.current)
         } else {
-            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
         }
-    },[visible, escCallback])
+    }, [visible, escCallback])
 
     useEffect(() => {
-        if(visible) close()
-    },[c_menu, c_route, menu])
-    
+        if (visible) close()
+    }, [c_menu, c_route, menu])
+
     return <Background visible={visible}>
         <Rest onClick={() => {
             close()
@@ -55,15 +56,20 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
                     <Title>
                         {title}
                     </Title>
-                    <Complete onClick={complete} tabIndex={-1} activate>
-                        선택
-                    </Complete>
                 </TitleContainer>
-                <Back onClick={close} tabIndex={-1}>
-                    <img src={ModalCloseIcon} style={{
-                        height: '28px'
-                    }} />
-                </Back>
+                <HeaderBtns>
+                    <Back onClick={complete} tabIndex={-1}>
+                        <img src={checkIcon} style={{
+                            height: '28px',
+                            opacity: 0.5
+                        }} />
+                    </Back>
+                    <Back onClick={close} tabIndex={-1}>
+                        <img src={ModalCloseIcon} style={{
+                            height: '28px'
+                        }} />
+                    </Back>
+                </HeaderBtns>
             </Header>
             {visible && <ContentsContainer className={className}>
                 {children}
@@ -117,11 +123,12 @@ const Title = styled.div`
 `
 
 const TitleContainer = styled.div`
-    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start', gap: '12px'})}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '12px' })}
 `
 
-const Complete = styled(Button)`
+const HeaderBtns = styled.div`
 `
+
 const Back = styled(Button)`
     background-color: transparent;
     border: none;

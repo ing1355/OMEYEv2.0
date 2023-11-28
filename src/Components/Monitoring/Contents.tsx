@@ -8,31 +8,45 @@ import { CameraDataType } from "../../Constants/GlobalTypes"
 import CCTVNameById from "../Constants/CCTVNameById"
 import { PROGRESS_STATUS } from "../../Model/ProgressModel"
 import closeIcon from '../../assets/img/closeIcon.png'
+import timeIcon from '../../assets/img/ProgressTimeIcon.png'
+import noImage from '../../assets/img/logo.png'
+import TimeModal, { TimeModalDataType } from "../ReID/Condition/Constants/TimeModal"
 
 // let timerId: NodeJS.Timer
 // let count = 0
 
-const VideoCard = memo(({cctvId}: {
-    cctvId: CameraDataType['cameraId']|undefined
+const VideoCard = memo(({ cctvId }: {
+    cctvId: CameraDataType['cameraId'] | undefined
 }) => {
     const [cctvs, setCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
     const monitoringStatus = useRecoilValue(MonitoringDatas('status'))
-
+    const [timeVisible, setTimeVisible] = useState(false)
+    const [timeValue, setTimeValue] = useState<TimeModalDataType|undefined>(undefined)
     return <>
-        <VideoTitle>
+        <VideoTitle hasIcon={!(!cctvId)}>
+            {cctvId && <VideoTimeIcon onClick={() => {
+                setTimeVisible(true)
+            }}>
+                <img src={timeIcon} />
+            </VideoTimeIcon>}
             {monitoringStatus === PROGRESS_STATUS['RUNNING'] && cctvId ? <CCTVNameById cctvId={cctvId} /> : '정보 없음'}
             {cctvId && <VideoCloseIcon onClick={() => {
                 setCCTVs((cctvs as number[]).filter(_ => _ !== cctvId))
             }}>
-                <img src={closeIcon}/>
+                <img src={closeIcon} />
             </VideoCloseIcon>}
         </VideoTitle>
-        <VideoInner>
-            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} />
-        </VideoInner>
+        {cctvId && <VideoInner>
+            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={timeValue}/>
+        </VideoInner>}
+        <TimeModal visible={timeVisible} title="영상 시간 선택" onChange={value => {
+            setTimeValue(value)
+        }} noEndTime close={() => {
+            setTimeVisible(false)
+        }} defaultValue={timeValue}/>
     </>
 }, (pre, next) => {
-    if(pre.cctvId !== next.cctvId) return false
+    if (pre.cctvId !== next.cctvId) return false
     return true
 })
 
@@ -40,6 +54,7 @@ const Contents = () => {
     const monitoringLayoutNums = useRecoilValue(MonitoringDatas('layoutNum'))
     const monitoringCCTVs = useRecoilValue(MonitoringDatas('CCTVs'))
     const cctvListTemp = useRef<(CameraDataType['cameraId']|undefined)[]>([])
+
     const cctvList = useMemo(() => {
         let count = 0
         let temp: (number|undefined)[] = Array.from({length: monitoringLayoutNums as number})
@@ -51,9 +66,12 @@ const Contents = () => {
         cctvListTemp.current = [...temp]
         return temp
     },[monitoringCCTVs, monitoringLayoutNums])
-
+    
     return <ContentsContainer>
         <VideosContainer>
+            <NoImage>
+                <img src={noImage} />
+            </NoImage>
             {
                 cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind}>
                     <VideoCard cctvId={cctvList[ind]}/>
@@ -68,26 +86,30 @@ export default Contents
 const ContentsContainer = styled.div`
     flex: 1;
     height: 100%;
+    position: relative;
 `
 
 const VideosContainer = styled.div`
     height: 100%;
+    position: relative;
     ${globalStyles.flex({ flexWrap: 'wrap', flexDirection: 'row' })}
 `
 
-const VideoCardContainer = styled.div<{layoutNum: number}>`
-    width: ${({layoutNum}) => 100 / Math.sqrt(layoutNum)}%;
-    height: ${({layoutNum}) => 100 / Math.sqrt(layoutNum)}%;
+const VideoCardContainer = styled.div<{ layoutNum: number }>`
+    width: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
+    height: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
     border: 1px solid ${ContentsBorderColor};
+    background-color: transparent;
+    z-index: 1;
 `
 
-const VideoTitle = styled.div`
+const VideoTitle = styled.div<{hasIcon: boolean}>`
     height: 24px;
     background-color: ${SectionBackgroundColor};
     line-height: 24px;
     text-align: center;
     padding: 0 4px;
-    padding-right: 24px;
+    padding-right: ${({hasIcon}) => hasIcon ? 50 : 4}px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -109,7 +131,29 @@ const VideoCloseIcon = styled.div`
     }
 `
 
+const VideoTimeIcon = styled.div`
+    position: absolute;
+    right: 26px;
+    top: 0;
+    height: 100%;
+    width: 24px;
+    padding: 4px;
+    cursor: pointer;
+    ${globalStyles.flex()}
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
+`
+
 const VideoInner = styled.div`
     height: calc(100% - 24px);
+    ${globalStyles.flex()}
+`
+
+const NoImage = styled.div`
+    width: 100%;
+    height: 100%;
+    position: absolute;
     ${globalStyles.flex()}
 `

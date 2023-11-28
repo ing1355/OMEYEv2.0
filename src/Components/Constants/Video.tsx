@@ -16,9 +16,10 @@ type VideoProps = {
     isTime?: boolean
     timeValue?: TimeModalDataType|undefined
     src?: string
+    noLogo?: boolean
 }
 
-const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoProps) => {
+const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src, noLogo }: VideoProps) => {
     const [_src, setSrc] = useState<string|undefined>(undefined)
     const rtspPlayer = useRef<RtspPlayer>()
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -56,13 +57,8 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoPr
     }, [info])
     
     useEffect(() => {
-        if (cctvId && !isTime) {
-            GetVideoInfoByCCTVId(cctvId).then(_ => {
-                playVideoByInfo(_)
-            }).catch(err => {
-                console.error(err)
-            })
-        } else if(cctvId && timeValue) {
+        console.debug("here11 : " , cctvId, timeValue)
+        if(cctvId && timeValue) {
             Axios('GET', GetCameraVideoUrlApi(cctvId, timeValue.startTime)).then(({uuid, url}) => {
                 if(uuid) {
                     if(rtspPlayer.current) {
@@ -74,6 +70,12 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoPr
                     if(videoRef.current) setSrc(url)
                 }
             })
+        } else if (cctvId && !isTime) {
+            GetVideoInfoByCCTVId(cctvId).then(_ => {
+                playVideoByInfo(_)
+            }).catch(err => {
+                console.error(err)
+            })
         } else {
             if(rtspPlayer.current) rtspPlayer.current?.destroy()
             else if(videoRef?.current) setSrc("")
@@ -82,7 +84,7 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src }: VideoPr
     
     return <Container>
         <VideoWrapper objectFit={objectFit} src={_src || ""} ref={videoRef} autoPlay crossOrigin="anonymous" width="100%" height="100%" controls={!(!_src)}/>
-        {(((!_src && !info && !cctvId) || (!src && isTime && !timeValue))) && <Poster src={noImage}/>}
+        {(((!_src && !info && !cctvId) || (!src && isTime && !timeValue))) && !noLogo && <Poster src={noImage}/>}
     </Container>
 },(pre, next) => {
     if(pre.cctvId !== next.cctvId) return false

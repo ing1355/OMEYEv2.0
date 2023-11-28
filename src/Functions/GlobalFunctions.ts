@@ -171,7 +171,7 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
         })),
         isRealTime: isRealTime
     }
-    DownloadSingleConditionJsonData(_)
+    DownloadSingleConditionJsonData(_, isRealTime ? 'RealTime' : data.title)
 }
 
 export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataType) => void, errCallback?: (error: unknown) => void) {
@@ -202,13 +202,13 @@ export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDat
     upload.click()
 }
 
-export function DownloadSingleConditionJsonData(data: ConditionDataType) {
+export function DownloadSingleConditionJsonData(data: ConditionDataType, title: string) {
     let output = JSON.stringify(data, null, 4);
     const blob = new Blob([output]);
     const fileDownlaoadUrl = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
     downloadLink.href = fileDownlaoadUrl;
-    downloadLink.download = convertFullTimeString(new Date()) + '.json';
+    downloadLink.download = title + '_' + convertFullTimeString(new Date()) + '.json';
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);

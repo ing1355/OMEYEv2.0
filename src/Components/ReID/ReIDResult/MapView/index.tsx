@@ -44,7 +44,9 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
 
-    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox key={_.resultId + '1'} onClick={() => {
+    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox 
+    key={_.resultId + '1'} 
+    onClick={() => {
         setDetailResult([_])
     }}>
         <CCTVImgContainer>
