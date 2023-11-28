@@ -28,9 +28,10 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('')
   const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('')
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
+  const [changeDropdown, setChangeDropdown] = useState<boolean>(false)
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues | null>(null)
   const message = useMessage()
 
   const modifyInit = () => {
@@ -39,7 +40,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     setModifySelectMember(modifySelectMemberInit)
     setModifyAccountPassword('')
     setModifyAccountPasswordConfirm('')
-    setSearchRoleValue('USER')
+    setSearchRoleValue(null)
   }
 
   const putUsersAccount = async () => {
@@ -68,8 +69,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   }
 
   const SelectedRoleValueIndexFun = () => {
-    console.log('modifySelectMember.role',modifySelectMember.role)
-    console.log(RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role))
     if(userInfo.user.role === 'DEVELOPER') {
       return RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role)
     } else if(userInfo.user.role === 'ADMIN') {
@@ -82,7 +81,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
       message.error({ title: '멤버 수정 에러', msg: '모든 항목을 입력해주세요.' })
       return true
     } else if(!passwordRegex.test(modifyAccountPassword)) {
-      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
+      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
       return true
     } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
       message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
@@ -183,14 +182,19 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
         </div>
         <div>
           {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
-            <RoleDropdown 
-              itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
-              bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
-              onChange={val => {
-                setSearchRoleValue(val.value as RoleValues)
-              }}
-              // valueIndex={SelectedRoleValueIndexFun()}
-            />
+            modifySelectMember.role ?
+              <RoleDropdown 
+                itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
+                bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
+                onChange={val => {
+                  setSearchRoleValue(val.value as RoleValues)
+                }}
+                valueIndex={SelectedRoleValueIndexFun()}
+                // valueIndex={modifySelectMember.role === 'DEVELOPER' ? 2 : modifySelectMember.role === 'ADMIN' ? 1 : 0}
+                // valueIndex={userInfo.user.role === 'DEVELOPER' ? 2 : 1}
+              />
+              :
+              <></>
             :
             <div style={{ width: '240px', textAlign: 'center', lineHeight: '30px' }}>
               USER
@@ -226,7 +230,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
             const num = OnlyInputNumberFun(e)
             setModifySelectMember((pre) => ({
               ...pre,
-              phoneNumber: e
+              phoneNumber: num
             }))
           }}
           onEnter={modifyAccountFun}

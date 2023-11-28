@@ -12,9 +12,10 @@ type ModalProps = PropsWithChildren & {
     noComplete?: boolean
     isConfirm?: boolean
     completeText?: string
+    noFooter?: boolean
 }
 
-const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText }: ModalProps) => {
+const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText, noFooter }: ModalProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
     const completeRef = useRef(false)
@@ -80,26 +81,28 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
             <Contents>
                 {children}
             </Contents>
-            <Footer>
-                <FooterBtn hover onClick={async () => {
-                    if (complete) {
-                        if (complete && completeRef.current === false) {
-                            completeRef.current = true
-                            if (!(await complete())) {
-                                close()
+            {!noFooter &&
+                <Footer>
+                    <FooterBtn hover onClick={async () => {
+                        if (complete) {
+                            if (complete && completeRef.current === false) {
+                                completeRef.current = true
+                                if (!(await complete())) {
+                                    close()
+                                }
+                                completeRef.current = false
                             }
-                            completeRef.current = false
+                        } else {
+                            close()
                         }
-                    } else {
-                        close()
-                    }
-                }}>
-                    {completeText ? completeText : (isConfirm ? '확인' : '완료')}
-                </FooterBtn>
-                <FooterBtn hover onClick={close}>
-                    닫기
-                </FooterBtn>
-            </Footer>
+                    }}>
+                        {completeText ? completeText : (isConfirm ? '확인' : '완료')}
+                    </FooterBtn>
+                    <FooterBtn hover onClick={close}>
+                        닫기
+                    </FooterBtn>
+                </Footer>
+            }
         </ContentsContainer>
     </Container>
 }

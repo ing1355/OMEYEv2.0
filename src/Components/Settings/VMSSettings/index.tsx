@@ -10,6 +10,11 @@ import useMessage from "../../../Hooks/useMessage"
 import { SitesState } from "../../../Model/SiteDataModel"
 import { useRecoilState } from "recoil"
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
+import plusIcon from "../../../assets/img/plusIcon.png"
+import synchronizationIcon from "../../../assets/img/synchronizationIcon.png"
+import searchIcon from "../../../assets/img/searchIcon.png"
+import whiteCheckIcon from "../../../assets/img/whiteCheckIcon.png"
+import uploadIcon from "../../../assets/img/uploadIcon.png"
 
 type getVmsListType = {
   siteList: string[];
@@ -25,7 +30,7 @@ type vmsInfoType = {
   vmsServerIp: string[];
   vmsId: string;
   vmsPw: string;
-  maxStoredDay: string;
+  maxStoredDay: number;
   vmsGroup: string;
   vmsLic: string;
   installSite: string;
@@ -154,20 +159,24 @@ const VMSSettings = ({visible}: {
             <VMSButton 
               hover
               onClick={GetVmsInfoFun}
+              icon={searchIcon}
+              iconStyle={{width: '15px', height: '15px'}}
             >
               조회
             </VMSButton>
           </div>
-          {vmsInfo &&
+          {/* {vmsInfo &&
             <div>
               <VMSButton 
                 hover
                 onClick={PutVmsInfoFun}
+                icon={whiteCheckIcon}
+                iconStyle={{width: '17px', height: '17px'}}
               >
                 저장
               </VMSButton>
             </div>
-          }
+          } */}
         </div>
       </div>
 
@@ -205,6 +214,8 @@ const VMSSettings = ({visible}: {
                     vmsServerIp: vmsInfo.vmsServerIp.concat('')
                   }))
                 }}
+                icon={plusIcon}
+                iconStyle={{width: '15px', height: '15px'}}
               >
                 추가
               </VMSButton>
@@ -237,12 +248,12 @@ const VMSSettings = ({visible}: {
           <div style={{display: 'flex'}}>
             <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>최대 저장 기간</div>
             <SiteInput 
-              value={vmsInfo.maxStoredDay}
+              value={vmsInfo.maxStoredDay ? vmsInfo.maxStoredDay : 0}
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e)
                 setVmsInfo((pre) => ({
                   ...pre!,
-                  maxStoredDay: num
+                  maxStoredDay: parseInt(num)
                 }))
               }}                  
             />
@@ -320,6 +331,8 @@ const VMSSettings = ({visible}: {
                       hover
                       type='submit'
                       form='fileUpload'
+                      icon={uploadIcon}
+                      iconStyle={{width: '15px', height: '15px'}}
                     >
                       업로드
                     </VMSButton>
@@ -329,9 +342,9 @@ const VMSSettings = ({visible}: {
             </div>
           </div>
           <div style={{display: 'flex'}}>
-            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px', display: 'flex'}}>
               <div>동기화</div>
-              {/* <div>아이콘</div> */}
+              <img src={synchronizationIcon} width='15px' height='15px' style={{position: 'relative', top: '7px', left: '8px'}}/>
             </div>
             <div>
               연동될 VMS 내의 사이트 및 CCTV 정보를 원모어아이의 데이터베이스에 동기화하는 과정입니다. 
@@ -344,11 +357,15 @@ const VMSSettings = ({visible}: {
 
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <div style={{marginBottom: '15px'}}>
-                  <input type="checkbox" 
+                  <input 
+                    id="agreeInput"
+                    type="checkbox" 
                     checked={isAgree} 
                     onChange={() => {setIsAgree(!isAgree)}}
                   />
-                  예, 동의합니다. 
+                  <label htmlFor="agreeInput" style={{position: 'relative', top: '-2px'}}>
+                    예, 동의합니다.
+                  </label>
                 </div>
                 <VMSButton 
                   hover
@@ -358,11 +375,27 @@ const VMSSettings = ({visible}: {
                     } else {
                       SyncVmsApiFun();
                     }
-                  }}  
+                  }} 
+                  icon={synchronizationIcon}
+                  iconStyle={{width: '15px', height: '15px'}} 
                 >
                   동기화
                 </VMSButton>
               </div>
+            </div>
+          </div>
+          <div style={{display: 'flex'}}>
+            <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px', display: 'flex'}}>
+            </div>
+            <div style={{marginLeft: '180px'}}>
+              <VMSButton 
+                hover
+                onClick={PutVmsInfoFun}
+                icon={whiteCheckIcon}
+                iconStyle={{width: '17px', height: '17px'}}
+              >
+                저장
+              </VMSButton>
             </div>
           </div>
         </>

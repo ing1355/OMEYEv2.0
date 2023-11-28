@@ -45,7 +45,7 @@ const Settings = () => {
       {type === 'server' && 
         (userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
           <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-            <ChangedView selected={true} style={{width:'77%', marginRight: '0.5%'}}>
+            <ChangedView selected={type === 'server'} style={{width:'77%', marginRight: '0.5%'}}>
               <ServerManagement visible={currentMenu === SettingsMenuKey}/>
             </ChangedView>
             <ChangedView selected={type === 'server'} style={{width:'22%', marginRight: '0.5%'}}>
@@ -54,7 +54,7 @@ const Settings = () => {
           </div>
         :
           <div style={{display: 'flex', flexDirection: 'row', height: '100%'}}>
-            <ChangedView selected={true}>
+            <ChangedView selected={type === 'server'}>
               <ServerManagement visible={type === 'server' && currentMenu === SettingsMenuKey}/>
             </ChangedView>
           </div>

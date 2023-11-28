@@ -494,7 +494,7 @@ const ServerManagement = ({visible}: {
       </div>
 
       <div>
-        <div style={{display: 'flex', justifyContent: 'space-between'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '15px'}}>
           <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
             <div style={{marginBottom: '10px'}}>GPU</div>
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
@@ -547,7 +547,7 @@ const ServerManagement = ({visible}: {
           </div>
         </div>
 
-        <div style={{display: 'flex', justifyContent: 'space-between'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '15px'}}>
           <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '49.5%', padding: '10px'}}>
             <div style={{marginBottom: '10px'}}>Memory</div>
             <div style={{display: 'flex', justifyContent: 'space-between'}}>

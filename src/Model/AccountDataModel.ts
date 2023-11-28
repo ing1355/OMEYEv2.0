@@ -4,7 +4,7 @@ export type roleType = 'USER' | 'ADMIN' | 'DEVELOPER';
 export type selectMemberType = {
   id: string;
   username: string;
-  role: roleType;
+  role: roleType | null;
   name: string;
   email: string;
   phoneNumber: string;
@@ -24,7 +24,8 @@ export const IsModifyMember = atom<boolean>({
 export const modifySelectMemberInit = {
   id: '',
   username: '',
-  role: 'USER' as roleType,
+  // role: 'USER' as roleType,
+  role: null,
   name: '',
   email: '',
   phoneNumber: '',

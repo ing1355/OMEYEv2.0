@@ -19,6 +19,8 @@ import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import { message } from "antd"
 import useMessage from "../../../Hooks/useMessage"
+import plusIcon from "../../../assets/img/plusIcon.png"
+import minusIcon from "../../../assets/img/minusIcon.png"
 
 const AccountSearchDropdownList = [
   {
@@ -132,6 +134,7 @@ const AccountSettings = ({visible}: {
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
       email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
       phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
+      organization: searchValue === 'organization' ? searchInputValue === '' ? null : searchInputValue : null,
     })
     if (res) setUsersAccountRows(res)
   }
@@ -207,9 +210,13 @@ const AccountSettings = ({visible}: {
               }}
             />
           :
-            <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
-              setSearchInputValue(value)
-            }} 
+            <SearchInput 
+              placeholder={'검색'} 
+              value={searchInputValue} 
+              onChange={value => {
+                setSearchInputValue(value)
+              }} 
+              onEnter={getUsersAccountList}
             />
           }
           {/* <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
@@ -262,12 +269,19 @@ const AccountSettings = ({visible}: {
               onClick={() => {
                 if(selectUsers.length > 0) setIsDeleteMember(true)
               }}
+              icon={minusIcon}
+              iconStyle={{width: '15px', height: '15px'}}
             >
               멤버 삭제
             </TopButton>
-            <TopButton hover onClick={() => {
-              setIsAddMember(true)
-            }}>멤버 추가</TopButton>
+            <TopButton 
+              hover 
+              onClick={() => {
+                setIsAddMember(true)
+              }}
+              icon={plusIcon}
+              iconStyle={{width: '15px', height: '15px'}}
+            >멤버 추가</TopButton>
           </div>
         }
       </div>
@@ -387,9 +401,10 @@ const AccountSettings = ({visible}: {
           setSearchInputValue('')
         }}
         title="멤버 삭제"
+        noFooter={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          <div>삭제하시겠습니까?</div>
+          <div style={{margin: '30px 0px'}}>삭제하시겠습니까?</div>
           <div>
             <DeleteModalButton 
               hover

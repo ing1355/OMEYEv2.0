@@ -19,11 +19,12 @@ export type DropdownProps<T> = {
     disableFunc?: (val: DropdownItemType<T>) => boolean
     disableCallback?: () => void
     bodyStyle?: React.CSSProperties
+    valueIndex?: number
 }
 
-const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle }: DropdownProps<T>) => {
+const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle, valueIndex }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
-    const [value, setValue] = useState<DropdownItemType<T>>(itemList[0])
+    const [value, setValue] = useState<DropdownItemType<T>>(valueIndex ? itemList[valueIndex] : itemList[0])
     
     // useEffect(() => {
     //     if(defaultValue) {
