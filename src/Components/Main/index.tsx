@@ -1,15 +1,17 @@
-import { useRecoilState, useRecoilValueLoadable } from "recoil";
+import { useRecoilState, useRecoilValueLoadable, useSetRecoilState } from "recoil";
 import Menus from "../Menus";
-import { SitesData, SitesState } from "../../Model/SiteDataModel";
+import { SitesState } from "../../Model/SiteDataModel";
 import styled from "styled-components";
-import { globalStyles } from "../../styles/global-styled";
+import { GlobalBackgroundColor, globalStyles } from "../../styles/global-styled";
 import { globalSettings } from "../../Model/GlobalSettingsModel";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { GetAllSitesData } from "../../Functions/NetworkFunctions";
+import { Axios, GetAllSitesData, refreshFunction } from "../../Functions/NetworkFunctions";
+import { isLogin } from "../../Model/LoginModel";
+import { AliveApi } from "../../Constants/ApiRoutes";
+import useMessage from "../../Hooks/useMessage";
+import { IS_PRODUCTION } from "../../Constants/GlobalConstantsValues";
 
-const LoadingComponent = ({ visible }: {
-    visible: boolean
-}) => {
+const LoadingComponent = () => {
     const [count, setCount] = useState(0)
     const timerId = useRef<NodeJS.Timer>()
 
@@ -19,57 +21,75 @@ const LoadingComponent = ({ visible }: {
         }, 1000)
     }, [])
 
-    return <LoadingContainer visible={visible}>
+    return <LoadingContainer>
         서버 정보를 불러오는 중입니다.{Array.from({ length: count }).map(_ => '.')}
     </LoadingContainer>
 }
 
 const Main = () => {
     const [sitesState, setSitesState] = useRecoilState(SitesState)
+    const [isAlive, setIsAlive] = useState(false)
     const vmsStoredTime = useRecoilValueLoadable(globalSettings)
-    const testData = useRecoilValueLoadable(SitesData)
     const [isComplete, setIsComplete] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const setIsLogin = useSetRecoilState(isLogin)
+    const message = useMessage()
 
     useLayoutEffect(() => {
-        setSitesState({
-            state: 'RUNNING',
-            data: []
-        })
-        setIsLoading(true)
-        GetAllSitesData().then(res => {
-            setSitesState({
-                state: 'IDLE',
-                data: res
+        if(IS_PRODUCTION) {
+            window.addEventListener('beforeunload', e => {
+              e.preventDefault()
+              e.returnValue = ''
+              refreshFunction()
             })
+          } else {
+            window.addEventListener('beforeunload', e => {
+              // e.preventDefault()
+              // e.returnValue = ''
+              refreshFunction()
+            })
+          }
+        Axios('POST', AliveApi).then(_ => {
+            if(_) {
+                setIsAlive(true)
+                GetAllSitesData().then(res => {
+                    setSitesState({
+                        state: 'IDLE',
+                        data: res
+                    })
+                })
+            } else {
+                message.error({title: "입력값 에러", msg: "로그인 세션이 만료되었습니다.\n다시 로그인해주세요."})
+                setIsLogin(null)
+            }
         })
     }, [])
 
     useEffect(() => {
-        if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue') {
-            if (isLoading) setTimeout(() => {
+        if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue' && isAlive) {
+            setIsLoading(false)
+            setTimeout(() => {
                 setIsComplete(true)
-            }, 1000);
+            }, 2000);
         }
-    }, [sitesState, vmsStoredTime, isLoading])
+    }, [sitesState, vmsStoredTime, isLoading, isAlive])
 
     return <>
-        <LoadingComponent visible={!isComplete} />
-        {isComplete && <Menus />}
+        {!isComplete && <LoadingComponent />}
+        {!isLoading && <Menus />}
     </>
 }
 
 export default Main;
 
-const LoadingContainer = styled.div<{ visible: boolean }>`
+const LoadingContainer = styled.div`
     height: 100%;
     ${globalStyles.flex()}
     font-size: 4rem;
-    display: ${({ visible }) => visible ? 'flex' : 'none'};
-`
-
-const ContentsContainer = styled.div<{ visible: boolean }>`
-    visibility: ${({ visible }) => visible ? 'visible' : 'hidden'};
+    position: absolute;
     width: 100%;
     height: 100%;
+    z-index: 9999;
+    background-color: ${GlobalBackgroundColor};
+    pointer-event: none;
 `

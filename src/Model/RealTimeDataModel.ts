@@ -4,7 +4,7 @@ import { PROGRESS_STATUS, ProgressStatusType } from "./ProgressModel";
 import { descriptionDataType } from "../Components/ReID/Condition/TargetSelect/PersonDescription/DescriptionType";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
-type RealTimeDataType = {
+export type RealTimeDataType = {
     type: ReIDObjectTypeKeys
     cameraIdList: CameraDataType['cameraId'][],
     objectId: CaptureResultListItemType['objectId'],

@@ -3,8 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType, ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ImageView from "./ImageView"
 import { ObjectTypes } from "../../ConstantsValues"
-import { useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import { conditionSelectedType, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp } from "../../../../Model/ConditionDataModel"
+import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "./Params"
 
 type ImageViewProps = {
     src?: string
@@ -15,6 +16,10 @@ type ImageViewProps = {
     captureCallback?: (val: CaptureResultListItemType[]) => void
     userCaptureOn: boolean
     type: "CCTV" | "IMAGE"
+}
+
+const isSamePoint = (p1: PointType, p2: PointType) => {
+    return p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2] && p1[3] === p2[3]
 }
 
 function autoCaptureAct(rectCanvas: HTMLCanvasElement, targets: CaptureResultType[]) {
@@ -67,7 +72,7 @@ const getImageByCanvas = (width: number, height: number, src: CanvasImageSource,
     return _canvas.toDataURL()
 }
 
-const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captureType, userCaptureOn, containerStyle, type }: ImageViewProps) => {
+const ImageViewWithCanvas = ({ src, style, captureResult, captureType, userCaptureOn, containerStyle, type, captureCallback }: ImageViewProps) => {
     const imgRef = useRef<HTMLImageElement>(null)
     const rectCanvasRef = useRef<HTMLCanvasElement>(null)
     const userCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -79,6 +84,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
     const mouseY = useRef(0)
     const clickTemp = useRef<number[]>([])
     const currentObjectType = useRecoilValue(conditionSelectedType)
+    const [globalTargetList, setGlobalTargetList] = useRecoilState(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
     const [imgSize, setImgSize] = useState<number[]>([])
     
     useEffect(() => {
@@ -99,30 +105,42 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureCallback, captu
         document.body.removeChild(fullScreenRef.current!);
     }, [])
 
-    const drawRectFunc = useCallback((targets: CaptureResultType[]) => {
+    const drawRectFunc = (targets: CaptureResultType[]) => {
         rectCanvasRef.current!.getContext('2d')!.clearRect(0, 0, rectCanvasRef.current!.width, rectCanvasRef.current!.height);
         autoCaptureAct(rectCanvasRef.current!, targets);
-        let temp: CaptureResultListItemType[] = []
-        targets.forEach(_ => {
-            const _width = _.points[2] - _.points[0]
-            const _height = _.points[3] - _.points[1]
-            const start_x = _.points[0]
-            const start_y = _.points[1]
-            temp.push({
-                type: _.type,
-                mask: false,
-                src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y),
-                points: _.points as PointType
-            })
-        })
-        if (captureCallback) captureCallback(temp)
-    }, [captureCallback])
+    }
 
     useEffect(() => {
-        if (captureResult.length > 0) {
-            drawRectFunc(captureResult)
+        if(captureResult) {
+            const filteredList = globalTargetList.filter(_ => _.isCurrent && _.selected && _.points)
+            drawRectFunc(captureResult.map(_ => ({
+                ..._,
+                isSelected: filteredList.some(__ => isSamePoint(__.points || [0,0,0,0], _.points as PointType))
+            })))
         }
-    }, [captureResult])
+    }, [captureResult, globalTargetList])
+
+    useEffect(() => {
+        if(captureResult) {
+            let temp: CaptureResultListItemType[] = []
+            captureResult.forEach(_ => {
+                const points = _.points
+                if(points) {
+                    const _width = points[2] - points[0]
+                    const _height = points[3] - points[1]
+                    const start_x = points[0]
+                    const start_y = points[1]
+                    temp.push({
+                        type: _.type,
+                        mask: false,
+                        src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y),
+                        points: _.points as PointType
+                    })
+                }
+            })
+            if (captureCallback) captureCallback(temp)
+        }
+    },[captureResult])
 
     useEffect(() => {
         if (src) {

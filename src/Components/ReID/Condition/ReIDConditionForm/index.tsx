@@ -14,8 +14,6 @@ import exportIcon from '../../../../assets/img/exportIcon.png'
 import conditionDataUploadIcon from '../../../../assets/img/conditionDataUploadIcon.png'
 import resetIcon from '../../../../assets/img/resetDisabledIcon.png'
 import useMessage from "../../../../Hooks/useMessage"
-import { ReIDObjectTypes } from "../../ConstantsValues"
-import { ReIDObjectTypeKeys } from "../../../../Constants/GlobalTypes"
 import ForLog from "../../../Constants/ForLog"
 
 let listId = 0
@@ -30,7 +28,7 @@ const ReIDConditionForm = () => {
     const [allDatas, setAllDatas] = useRecoilState(conditionData)
     const [conditionList, setConditionList] = useRecoilState(conditionListDatas)
     const message = useMessage()
-    const { targets, rank, time, name, cctv, isRealTime, etc } = datas
+    const { targets, rank, time, cctv, isRealTime, etc } = datas
     
     return <>
         <TopInputAndButtonsContainer>
@@ -64,13 +62,15 @@ const ReIDConditionForm = () => {
                 }}>
                     내보내기
                 </TopButton>
-                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, targets: targets.filter(_ => _.selected), cctv: cctv.filter(_ => _.selected), time: time.filter(_ => _.selected), name: datas.name || "빈 타이틀", selected: _.selected, id: _.id }))} onClick={() => {
+                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, targets: targets.filter(_ => _.selected), cctv: cctv.filter(_ => _.selected), time: time.filter(_ => _.selected), name: datas.title || "빈 타이틀", selected: _.selected }))} onClick={() => {
                     if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
-                    let tempConditionData: ConditionListType = { ...datas, selected: false, id: createConditionList() }
+                    const filteredTargets = datas.targets.filter(_ => _.selected)
+                    if (!filteredTargets.every(_ => _.type === filteredTargets[0].type)) return message.error({ title: "입력값 에러", msg: "서로 다른 유형의 대상이 선택되었습니다.\n하나의 유형만 선택해주세요."})
+                    let tempConditionData: ConditionListType = { ...datas, selected: false }
                     tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
                     tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
                     tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
-                    tempConditionData.name = tempConditionData.name || "빈 타이틀"
+                    tempConditionData.title = tempConditionData.title || "빈 타이틀"
                     setConditionList(conditionList.concat(tempConditionData))
                     message.success({
                         title: "저장 성공",

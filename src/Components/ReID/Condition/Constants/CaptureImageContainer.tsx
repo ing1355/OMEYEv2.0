@@ -9,7 +9,7 @@ import { AutoCaptureApi } from "../../../../Constants/ApiRoutes"
 import { ConvertWebImageSrcToServerBase64ImageSrc } from "../../../../Functions/GlobalFunctions"
 import ImageViewWithCanvas from "./ImageViewWithCanvas"
 import searchIcon from "../../../../assets/img/searchIcon.png"
-import { useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import useMessage from "../../../../Hooks/useMessage"
 import { conditionSelectedType, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp } from "../../../../Model/ConditionDataModel"
 
@@ -19,29 +19,15 @@ type CaptureContainerProps = {
     type: "CCTV" | "IMAGE"
 }
 
-const isSamePoint = (p1: PointType, p2: PointType) => {
-    return p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2] && p1[3] === p2[3]
-}
-
 const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerProps) => {
     const [captureType, setCaptureType] = useState<CaptureType>('auto')
     const [userCaptureOn, setUserCaptureOn] = useState(false)
-    const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
     const [loading, setLoading] = useState(false)
-    const globalTargetList = useRecoilValue(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
+    const [globalTargetList, setGlobalTargetList] = useRecoilState(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
+    const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
     const objType = useRecoilValue(conditionSelectedType)
     const message = useMessage()
 
-    useEffect(() => {
-        if(captureResults.length > 0) {
-            const selectedTargetList = globalTargetList.filter(_ => _.selected)
-            setCaptureResults(captureResults.map(_ => ({
-                ..._,
-                isSelected: selectedTargetList.some(__ => isSamePoint(__.points || [0,0,0,0], _.points as PointType))
-            })))
-        }
-    },[globalTargetList])
-    
     return <DetailMiddleContainer>
         <ImageViewWithCanvas
             userCaptureOn={userCaptureOn}
@@ -67,8 +53,10 @@ const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerP
                     if (!src) return message.preset('WRONG_PARAMETER', '캡쳐 이미지가 존재하지 않습니다.')
                     if (captureType === 'auto') {
                         setLoading(true)
-                        const result = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
-                        if (result) setCaptureResults(result)
+                        const result: CaptureResultType[] = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
+                        if (result) {
+                            setCaptureResults(result)
+                        }
                         setLoading(false)
                     } else {
                         setUserCaptureOn(true)

@@ -1,6 +1,6 @@
 {
   "name": "omeye_renewal",
-  "version": "2.0(43)",
+  "version": "2.0(45)",
   "private": true,
   "proxy": "https://192.168.182.54:8082",
   "dependencies": {

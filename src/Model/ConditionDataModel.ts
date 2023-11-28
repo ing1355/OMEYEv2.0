@@ -1,7 +1,7 @@
 import { DefaultValue, atom, selector, selectorFamily } from "recoil";
 import { CaptureResultListItemType, ReIDObjectTypeKeys } from "../Constants/GlobalTypes";
 import { _timeIndex } from "./ConditionParamsModalModel";
-import { AttributionConditionTestData, FaceConditionTestData, PersonConditionTestData, PlateConditionTestData } from "./TestDatas";
+import { AttributionConditionTestData, ConditionListTestData, FaceConditionTestData, PersonConditionTestData, PlateConditionTestData } from "./TestDatas";
 import { IS_PRODUCTION } from "../Constants/GlobalConstantsValues";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
@@ -16,7 +16,7 @@ export type ConditionDataTimeType = {
 }
 
 export type ConditionDataType = {
-    name: string,
+    title: string,
     targets: CaptureResultListItemType[],
     cctv: ConditionDataCCTVType[],
     time: ConditionDataTimeType[],
@@ -26,7 +26,7 @@ export type ConditionDataType = {
 }
 
 export const createDefaultConditionData = (): ConditionDataType => ({
-    name: '',
+    title: '',
     targets: [],
     cctv: [],
     time: [],
@@ -47,12 +47,11 @@ const _type = atom<ReIDObjectTypeKeys>({
 
 export type ConditionListType = ConditionDataType & {
     selected?: boolean
-    id: number
 }
 
 const _listData = atom<ConditionListType[]>({
     key: "conditionDataList",
-    default: []
+    default: IS_PRODUCTION ? [] : ConditionListTestData
 })
 
 export const conditionListDatas = selector({
@@ -197,12 +196,12 @@ export const conditionRankData = selector<number>({
 export const conditionTitleData = selector<string>({
     key: "conditionTitleData/selector",
     get: ({ get }) => {
-        return get(_data).name
+        return get(_data).title
     },
     set: ({ get, set }, newValue) => {
         if (!(newValue instanceof DefaultValue)) {
             let result = { ...get(_data) }
-            return set(_data, {...result, name: newValue})
+            return set(_data, {...result, title: newValue})
         }
     }
 })

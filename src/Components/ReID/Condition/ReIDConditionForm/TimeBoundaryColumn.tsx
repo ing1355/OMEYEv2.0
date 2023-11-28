@@ -9,6 +9,7 @@ import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/Gl
 import IconBtn from "../../../Constants/IconBtn"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import checkIcon from '../../../../assets/img/checkIcon.png'
+import emptyCheckIcon from '../../../../assets/img/emptyCheckIcon.png'
 
 const TimeBoundaryColumn = () => {
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
@@ -59,8 +60,8 @@ const TimeBoundaryColumn = () => {
                     }}>
                         <TimeDataItemTitle>
                             <TitleContainer>
-                                <Check>
-                                    {_.selected && <img src={checkIcon}/>}
+                                <Check selected={_.selected || false}>
+                                    {<img src={_.selected ? checkIcon : emptyCheckIcon}/>}
                                 </Check>
                                 <div style={{
                                     fontSize: '1rem'
@@ -151,10 +152,10 @@ const TitleContainer = styled.div`
     height: 24px;
 `
 
-const Check = styled.div`
+const Check = styled.div<{selected: boolean}>`
     height: 20px;
     width: 20px;
-    border: 1px solid ${ContentsActivateColor};
+    border: 1px solid ${({selected}) => selected ? ContentsActivateColor : 'white'};
     border-radius: 50%;
     padding: 4px;
     & > img {

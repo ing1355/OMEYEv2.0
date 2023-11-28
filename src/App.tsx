@@ -3,16 +3,14 @@ import Login from './Components/Login';
 import Main from './Components/Main';
 import styled from 'styled-components';
 import { globalStyles } from './styles/global-styled';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { isLogin } from './Model/LoginModel';
 import Layout from './Components/Layout';
 import ErrorHandleComponent from './ErrorHandleComponent';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
-import { IS_PRODUCTION } from './Constants/GlobalConstantsValues';
-import { Axios, getLocalIp, refreshFunction } from './Functions/NetworkFunctions';
-import { AliveApi } from './Constants/ApiRoutes';
+import { getLocalIp } from './Functions/NetworkFunctions';
 
 type ServerErrorDataType = {
   code: number
@@ -50,21 +48,6 @@ const App = () => {
   const [handlerComplete, setHandlerComplete] = useState(false)
   const _message = useMessage()
 
-  useEffect(() => {
-    if (loginState) {
-      if(IS_PRODUCTION) {
-        window.addEventListener('beforeunload', e => {
-          e.preventDefault()
-          e.returnValue = ''
-          // refreshFunction()
-        })
-      }
-    }
-    return () => {
-
-    }
-  }, [loginState])
-
   useLayoutEffect(() => {
     axios.interceptors.request.use(async req => {
       req.headers['X-Forwarded-For'] = await getLocalIp(req.url!)
@@ -88,9 +71,6 @@ const App = () => {
       return Promise.reject(err)
     })
     setHandlerComplete(true)
-    if(loginState) {
-      // Axios('POST', AliveApi)
-    }
   }, [])
 
   return handlerComplete ? <ErrorHandleComponent>

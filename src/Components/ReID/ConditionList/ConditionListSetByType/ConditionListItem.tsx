@@ -13,17 +13,18 @@ import TargetDescriptionByType from "../../Condition/Constants/TargetDescription
 
 type ConditionListItemProps = {
     data: ConditionListType
-    setData: (data: ConditionListType) => void
-    deleteAction: (id: ConditionListType['id']) => void
+    setData: (index: number, data: ConditionListType) => void
+    deleteAction: (index: number) => void
+    index: number
 }
 
-const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemProps) => {
+const ConditionListItem = ({ data, setData, deleteAction, index }: ConditionListItemProps) => {
     const [imageIndex, setImageIndex] = useState(0)
-    const { id, targets, selected, cctv, time, rank, etc, name } = data
+    const { targets, selected, cctv, time, rank, etc, title } = data
 
     return <Container selected={selected || false}>
         <Header>
-            {name}
+            {title}
         </Header>
         <ContentsContainer>
             <TargetContainer>
@@ -103,12 +104,12 @@ const ConditionListItem = ({ data, setData, deleteAction }: ConditionListItemPro
                 </ETCContainer>
                 <BtnsContainer>
                     <LastBtn hover activate={selected} onClick={() => {
-                        setData({ ...data, selected: !selected })
+                        setData(index, { ...data, selected: !selected })
                     }}>
                         {data.selected ? '해제' : '선택'}
                     </LastBtn>
                     <LastBtn hover onClick={() => {
-                        deleteAction(id)
+                        deleteAction(index)
                     }}>
                         삭제
                     </LastBtn>

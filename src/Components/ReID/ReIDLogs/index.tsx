@@ -240,12 +240,12 @@ const ReIDLogs = () => {
                                                 </ContentsItemInnerColContainer>
                                                 <ContentsItemInnerColContainer style={bottomColStyle}>
                                                     <ContentsItemInnerColTitle style={bottomColTitleStyle}>
-                                                        CCTV 수 :
+                                                        CCTV :
                                                     </ContentsItemInnerColTitle>
                                                     <ContentsItemInnerColContents>
                                                         {
                                                             __.cameraGroups.map((cctvs, ind) => <ContentsItemInnerColContentWrapper key={ind}>
-                                                                CCTV {cctvs.length} 대
+                                                                {cctvs.length} 대
                                                             </ContentsItemInnerColContentWrapper>)
                                                         }
                                                     </ContentsItemInnerColContents>

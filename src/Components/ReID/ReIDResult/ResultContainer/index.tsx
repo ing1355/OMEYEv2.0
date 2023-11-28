@@ -14,6 +14,7 @@ import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, Progres
 import { ObjectTypes } from "../../ConstantsValues"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
+import checkIcon from '../../../../assets/img/emptyCheckIcon.png'
 import Progress from "../../../Layout/Progress"
 import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
@@ -212,10 +213,10 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                             accuracy,
                                                             method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']] 
                                                         }])
-                                                        message.success({ title: "등록 성공", msg: "현재 결과를 대상으로 추가 성공하였습니다." })
+                                                        message.success({ title: "등록 성공", msg: "현재 결과 이미지를 검색 대상으로 추가하였습니다." })
                                                     }
                                                 }}>
-                                                    대상으로 추가
+                                                    검색 대상 추가
                                                 </SelectBtn>
                                                 <SelectBtn hover activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
                                                     if (selectedData) {
@@ -237,7 +238,9 @@ const ResultContainer = ({ reidId, visible }: ResultcontainerProps) => {
                                                     </SelectBtnInnerIconContainer> {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}&nbsp;&nbsp;{_.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
                                                         <SelectBtnInnerIcon src={similarityIcon} />
                                                     </SelectBtnInnerIconContainer>} {result.accuracy}%
-                                                    &nbsp;&nbsp;{selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) ? '해제' : '선택'}
+                                                    <CheckIconContainer checked={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
+                                                        <img src={checkIcon}/>
+                                                    </CheckIconContainer>
                                                 </SelectBtn>
                                             </SelectBtnsContainer>
                                         </TimeGroupCCTVItemBox>)}
@@ -463,4 +466,15 @@ const ProgressItem = styled(Progress)`
 
 const SelectBtnsContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+`
+
+const CheckIconContainer = styled.div<{checked: boolean}>`
+    ${globalStyles.flex()}
+    flex: 0 0 24px;
+    padding-left: 8px;
+    & > img {
+        width: 100%;
+        height: 100%;
+        opacity: ${({checked}) => checked ? 1 : 0.5};
+    }
 `

@@ -135,7 +135,6 @@ const Container = styled.div<{ opened: boolean }>`
 const MapContainer = styled.div`
     width: 100%;
     flex: 1;
-    position: relative;
 `
 
 const ShowContainer = styled.div`

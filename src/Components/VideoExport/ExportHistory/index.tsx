@@ -8,7 +8,7 @@ import Pagination from "../../Layout/Pagination"
 
 const categories: VideoExportCategoryType[] = ["영역 비식별화", "얼굴 비식별화", "번호판 비식별화"]
 
-const ExportHistory = ({visible}: {
+const ExportHistory = ({ visible }: {
     visible: boolean
 }) => {
     const [category, setCategory] = useState<VideoExportCategoryType[]>([])
@@ -16,15 +16,15 @@ const ExportHistory = ({visible}: {
         page: 1,
         size: 9
     })
-    const {logs, refresh, setParams} = useVideoExportHistories(params)
+    const { logs, refresh, setParams } = useVideoExportHistories(params)
 
     useEffect(() => {
         if (visible) setParams(params)
-    },[params])
+    }, [params])
 
     useEffect(() => {
-        if(visible) refresh()
-    },[visible])
+        if (visible) refresh()
+    }, [visible])
 
     return <Container>
         {/* <Header>
@@ -43,16 +43,18 @@ const ExportHistory = ({visible}: {
         </Header> */}
         <Contents>
             {
-                logs.data.totalCount > 0 ? <>
+                logs.state === 'RUNNING' ? <NoDataTitle>
+                    반출 영상 이력을 불러오는 중입니다.
+                </NoDataTitle> : (logs.data.totalCount > 0 ? <>
                     <ListContainer>
-                        {logs.data.results.map((_, ind) => <HistoryItem item={_} key={ind}/>)}
+                        {logs.data.results.map((_, ind) => <HistoryItem item={_} key={ind} />)}
                     </ListContainer>
                     <Pagination currentPage={params.page} setCurrentPage={page => {
-                        _setParams({...params, page})
-                    }} totalCount={logs.data.totalCount} dataPerPage={params.size}/>
+                        _setParams({ ...params, page })
+                    }} totalCount={logs.data.totalCount} dataPerPage={params.size} />
                 </> : <NoDataTitle>
                     반출 영상 이력이 존재하지 않습니다.
-                </NoDataTitle>
+                </NoDataTitle>)
             }
         </Contents>
     </Container>
@@ -95,5 +97,5 @@ const ListContainer = styled.div`
     margin-bottom: 16px;
     width: 100%;
     overflow: auto;
-    ${globalStyles.flex({flexDirection:'row', flexWrap: 'wrap', gap: '1%', alignItems:'flex-start', justifyContent:'flex-start'})}
+    ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', gap: '1%', alignItems: 'flex-start', justifyContent: 'flex-start' })}
 `
