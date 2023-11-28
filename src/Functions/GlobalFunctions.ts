@@ -151,7 +151,7 @@ export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string =>
 export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
     const isRealTime = data.timeGroups[0].startTime === 'live'
     let _: ConditionDataType = {
-        name: isRealTime ? '' : data.title,
+        title: isRealTime ? '' : data.title,
         etc: isRealTime ? '' : data.etc,
         rank: isRealTime ? 10 : data.rank,
         cctv: data.cameraGroups.map(_ => ({

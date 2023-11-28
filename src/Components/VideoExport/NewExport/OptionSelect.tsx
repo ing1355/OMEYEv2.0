@@ -74,6 +74,7 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
         if (thumbnailSrc) {
             imgRef.current!.onload = () => {
                 const { width, height, clientWidth, clientHeight, naturalWidth, naturalHeight } = imgRef.current!
+                console.debug("썸네일 영상 사이즈(width, height): ", naturalWidth, naturalHeight)
                 setThumbnailInfo({
                     width: naturalWidth,
                     height: naturalHeight

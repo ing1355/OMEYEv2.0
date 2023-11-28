@@ -25,6 +25,17 @@ import realtimeStopIcon from '../../../assets/img/realtimeStopIcon.png'
 const imageBoxHeight = 200
 const maxItemNum = 50
 
+type RealTimeResponseDataType = {
+    imageURL: string
+    timestamp: string
+    accuracy: number
+    cameraId: number
+    error?: string
+    status?: SSEResponseStatusType
+    min?: number
+    max?: number
+}
+
 const existValueNumsInDescription = (data?: descriptionDataType) => {
     if(!data) return 0;
     return Object.keys(data).map(_ => {
@@ -34,14 +45,15 @@ const existValueNumsInDescription = (data?: descriptionDataType) => {
 }
 
 const ImageComponent = ({ data, y, className, selected, setSelected, onClickCallback }: {
-    data: RealTimeDataType
+    data: RealTimeResponseDataType
     y: number
     className?: string
-    selected: RealTimeDataType | null
-    setSelected: setStateType<RealTimeDataType | null>
+    selected: RealTimeResponseDataType | null
+    setSelected: setStateType<RealTimeResponseDataType | null>
     onClickCallback: () => void
 }) => {
-
+    const { accuracy, min, max, imageURL } = data
+    
     return <div style={{
         width: '100%',
         height: imageBoxHeight + 'px',
@@ -49,7 +61,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
         top: y * imageBoxHeight + 'px',
         left: 0,
         cursor: 'pointer',
-        border: (selected && data && JSON.stringify(selected.imageURL) === JSON.stringify(data.imageURL)) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
+        border: (selected && data && JSON.stringify(selected.imageURL) === JSON.stringify(imageURL)) ? `1px solid ${ContentsActivateColor}` : `1px solid ${ContentsBorderColor}`
     }} className={className} onClick={() => {
         onClickCallback()
         if (data) setSelected(data)
@@ -60,11 +72,11 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
             right: '8px',
             fontWeight: 'bold',
             fontSize: '.8rem',
-            backgroundColor: data ? getColorByScore(data.accuracy) : 'transparent',
+            backgroundColor: data.accuracy ? getColorByScore(accuracy) : 'transparent',
             padding: '4px 6px',
             borderRadius: '12px'
         }}>
-            {data ? data.accuracy : 0}%
+            {(min && max) ? `${data.min} ~ ${data.max}` : (data.accuracy || 0) + '%'}
         </div>
         <div style={{
             position: 'absolute',
@@ -78,27 +90,16 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: (data && selected && selected.imageURL === data.imageURL) ? ContentsActivateColor : ContentsBorderColor
+            backgroundColor: (data && selected && selected.imageURL === imageURL) ? ContentsActivateColor : ContentsBorderColor
         }}>
             {y + 1}
         </div>
-        <img src={data && data.imageURL} style={{
+        <img src={data && imageURL} style={{
             width: '100%',
             height: '100%'
         }} />
     </div>
 };
-
-type RealTimeDataType = {
-    imageURL: string
-    timestamp: string
-    accuracy: number
-    cameraId: number
-    error?: string
-    status?: SSEResponseStatusType
-    min?: number
-    max?: number
-}
 
 const convertThreshHoldToDescriptionPercent = (threshHold: number, descriptionNums: number) => {
     const tick = 100 / descriptionNums
@@ -113,15 +114,15 @@ const cancelFunc = (): void => {
 }
 
 const RealTimeReID = () => {
-    const [selected, setSelected] = useState<RealTimeDataType | null>(null)
-    const [images, setImages] = useState<RealTimeDataType[]>([])
+    const [selected, setSelected] = useState<RealTimeResponseDataType | null>(null)
+    const [images, setImages] = useState<RealTimeResponseDataType[]>([])
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const [rtData, setRtData] = useRecoilState(realTimeData)
     const message = useMessage()
     const sseRef = useRef<EventSource>()
     const selectedRef = useRef(selected)
     const statusRef = useRef(rtStatus)
-    const imagesRef = useRef<RealTimeDataType[]>([])
+    const imagesRef = useRef<RealTimeResponseDataType[]>([])
     const accuracyRef = useRef(rtData.threshHold)
     const changeTimer = useRef<NodeJS.Timer>()
 
@@ -201,11 +202,11 @@ const RealTimeReID = () => {
         };
         sseRef.current.onmessage = (res: MessageEvent) => {
             try {
-                const data: RealTimeDataType = JSON.parse(
+                const data: RealTimeResponseDataType = JSON.parse(
                     res.data.replace(/\\/gi, "")
                 );
                 console.debug("sse message realtime : ", data)
-                const { imageURL, timestamp, cameraId, accuracy, status } = data
+                const { imageURL, timestamp, cameraId, accuracy, status, min, max } = data
                 if (imageURL) {
                     const image = new Image();
                     image.src = imageURL;
@@ -220,6 +221,8 @@ const RealTimeReID = () => {
                                         timestamp,
                                         cameraId,
                                         accuracy,
+                                        min,
+                                        max
                                     })
                                     image.onload = null;
                                     image.src = '';
@@ -275,8 +278,8 @@ const RealTimeReID = () => {
                     </ObjectTag>
                 </div>
                 <div>
-                    CCTV 수 : <TypeTag activate={rtData.cameraIdList.length > 0} disabled={rtData.cameraIdList.length === 0}>
-                        {rtData.cameraIdList.length}
+                    CCTV : <TypeTag activate={rtData.cameraIdList.length > 0} disabled={rtData.cameraIdList.length === 0}>
+                        {rtData.cameraIdList.length}대
                     </TypeTag>
                 </div>
             </GlobalParamsContainer>
@@ -387,10 +390,13 @@ const RealTimeReID = () => {
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>
                                 <ResultDetailDescriptionCol>
-                                    유사율
+                                    {rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? '탐지 개수' : '유사율'}
                                 </ResultDetailDescriptionCol>
                                 <ResultDetailDescriptionCol>
-                                    {selected?.accuracy || (selected?.max && selected.min ? `${selected.min} ~ ${selected.max}` : 0)}%
+                                    {rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] && `${selected?.min || 0}개 ~ ${selected?.max || 0}개`}
+                                    {rtData.type !== ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] && <>
+                                        {selected?.accuracy || 0}%
+                                    </>}
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>

@@ -40,7 +40,7 @@ const ReIDResult = () => {
 
     const test = async () => {
         // setResultDatas(ReIDResultTestData)
-        const testReid = 806
+        const testReid = 914
         const temp = await GetReIDResultById(testReid)
         const newData: ReIDResultType = {
             ...temp, data: temp.data.map(d => ({
@@ -62,7 +62,7 @@ const ReIDResult = () => {
     }
 
     useEffect(() => {
-        // if (!IS_PRODUCTION) test()
+        if (!IS_PRODUCTION) test()
     }, [])
 
     return <>

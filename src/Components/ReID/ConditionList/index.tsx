@@ -27,7 +27,7 @@ const ConditionList = () => {
     const progressStatus = useRecoilValue(ProgressStatus)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
-
+    
     return <Container>
         <Header>
             <TypeTabs>
@@ -47,7 +47,7 @@ const ConditionList = () => {
                 setProgressRequestParams({
                     type: 'REID',
                     params: conditionList.filter(_ => _.selected).map(_ => ({
-                        title: _.name,
+                        title: _.title,
                         rank: _.rank,
                         etc: _.etc,
                         objects: _.targets.map(__ => ({

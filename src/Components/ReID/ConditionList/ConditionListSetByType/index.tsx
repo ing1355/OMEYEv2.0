@@ -13,18 +13,18 @@ const ConditionListSetByType = ({ type }: ConditionListSetByTypeProps) => {
     const [globalDatas, setGlobalDatas] = useRecoilState(conditionListDatas)
     const datas = globalDatas.filter(_ => type === 'ALL' ? true : _.targets.some(__ => __.type === type))
     
-    const changeSingleData = (data: ConditionListType) => {
-        setGlobalDatas(datas.map(_ => _.id === data.id ? data : _))
+    const changeSingleData = (index: number, data: ConditionListType) => {
+        setGlobalDatas(datas.map((_, ind) => ind === index ? data : _))
     }
 
-    const deleteSingleData = (id: ConditionListType['id']) => {
-        setGlobalDatas(datas.filter(_ => _.id !== id))
+    const deleteSingleData = (index: number) => {
+        setGlobalDatas(datas.filter((_,ind) => ind !== index))
     }
 
     return <Container>
         {
             datas.length > 0 ? <ListContainer>
-                {datas.map((_, ind) => <ConditionListItem key={ind} data={_} setData={changeSingleData} deleteAction={deleteSingleData} />)}
+                {datas.map((_, ind) => <ConditionListItem key={ind} data={_} index={ind} setData={changeSingleData} deleteAction={deleteSingleData} />)}
             </ListContainer> : <NoDataContainer>
                 검색 조건이 존재하지 않습니다.<br />
                 검색 조건 설정 메뉴에서 검색 조건을 저장해주세요.

@@ -5,7 +5,7 @@ import { ReIDResultTestData } from "./TestDatas";
 import { ConditionDataType } from "./ConditionDataModel";
 
 export type ReIDRequestParamsType = {
-  title: ConditionDataType['name']
+  title: ConditionDataType['title']
   timeGroups: TimeDataType[]
   cctvIds: CameraDataType['cameraId'][][]
   rank: ConditionDataType['rank']

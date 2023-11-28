@@ -32,6 +32,16 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
             setNeedInit(true)
         }
     }, [visible])
+
+    const completeCallback = () => {
+        if (selectedCCTVs.length === 0) {
+            message.preset('WRONG_PARAMETER', "CCTV를 선택해주세요.");
+            return true
+        } else {
+            complete(selectedCCTVs)
+            return false
+        }        
+    }
     
     return <>
     <ModalWrapper visible={visible} title={<>
@@ -40,9 +50,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         if(JSON.stringify(defaultSelected) !== JSON.stringify(selectedCCTVs)) setConfirmVisible(true)
         else close()
     }} complete={() => {
-        if (selectedCCTVs.length === 0) return message.preset('WRONG_PARAMETER', "CCTV를 선택해주세요.");
-        complete(selectedCCTVs)
-        close()
+        if(!completeCallback()) close()
     }}>
         <Container>
             <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} singleSelect={singleSelect} visible={visible} />
@@ -52,8 +60,12 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         setConfirmVisible(false)
         close()
     }} complete={() => {
-        complete(selectedCCTVs)
-        close()
+        if(completeCallback()) {
+            setConfirmVisible(false)
+            return true
+        } else {
+            return false
+        }
     }}>
         현재 변경값을 적용하시겠습니까?
     </Modal>

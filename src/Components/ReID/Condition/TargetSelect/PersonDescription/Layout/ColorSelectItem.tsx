@@ -14,7 +14,7 @@ type ColorSelectItemProps = {
 const ColorSelectItem = ({ title, _key, value, onClick, selected }: ColorSelectItemProps) => {
     return <Container onClick={onClick}>
         <Color value={value} selected={selected}/>
-        <Title>
+        <Title selected={selected}>
             {title}
         </Title>
     </Container>
@@ -38,8 +38,9 @@ const Color = styled.div<{value: DescriptionColorItemType['value'], selected: bo
     border: 1px solid ${ContentsBorderColor};
 `
 
-const Title = styled.div`
+const Title = styled.div<{selected: boolean}>`
     font-size: 1.2rem;
     ${globalStyles.flex()}
     flex: 0 0 36px;
+    color: ${({selected}) => selected ? ContentsActivateColor : 'white'};
 `

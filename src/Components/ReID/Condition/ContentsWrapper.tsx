@@ -48,8 +48,8 @@ const ContentsWrapper = () => {
     const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const currentObjectType = useRecoilValue(conditionSelectedType)
-    const { routePop, routeJump, routePush, getAllRoutes, getRouteName, getCurrentRoute } = useConditionRoutes()
-    const { targets, rank, time, name, cctv, isRealTime, etc } = _conditionData
+    const { routeJump, getAllRoutes, getRouteName } = useConditionRoutes()
+    const { targets, rank, time, title, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
     const allSelected = useMemo(() => {
         if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
@@ -78,11 +78,6 @@ const ContentsWrapper = () => {
             case ReIDConditionFormRoute.key:
                 if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
                 return false;
-                // if (isRealTime) {
-                //     return !(targets.filter(_ => _.selected).length > 0 && cctv.filter(_ => _.selected).length > 0) || rtStatus === PROGRESS_STATUS['RUNNING']
-                // } else {
-                //     return !(targets.filter(_ => _.selected).length > 0 && (time.filter(_ => _.selected).length > 0 || isRealTime) && cctv.filter(_ => _.selected).length > 0 && name && rank) || progressStatus.status === 'RUNNING'
-                // }
             case ReIDConditionTargetSelectCCTVRoute.key:
                 return targetDatasCCTVTemp.filter(_ => _.selected).length === 0
             case ReIDConditionTargetSelectImageRoute.key:
@@ -139,7 +134,7 @@ const ContentsWrapper = () => {
                         type: 'REID',
                         params: [
                             {
-                                title: name || "빈 타이틀",
+                                title: title || "빈 타이틀",
                                 timeGroups: time.filter(_ => _.selected).map(_ => ({
                                     startTime: _.time[0],
                                     endTime: _.time[1]

@@ -7,7 +7,7 @@ import { LoadableDataType } from "../Constants/NetworkTypes";
 const _SitesData = atom({
     key: "SiteData",
     default: {
-        state: 'IDLE',
+        state: 'RUNNING',
         data: []
     } as LoadableDataType<SiteDataType[]>
 })
