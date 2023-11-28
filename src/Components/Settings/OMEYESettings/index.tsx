@@ -9,6 +9,7 @@ import { Axios } from "../../../Functions/NetworkFunctions";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
 import { useRecoilState } from "recoil";
 import useMessage from "../../../Hooks/useMessage";
+import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions";
 
 type CCTVIconType = 'DEFAULT' | 'ON_SELECT' | 'START_POINT' | 'END_POINT';
 
@@ -32,7 +33,6 @@ const OMEYESettings = () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxDurationApi(duration))
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
     }
   }
@@ -41,7 +41,6 @@ const OMEYESettings = () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', mapTypeApi, {mapType: omeyeSettingsInfo.mapType})
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
     }
   }
@@ -52,7 +51,6 @@ const OMEYESettings = () => {
     })
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
     }
   }
@@ -64,7 +62,6 @@ const OMEYESettings = () => {
     })
     
     if(res === undefined) {
-      console.log('에러');
       GetOMEYESettingsInfo();
     }
   }
@@ -294,21 +291,23 @@ const OMEYESettings = () => {
             <div>
               최소: 
               <DayInput 
-                value={omeyeSettingsInfo?.minZoom}
+                value={omeyeSettingsInfo?.minZoom ? omeyeSettingsInfo?.minZoom : 0}
                 onChange={(e) => {
+                  const num = OnlyInputNumberFun(e)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    minZoom: parseInt(e)
+                    minZoom: parseInt(num)
                   }))
                 }}
               /> 
               최대: 
               <DayInput 
-                value={omeyeSettingsInfo?.maxZoom}
+                value={omeyeSettingsInfo?.maxZoom ? omeyeSettingsInfo?.maxZoom : 0}
                 onChange={(e) => {
+                  const num = OnlyInputNumberFun(e)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    maxZoom: parseInt(e)
+                    maxZoom: parseInt(num)
                   }))
                 }}
               />

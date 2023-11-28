@@ -120,8 +120,8 @@ const ServerMgmtSidebar = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
-  const [storageThreshHold, setStorageThreshHold] = useState<string>('');
-  const [deleteStoragePercent, setDeleteStoragePercent] = useState<string>('0');
+  const [storageThreshHold, setStorageThreshHold] = useState<number>(0);
+  const [deleteStoragePercent, setDeleteStoragePercent] = useState<number>(0);
   const [deleteStorageDate, setDeleteStorageDate] = useState<dateType>(dateInit);
   const [storageData, setStorageData] = useState<GetStorageDataType | undefined>(undefined);
 
@@ -259,12 +259,12 @@ const ServerMgmtSidebar = () => {
 
   const GetStorageThreshHoldFun = async () => {
     const res:GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
-    if(res) setStorageThreshHold(res.threshold.toString());
+    if(res) setStorageThreshHold(res.threshold);
   }
 
   const SaveStorageThreshHoldFun = async () => {
     const res = await Axios('PUT', StorageThreshHoldApi, {
-      threshold: parseInt(storageThreshHold)
+      threshold: storageThreshHold
     }, true)
     if(res !== undefined) {
       if (res.data.success) {
@@ -282,7 +282,7 @@ const ServerMgmtSidebar = () => {
 
   const DeleteStorageFun = async (type: string) => {
     const percentPayload = {
-      percent: parseInt(deleteStoragePercent)
+      percent: deleteStoragePercent
     }
 
     const datePayload = {
@@ -291,7 +291,7 @@ const ServerMgmtSidebar = () => {
     }
 
     const res = await Axios('DELETE', StorageMgmtApi, (type === 'percent' ? percentPayload : datePayload))
-    if(type === 'percent') setDeleteStoragePercent('0');
+    if(type === 'percent') setDeleteStoragePercent(0);
     if(type === 'date') setDeleteStorageDate(dateInit);
 
     if(res) {
@@ -539,15 +539,15 @@ const ServerMgmtSidebar = () => {
           <div>
             <StorageInput 
               maxLength={3}
-              value={storageThreshHold} 
+              value={storageThreshHold ? storageThreshHold : 0} 
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e);
-                setStorageThreshHold(num);
+                setStorageThreshHold(parseInt(num));
               }}
             />
             <ServerControlButton
               onClick={() => {
-                if(parseInt(storageThreshHold) > 100) {
+                if(storageThreshHold > 100) {
                   return message.error({ title: '저장공간 사용량 설정 에러', msg: '100 이하로 입력해주세요' })
                 } 
                 SaveStorageThreshHoldFun()
@@ -562,17 +562,17 @@ const ServerMgmtSidebar = () => {
           <div>
             <StorageInput 
               maxLength={3}
-              value={deleteStoragePercent} 
+              value={deleteStoragePercent ? deleteStoragePercent : 0} 
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e);
-                setDeleteStoragePercent(num);
+                setDeleteStoragePercent(parseInt(num));
               }}
             />
             <ServerControlButton
               onClick={() => {
-                if(parseInt(deleteStoragePercent) > 100) {
+                if(deleteStoragePercent > 100) {
                   return message.error({ title: '용량 정리하기 에러', msg: '100 이하로 입력해주세요' })
-                } else if(parseInt(deleteStoragePercent) > 100-storageData?.availPercent!) {
+                } else if(deleteStoragePercent > 100-storageData?.availPercent!) {
                   return message.error({ title: '용량 정리하기 에러', msg: '저장 공간 사용량 이하로 입력해주세요' })
                 }
                 DeleteStorageFun('percent')

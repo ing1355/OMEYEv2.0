@@ -396,9 +396,10 @@ const AccountSettings = ({visible}: {
           setSearchInputValue('')
         }}
         title="멤버 삭제"
+        noFooter={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          <div>삭제하시겠습니까?</div>
+          <div style={{margin: '30px 0px'}}>삭제하시겠습니까?</div>
           <div>
             <DeleteModalButton 
               hover

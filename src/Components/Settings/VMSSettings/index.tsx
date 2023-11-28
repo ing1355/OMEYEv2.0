@@ -25,7 +25,7 @@ type vmsInfoType = {
   vmsServerIp: string[];
   vmsId: string;
   vmsPw: string;
-  maxStoredDay: string;
+  maxStoredDay: number;
   vmsGroup: string;
   vmsLic: string;
   installSite: string;
@@ -237,12 +237,12 @@ const VMSSettings = ({visible}: {
           <div style={{display: 'flex'}}>
             <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>최대 저장 기간</div>
             <SiteInput 
-              value={vmsInfo.maxStoredDay}
+              value={vmsInfo.maxStoredDay ? vmsInfo.maxStoredDay : 0}
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e)
                 setVmsInfo((pre) => ({
                   ...pre!,
-                  maxStoredDay: num
+                  maxStoredDay: parseInt(num)
                 }))
               }}                  
             />

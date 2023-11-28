@@ -28,11 +28,12 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('')
   const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('')
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
+  const [changeDropdown, setChangeDropdown] = useState<boolean>(false)
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
   const message = useMessage()
-
+console.log('modifySelectMember',modifySelectMember)
   const modifyInit = () => {
     setIsModifyMember(false)
     setUpdateMemeberList(!updateMemeberList)
@@ -190,6 +191,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
                 setSearchRoleValue(val.value as RoleValues)
               }}
               // valueIndex={SelectedRoleValueIndexFun()}
+              valueIndex={modifySelectMember.role === 'DEVELOPER' ? 2 : modifySelectMember.role === 'ADMIN' ? 1 : 0}
             />
             :
             <div style={{ width: '240px', textAlign: 'center', lineHeight: '30px' }}>
