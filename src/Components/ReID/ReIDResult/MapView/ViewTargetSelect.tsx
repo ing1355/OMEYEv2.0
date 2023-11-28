@@ -196,6 +196,7 @@ const Circle = styled.div<{selected: boolean}>`
     height: 12px;
     border-radius: 50%;
     background-color: ${({selected}) => selected ? ButtonActiveBackgroundColor : ButtonDisabledBackgroundColor};
+    opacity: ${({selected}) => selected ? 1 : 0.5}
 `
 
 const Title = styled.div`
