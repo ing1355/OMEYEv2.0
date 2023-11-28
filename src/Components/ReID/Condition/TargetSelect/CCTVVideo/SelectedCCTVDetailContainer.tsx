@@ -34,12 +34,16 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
     const message = useMessage()
 
     const captureCallback = (resultList: CaptureResultListItemType[]) => {
-        setTargetList(targetList.concat(resultList.map(_ => ({
+        setTargetList(targetList.map(_ => ({
+            ..._,
+            isCurrent: false
+        })).concat(resultList.map(_ => ({
             ..._,
             method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['CCTV']],
             cctvName: selected?.name,
             selected: false,
-            time: captureTime
+            time: captureTime,
+            isCurrent: true
         }))))
     }
 
@@ -158,7 +162,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
                     </VideoCaptureBtn>
                 </VideosInnerContainer>
             </VideosContainer>
-            <CaptureImageContainer src={captureSrc} captureCallback={captureCallback} />
+            <CaptureImageContainer src={captureSrc} captureCallback={captureCallback} type="CCTV"/>
             <DetailTitle>
                 대상 조회 결과
                 <ResetBtn disabled={targetList.length === 0} onClick={() => {

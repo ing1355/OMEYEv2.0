@@ -12,6 +12,7 @@ import IconBtn from "../../../Constants/IconBtn"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 import useMessage from "../../../../Hooks/useMessage"
 import checkIcon from '../../../../assets/img/checkIcon.png'
+import targetIcon from '../../../../assets/img/targetIcon.png'
 
 export type PlateStatusType = 'none' | 'add' | 'update'
 
@@ -40,6 +41,7 @@ const TargetSelectColumn = () => {
             title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
             isTarget
             initAction={initAction}
+            titleIcon={targetIcon}
             dataAddAction={addAction}
             noDataText="대상 추가"
             isDataExist={datas.length > 0}

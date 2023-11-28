@@ -50,7 +50,7 @@ const Header = () => {
             <ProgressBtn onClick={() => {
                 setReIDProgressVisible(!reIDProgressVisible)
             }}>
-                <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} />
+                <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']}/>
                 <ReIDProgress visible={reIDProgressVisible} close={() => {
                     setReIDProgressVisible(false)
                 }}/>
@@ -107,6 +107,7 @@ const ProgressBtn = styled.div`
     cursor: pointer;
 `
 
-const ProgressBtnIcon = styled.img`
+const ProgressBtnIcon = styled.img<{isRunning: boolean}>`
     height: 75%;
+    ${({isRunning}) => isRunning && globalStyles.flash({animationDuration: '3s', animationIterationCount: 'infinite'})}
 `

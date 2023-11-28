@@ -2,7 +2,7 @@ import { useRecoilState, useRecoilValue } from "recoil"
 import MonitoringSidebarButton from "./MonitoringSidebarButton"
 import { MonitoringDatas } from "../../../../Model/MonitoringDataModel"
 import styled from "styled-components"
-import { SectionBackgroundColor } from "../../../../styles/global-styled"
+import { ModalBoxShadow, SectionBackgroundColor } from "../../../../styles/global-styled"
 import TreeAndMapComponent from "../../../Constants/TreeAndMapComponent"
 import { CameraDataType, setStateType } from "../../../../Constants/GlobalTypes"
 import useMessage from "../../../../Hooks/useMessage"
@@ -49,29 +49,31 @@ export default SelectMonitoringCCTVs
 
 const ListContainer = styled.div<{ visible: boolean, index: number }>`
     position: absolute;
-    width: ${({ visible }) => visible ? 812.5 : 0}px;
+    width: ${({ visible }) => visible ? 810 : 0}px;
     height: ${({ visible }) => visible ? 800 : 0}px;
     right: 66px;
-    top: ${({index}) => index * 56 + 44}px;
-    transition: all .3s ease-out;
-    overflow: hidden;
+    top: ${({index}) => index * 56 - 14}px;
+    transition: top .3s ease-out;
     z-index: 1004;
-`
-
-const InnerContainer = styled.div`
-    width: 800px;
-    background-color: ${SectionBackgroundColor};
-    height: 800px;
-    padding: 6px;
-    &:before {
+    overflow: ${({visible}) => visible ? 'visible' : 'hidden'};
+    padding-right: 10px;
+    &:after {
         content: "";
         width: 0px;
         height: 0px;
         border-top: 8px solid transparent;
         border-bottom: 8px solid transparent;
         border-left: 8px solid ${SectionBackgroundColor};
-        top: 11px;
-        right: 5px;
+        top: 31px;
+        right: -8px;
         position: absolute;
     }
+    border-radius: 12px;
+    box-shadow: ${ModalBoxShadow};
+    background-color: ${SectionBackgroundColor};
+`
+
+const InnerContainer = styled.div`
+    width: 800px;
+    height: 800px;
 `

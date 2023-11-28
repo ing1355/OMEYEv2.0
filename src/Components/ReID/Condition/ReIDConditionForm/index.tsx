@@ -74,7 +74,7 @@ const ReIDConditionForm = () => {
                     setConditionList(conditionList.concat(tempConditionData))
                     message.success({
                         title: "저장 성공",
-                        msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "조건 목록" 메뉴에서 확인할 수 있습니다.'
+                        msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "검색 조건 목록" 메뉴에서 확인할 수 있습니다.'
                     })
                 }}>
                     현재 조건 저장

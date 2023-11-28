@@ -10,6 +10,7 @@ import resetHoverIcon from '../../../../assets/img/resetHoverIcon.png'
 import conditionDataAddIcon from '../../../../assets/img/conditionDataAddIcon.png'
 import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHoverIcon.png'
 import liveIcon from '../../../../assets/img/liveIcon.png'
+import Modal from '../../../Layout/Modal';
 
 type ConditionParamsInputColumnComponentProps = PropsWithChildren<{
     title: string
@@ -51,13 +52,14 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
     const [isRealTime, setIsRealTime] = useRecoilState(conditionIsRealTimeData)
     const [clearHover, setClearHover] = useState(false)
     const [isHover, setIsHover] = useState(false)
+    const [confirmVisible, setConfirmVisible] = useState(false)
 
     const resetIconByHover = clearHover ? resetHoverIcon : resetIcon
 
     return <>
         <TitleContainer>
             <TitleInnerContainer>
-                {titleIcon && <TitleIconContainer isTarget={isTarget || false}>
+                {titleIcon && <TitleIconContainer>
                     <TitleIcon src={titleIcon} />
                 </TitleIconContainer>}
                 <TitleText>
@@ -71,7 +73,9 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                 <OptionButton
                     concept="icon"
                     disabled={!isDataExist && !(realtimeBtn && isRealTime)}
-                    onClick={initAction}
+                    onClick={() => {
+                        setConfirmVisible(true)
+                    }}
                     onMouseEnter={() => {
                         setClearHover(true)
                     }}
@@ -124,6 +128,11 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
                 )
             }
         </DataContainer>
+        <Modal visible={confirmVisible} close={() => {
+            setConfirmVisible(false)
+        }} complete={initAction} title="초기화">
+            정말로 초기화 하시겠습니까?
+        </Modal>
     </>
 }
 
@@ -182,8 +191,8 @@ const TitleInnerContainer = styled.div`
     flex: 1;
 `
 
-const TitleIconContainer = styled.div<{ isTarget: boolean }>`
-    flex: 0 0 ${({ isTarget }) => isTarget ? 40 : 20}px;
+const TitleIconContainer = styled.div`
+    flex: 0 0 20px;
     margin-right: 6px;
     height: 100%;
     ${globalStyles.flex()}

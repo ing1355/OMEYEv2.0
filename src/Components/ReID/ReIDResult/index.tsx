@@ -85,7 +85,7 @@ const ReIDResult = () => {
                             {ind + 1}
                             <DeleteIconContainer onClick={(e) => {
                                 e.stopPropagation()
-                                setModalVisible(_.reIdId)
+                                if(!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING']))) setModalVisible(_.reIdId)
                             }}>
                                 {!((globalCurrentReIdId === _.reIdId) && (progressStatus.status === PROGRESS_STATUS['RUNNING'])) && <DeleteIcon src={deleteIcon} />}
                             </DeleteIconContainer>

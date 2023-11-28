@@ -59,7 +59,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
                         </Title>
                     </CCTVRowContainer>)}
                 </CCTVsContainer>
-                <TargetsContainer nums={datas.length}>
+                <TargetsContainer nums={datas.length > (datas[selectedView] ? datas[selectedView].objectIds.length : 0) ? datas.length : (datas[selectedView] ? datas[selectedView].objectIds.length : 0)}>
                     {
                         datas[selectedView] && datas[selectedView].objectIds.map((_, ind) => <TargetRowContainer key={ind} onClick={() => {
                             if(selectedTarget[selectedView].includes(_)) {

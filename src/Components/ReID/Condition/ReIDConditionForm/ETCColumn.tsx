@@ -11,6 +11,7 @@ import conditionDataAddHoverIcon from '../../../../assets/img/conditionDataAddHo
 import conditionDataMinusIcon from '../../../../assets/img/conditionDataMinusIcon.png'
 import conditionDataMinusHoverIcon from '../../../../assets/img/conditionDataMinusHoverIcon.png'
 import rankIcon from '../../../../assets/img/rankIcon.png'
+import etcIcon from '../../../../assets/img/etcIcon.png'
 
 const RankBtn = ({ callback, hoverIcon, icon }: {
     callback: () => void
@@ -42,18 +43,18 @@ const RankBtn = ({ callback, hoverIcon, icon }: {
     return <RankInputButton
         disabled={isRealTime}
         onMouseDown={(e) => {
-            if(!isRealTime) {
+            if (!isRealTime) {
                 callback()
                 onLongClickProgress(400, callback)
             }
         }}
         onMouseEnter={() => {
-            if(!isRealTime) {
+            if (!isRealTime) {
                 setIsHover(true)
             }
         }}
         onMouseLeave={() => {
-            if(!isRealTime) {
+            if (!isRealTime) {
                 setIsHover(false)
             }
         }}
@@ -109,9 +110,14 @@ const ReIDDescriptionComponent = () => {
 
     return <DescriptionContainer>
         <TitleContainer>
-            <TitleText>
-                비고
-            </TitleText>
+            <TitleInnerContainer>
+                <TitleIconContainer>
+                    <TitleIcon src={etcIcon} />
+                </TitleIconContainer>
+                <TitleText>
+                    비고
+                </TitleText>
+            </TitleInnerContainer>
         </TitleContainer>
         <DescriptionInputContainer disabled={isRealTime} onClick={() => {
             if (inputRef.current && !isRealTime) inputRef.current.focus()
@@ -144,13 +150,13 @@ const RankContainer = styled.div`
     ${globalStyles.flex({ gap: '2px' })}
 `
 
-const RankInputContainer = styled.div<{disabled: boolean}>`
+const RankInputContainer = styled.div<{ disabled: boolean }>`
     width: 100%;
     flex: 1 1 auto;
     border: 1px solid black;
     padding: 12px 36px;
     border-radius: 10px;
-    background-color: ${({disabled}) => disabled ? ContentsDisableColor : SectionBackgroundColor};
+    background-color: ${({ disabled }) => disabled ? ContentsDisableColor : SectionBackgroundColor};
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '4px' })}
 `
 
@@ -169,7 +175,7 @@ const RankInputInnerContainer = styled.div`
     }
 `
 
-const RankInput = styled(Input)<{isRealTime: boolean}>`
+const RankInput = styled(Input) <{ isRealTime: boolean }>`
     outline: none;
     border: none;
     border-radius: 10px;
@@ -178,8 +184,8 @@ const RankInput = styled(Input)<{isRealTime: boolean}>`
     font-size: 1.5rem;
     color: white;
     height: 100%;
-    background-color: ${({isRealTime}) => isRealTime ? 'transparent' : InputBackgroundColor};
-    pointer-events: ${({isRealTime}) => isRealTime ? 'none' : 'all'};
+    background-color: ${({ isRealTime }) => isRealTime ? 'transparent' : InputBackgroundColor};
+    pointer-events: ${({ isRealTime }) => isRealTime ? 'none' : 'all'};
 `
 
 const RankInputButtonsContainer = styled.div`
@@ -203,14 +209,14 @@ const DescriptionContainer = styled.div`
     ${globalStyles.flex({ gap: '2px' })}
 `
 
-const DescriptionInputContainer = styled.div<{disabled: boolean}>`
+const DescriptionInputContainer = styled.div<{ disabled: boolean }>`
     width: 100%;
     height: calc(100% - 36px);
     padding: 24px 36px;
     cursor: pointer;
     border-radius: 12px;
-    pointer-events: ${({disabled}) => disabled ? 'none' : 'all'};
-    background-color: ${({disabled}) => disabled ? ContentsDisableColor : SectionBackgroundColor};
+    pointer-events: ${({ disabled }) => disabled ? 'none' : 'all'};
+    background-color: ${({ disabled }) => disabled ? ContentsDisableColor : SectionBackgroundColor};
 
 `
 
@@ -239,7 +245,7 @@ const TitleInnerContainer = styled.div`
 `
 
 const TitleIconContainer = styled.div`
-    flex: 0 0 26px;
+    flex: 0 0 20px;
     margin-right: 6px;
     height: 100%;
     ${globalStyles.flex()}

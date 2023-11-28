@@ -105,7 +105,9 @@ type ResType = {
 type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' | 'organization' ;
 export type RoleValues = 'USER' | 'ADMIN' | 'DEVELOPER' ;
 
-const AccountSettings = () => {
+const AccountSettings = ({visible}: {
+  visible: boolean
+}) => {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectUsers, setSelectUsers] = useState<string[]>([])
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember)
@@ -179,7 +181,7 @@ const AccountSettings = () => {
   }
 
   useEffect(() => {
-    getUsersAccountList()
+    if(visible) getUsersAccountList()
   },[currentPage, updateMemeberList])
 
   return (

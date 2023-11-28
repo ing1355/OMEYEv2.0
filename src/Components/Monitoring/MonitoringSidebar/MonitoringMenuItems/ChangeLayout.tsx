@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { ModalBoxShadow, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import MonitoringSidebarButton from "./MonitoringSidebarButton"
 import Dropdown from "../../../Layout/Dropdown"
 import { useRecoilState, useRecoilValue } from "recoil"
@@ -54,7 +54,7 @@ const ListContainer = styled.div<{ visible: boolean, index: number }>`
     width: ${({ visible }) => visible ? 212.5 : 0}px;
     height: ${({ visible }) => visible ? 48 : 0}px;
     right: 66px;
-    top: ${({index}) => index * 56 + 44}px;
+    top: ${({index}) => index * 56 + 4}px;
     overflow: ${({visible}) => visible ? 'visible' : 'hidden'};
     transition: overflow .3s ease-out .3s;
     z-index: 1004;
@@ -82,4 +82,6 @@ const InnerContainer = styled.div`
         right: 5px;
         position: absolute;
     }
+    border-radius: 12px;
+    box-shadow: ${ModalBoxShadow};
 `

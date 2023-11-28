@@ -21,10 +21,14 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
     const [targetList, setTargetList] = useRecoilState(conditionTargetDatasImageTemp)
 
     const captureCallback = (resultList: CaptureResultListItemType[]) => {
-        setTargetList(targetList.concat(resultList.map(_ => ({
+        setTargetList(targetList.map(_ => ({
+            ..._,
+            isCurrent: false
+        })).concat(resultList.map(_ => ({
             ..._,
             selected: false,
-            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['IMAGEUPLOAD']]
+            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['IMAGEUPLOAD']],
+            isCurrent: true
         }))))
     }
 
@@ -64,7 +68,7 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
                 {images[selected].type}
             </DetailInfoCol>
         </DetailInfoRow>
-        <CaptureImageContainer src={images[selected].src} captureCallback={captureCallback} />
+        <CaptureImageContainer src={images[selected].src} captureCallback={captureCallback} type="IMAGE" />
         <DetailTitle>
             대상 조회 결과
             <ResetBtn disabled={targetList.length === 0} onClick={() => {
@@ -81,16 +85,16 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
                     </CaptureResultListItemImageContainer>
                     <CaptureResultListItemFaceSelectContainer>
                         {_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <MaskSelect hoverBorder activate={_.mask || false} onClick={() => {
-                                setTargetList(targetList.map((__, _ind) => ind === _ind ? ({
-                                    ...__,
-                                    mask: !__.mask
-                                }) : __))
-                            }}>
-                                <img src={maskIcon} style={{
-                                    width: '100%',
-                                    height: '100%'
-                                }}/>
-                            </MaskSelect>}
+                            setTargetList(targetList.map((__, _ind) => ind === _ind ? ({
+                                ...__,
+                                mask: !__.mask
+                            }) : __))
+                        }}>
+                            <img src={maskIcon} style={{
+                                width: '100%',
+                                height: '100%'
+                            }} />
+                        </MaskSelect>}
                         <CaptureResultListItemSelectButton hover activate={_.selected!} selected={_.selected!} isMask={_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]} onClick={() => {
                             setTargetList(targetList.map((__, _ind) => ind === _ind ? {
                                 ...__,
@@ -145,7 +149,7 @@ const CaptureResultListItemsContainer = styled.div`
 const CaptureResultListItemBox = styled.div<{ selected: boolean }>`
     height: 200px;
     width: 200px;
-    ${globalStyles.flex({gap: '6px'})}
+    ${globalStyles.flex({ gap: '6px' })}
 `
 
 const CaptureResultListItemImageContainer = styled.div`

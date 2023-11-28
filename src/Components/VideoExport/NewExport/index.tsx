@@ -21,11 +21,13 @@ import { CustomEventSource, IS_PRODUCTION } from "../../../Constants/GlobalConst
 import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
+import encodingIcon from '../../../assets/img/encodingIcon.png'
 import editIcon from '../../../assets/img/cctvEditIcon.png'
 import useMessage from "../../../Hooks/useMessage"
 import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
 import { useRecoilValue } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
+import ForLog from "../../Constants/ForLog"
 
 type ParameterInputType = {
     index: number
@@ -167,7 +169,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 <Progress percent={progress.aiPercent || progress.deIdentificationPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
             </ProgressContainer>
             {options.masking.length > 0 && <ProgressContainer>
-                <Progress percent={progress.encodingPercent || 0} color={TextActivateColor} outString icon={ProgressAIIcon} />
+                <Progress percent={progress.encodingPercent || 0} color={TextActivateColor} outString icon={encodingIcon} />
             </ProgressContainer>}
             {options.description && <ETCContainer>
                 <div>
@@ -259,7 +261,7 @@ const NewExport = () => {
     const currentData = useRef<VideoExportRowDataType>(datas[0])
     const tempTimer = useRef<NodeJS.Timer>()
     const message = useMessage()
-
+    
     useEffect(() => {
         datasRef.current = datas
     }, [datas])

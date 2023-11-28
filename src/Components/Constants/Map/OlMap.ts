@@ -466,7 +466,7 @@ export class OlMap extends CustomMap<Map> {
                     }
                 } else {
                     let _feature: Feature<Geometry>
-                    if(feature.getId()) _feature = feature
+                    if(feature && feature.getId()) _feature = feature
                     else _feature = features[0]
                     this.clickId = _feature.getId()
                     switch (this.map.get(mapStateKey)) {

@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { CaptureResultListItemType, CaptureResultType, CaptureType } from "../../../../Constants/GlobalTypes"
+import { useEffect, useState } from "react"
+import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType } from "../../../../Constants/GlobalTypes"
 import styled from "styled-components"
 import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
@@ -11,26 +11,43 @@ import ImageViewWithCanvas from "./ImageViewWithCanvas"
 import searchIcon from "../../../../assets/img/searchIcon.png"
 import { useRecoilValue } from "recoil"
 import useMessage from "../../../../Hooks/useMessage"
-import { conditionSelectedType } from "../../../../Model/ConditionDataModel"
+import { conditionSelectedType, conditionTargetDatasCCTVTemp, conditionTargetDatasImageTemp } from "../../../../Model/ConditionDataModel"
 
 type CaptureContainerProps = {
     src?: string
     captureCallback?: (val: CaptureResultListItemType[]) => void
+    type: "CCTV" | "IMAGE"
 }
 
-const CaptureImageContainer = ({ src, captureCallback }: CaptureContainerProps) => {
+const isSamePoint = (p1: PointType, p2: PointType) => {
+    return p1[0] === p2[0] && p1[1] === p2[1] && p1[2] === p2[2] && p1[3] === p2[3]
+}
+
+const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerProps) => {
     const [captureType, setCaptureType] = useState<CaptureType>('auto')
     const [userCaptureOn, setUserCaptureOn] = useState(false)
     const [captureResults, setCaptureResults] = useState<CaptureResultType[]>([])
     const [loading, setLoading] = useState(false)
+    const globalTargetList = useRecoilValue(type === 'CCTV' ? conditionTargetDatasCCTVTemp : conditionTargetDatasImageTemp)
     const objType = useRecoilValue(conditionSelectedType)
     const message = useMessage()
 
+    useEffect(() => {
+        if(captureResults.length > 0) {
+            const selectedTargetList = globalTargetList.filter(_ => _.selected)
+            setCaptureResults(captureResults.map(_ => ({
+                ..._,
+                isSelected: selectedTargetList.some(__ => isSamePoint(__.points || [0,0,0,0], _.points as PointType))
+            })))
+        }
+    },[globalTargetList])
+    
     return <DetailMiddleContainer>
         <ImageViewWithCanvas
             userCaptureOn={userCaptureOn}
             captureType={captureType}
             src={src}
+            type={type}
             captureResult={captureResults}
             captureCallback={captureCallback}
             containerStyle={{

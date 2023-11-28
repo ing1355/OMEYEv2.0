@@ -1,5 +1,5 @@
 import styled, { CSSProperties } from "styled-components"
-import { PropsWithChildren, useCallback, useEffect } from "react"
+import { PropsWithChildren, useCallback, useEffect, useRef } from "react"
 import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import ModalCloseIcon from '../../../../assets/img/modalCloseIcon.png'
@@ -18,27 +18,29 @@ type DataSelectModalProps = PropsWithChildren<{
 }>
 
 const DataSelectModal = ({ visible, children, title, className, width, close, complete }: DataSelectModalProps) => {
-
     const c_menu = useRecoilValue(conditionMenu)
     const c_route = useRecoilValue(conditionRoute)
     const menu = useRecoilValue(menuState)
+    const callbackRef = useRef<(e: KeyboardEvent) => void>()
 
-    const escCallback = useCallback((e: KeyboardEvent) => {
+    const escCallback = (e: KeyboardEvent) => {
         if(e.key === 'Escape') {
             if(close) close()
         }
-    },[])
+    }
 
     useEffect(() => {
         if(visible) {
-            document.addEventListener('keydown', escCallback)
+            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+            callbackRef.current = escCallback
+            if(callbackRef.current) document.addEventListener('keydown', callbackRef.current)
         } else {
-            document.removeEventListener('keydown', escCallback)
+            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
         }
-    },[visible])
+    },[visible, escCallback])
 
     useEffect(() => {
-        close()
+        if(visible) close()
     },[c_menu, c_route, menu])
     
     return <Background visible={visible}>

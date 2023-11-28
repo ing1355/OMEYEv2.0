@@ -24,7 +24,8 @@ export const ContentsDisableColor = 'rgba(128,128,128,.5)'
 export const loadingVideoDownloadColor = ContentsActivateColor
 export const loadingAIAnalysisColor = ButtonActiveBackgroundColor
 export const ScrollBarColor = "#4f4f56"
-export const ModalBoxShadow = '0 0 20px #060607'
+export const ModalBoxShadowColor = '#060607'
+export const ModalBoxShadow = `0 0 20px ${ModalBoxShadowColor}`
 
 const fadeOut = keyframes`
   0% {
@@ -32,6 +33,18 @@ const fadeOut = keyframes`
   }
   100% {
     opacity: 1;
+  }
+`
+
+const flash = keyframes`
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.1;
   }
 `
 
@@ -76,6 +89,9 @@ export const globalStyles = {
   `,
   slideToLeft: (attr?: CSSProperties) => css`
     animation: ${slideToLeft} ${attr?.animationDuration ?? '.25s'} ${attr?.animationTimingFunction ?? 'ease-out'} ${attr?.animationDelay ?? '0s'};
+  `,
+  flash: (attr?: CSSProperties) => css`
+    animation: ${flash} ${attr?.animationDuration ?? '.25s'} ${attr?.animationTimingFunction ?? 'ease-out'} ${attr?.animationDelay ?? '0s'} ${attr?.animationIterationCount ?? ''};
   `,
   displayNoneByState: (state: boolean) => state && `
     display: none;

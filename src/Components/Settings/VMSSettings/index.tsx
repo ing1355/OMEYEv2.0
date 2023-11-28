@@ -31,7 +31,9 @@ type vmsInfoType = {
   installSite: string;
 }
 
-const VMSSettings = () => {
+const VMSSettings = ({visible}: {
+  visible: boolean
+}) => {
   const [vmsList, setVmsList] = useState<string[]>([]);
   const [vmsDropdownList, setVmsDropdownList] = useState<DropdownItemType<string>[]>([{
     key: '',
@@ -133,8 +135,8 @@ const VMSSettings = () => {
   }
 
   useEffect(() => {
-    GetVmsList();
-  },[])
+    if(visible) GetVmsList();
+  },[visible])
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>

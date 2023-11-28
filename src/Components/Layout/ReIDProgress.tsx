@@ -1226,7 +1226,7 @@ const ConditionTitleText = styled.div`
 
 const ConditionTitleSubContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px', justifyContent: 'space-around' })}
-    flex: 0 0 220px;
+    flex: 0 0 120px;
     padding: 0 0 0 16px;
     border-left: 1px solid ${ContentsBorderColor};
     height: 100%;
@@ -1234,7 +1234,7 @@ const ConditionTitleSubContainer = styled.div`
 
 const ConditionTitleSubContentOne = styled.div`
     flex: 1;
-    height: 100%;    
+    height: 100%;
 `
 
 const LabelWithValue = styled.div`

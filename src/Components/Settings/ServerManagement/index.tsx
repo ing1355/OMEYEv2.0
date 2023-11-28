@@ -106,7 +106,9 @@ const aiServicesName = [
 // let sse: EventSource | null;
 const init = [0,0,0,0,0,0,0,0];
 
-const ServerManagement = () => {
+const ServerManagement = ({visible}: {
+  visible: boolean
+}) => {
   const sseRef = useRef<EventSource>()
   const [windowDimensions, setWindowDimensions] = useState({
     width: window.innerWidth,
@@ -420,9 +422,8 @@ const ServerManagement = () => {
   }
 
   useEffect(() => {
-    sseSetting()
-
-  },[])
+    if(visible) sseSetting()
+  },[visible])
 
   return (
     <div>

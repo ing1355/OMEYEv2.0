@@ -130,9 +130,13 @@ const ReIDLogs = () => {
                                                 resultList: d.resultList.map(r => ({
                                                     ...r,
                                                     timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                                                        const _ = new Map()
+                                                        Object.keys(t.results).forEach(__ => {
+                                                            _.set(__, (t.results as any)[Number(__)])
+                                                        })
                                                         return {
                                                             ...t,
-                                                            results: Object.entries(t.results) as any
+                                                            results: _
                                                         }
                                                     })
                                                 }))
