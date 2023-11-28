@@ -19,6 +19,8 @@ import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import { message } from "antd"
 import useMessage from "../../../Hooks/useMessage"
+import plusIcon from "../../../assets/img/plusIcon.png"
+import minusIcon from "../../../assets/img/minusIcon.png"
 
 const AccountSearchDropdownList = [
   {
@@ -262,12 +264,19 @@ const AccountSettings = ({visible}: {
               onClick={() => {
                 if(selectUsers.length > 0) setIsDeleteMember(true)
               }}
+              icon={minusIcon}
+              iconStyle={{width: '15px', height: '15px'}}
             >
               멤버 삭제
             </TopButton>
-            <TopButton hover onClick={() => {
-              setIsAddMember(true)
-            }}>멤버 추가</TopButton>
+            <TopButton 
+              hover 
+              onClick={() => {
+                setIsAddMember(true)
+              }}
+              icon={plusIcon}
+              iconStyle={{width: '15px', height: '15px'}}
+            >멤버 추가</TopButton>
           </div>
         }
       </div>
