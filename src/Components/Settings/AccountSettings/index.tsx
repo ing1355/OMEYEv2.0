@@ -134,6 +134,7 @@ const AccountSettings = ({visible}: {
       name: searchValue === 'name' ? searchInputValue === '' ? null : searchInputValue : null,
       email: searchValue === 'email' ? searchInputValue === '' ? null : searchInputValue : null,
       phoneNumber: searchValue === 'phoneNumber' ? searchInputValue === '' ? null : searchInputValue : null,
+      organization: searchValue === 'organization' ? searchInputValue === '' ? null : searchInputValue : null,
     })
     if (res) setUsersAccountRows(res)
   }
@@ -209,9 +210,13 @@ const AccountSettings = ({visible}: {
               }}
             />
           :
-            <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {
-              setSearchInputValue(value)
-            }} 
+            <SearchInput 
+              placeholder={'검색'} 
+              value={searchInputValue} 
+              onChange={value => {
+                setSearchInputValue(value)
+              }} 
+              onEnter={getUsersAccountList}
             />
           }
           {/* <SearchInput placeholder={'검색'} value={searchInputValue} onChange={value => {

@@ -83,7 +83,7 @@ console.log('modifySelectMember',modifySelectMember)
       message.error({ title: '멤버 수정 에러', msg: '모든 항목을 입력해주세요.' })
       return true
     } else if(!passwordRegex.test(modifyAccountPassword)) {
-      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합 혹은 10자 이상 2가지 조합이어야 합니다' })
+      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
       return true
     } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
       message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })

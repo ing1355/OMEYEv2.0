@@ -67,9 +67,9 @@ const OMEYESettings = () => {
   }
 
   const SaveDataFun = () => {
-    ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
+    // ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
     ChangeMapTypeFun();
-    ChangeMapCustomTileUrlFun();
+    // ChangeMapCustomTileUrlFun();
     ChangeZoomLevelFun();
     
     setTimeout(()=>{

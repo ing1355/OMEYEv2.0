@@ -66,10 +66,6 @@ const OMEYESidebar = () => {
     ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
   }
 
-  useEffect(() => {
-    GetOMEYESettingsInfo();
-  },[]);
-
   return (
     <div>
       <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '15px'}}>
@@ -77,7 +73,7 @@ const OMEYESidebar = () => {
           hover
           onClick={SaveDataFun}
         >
-          설정
+          저장
         </OMEYEButton>
       </div>
       {/* FPS 설정 */}

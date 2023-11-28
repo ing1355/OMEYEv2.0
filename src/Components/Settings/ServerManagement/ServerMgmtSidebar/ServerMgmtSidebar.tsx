@@ -553,7 +553,7 @@ const ServerMgmtSidebar = () => {
                 SaveStorageThreshHoldFun()
               }}
             >
-              저장
+              설정
             </ServerControlButton>
           </div>
         </div>
