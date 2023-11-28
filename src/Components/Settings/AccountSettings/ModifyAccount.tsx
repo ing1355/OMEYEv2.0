@@ -226,7 +226,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
             const num = OnlyInputNumberFun(e)
             setModifySelectMember((pre) => ({
               ...pre,
-              phoneNumber: e
+              phoneNumber: num
             }))
           }}
           onEnter={modifyAccountFun}
