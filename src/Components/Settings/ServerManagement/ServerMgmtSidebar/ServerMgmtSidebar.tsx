@@ -15,6 +15,8 @@ import useMessage from "../../../../Hooks/useMessage";
 import { DatePicker } from "antd";
 import { RangePickerProps } from "antd/es/date-picker";
 import moment from 'moment';
+import uploadIcon from "../../../../assets/img/uploadIcon.png"
+import downloadIcon from "../../../../assets/img/downloadIcon.png"
 
 // const ServerControlDropdownList = [
 //   {
@@ -435,6 +437,8 @@ const ServerMgmtSidebar = () => {
           <div>
             <ServerControlButton
               onClick={logFileDownloadFun}
+              icon={downloadIcon}
+              iconStyle={{width: '15px', height: '15px'}}
             >
               다운로드
             </ServerControlButton>
@@ -482,7 +486,7 @@ const ServerMgmtSidebar = () => {
                   onChange={handleFileChange}
                 />
               </div>
-              <div style={{lineHeight: '30px'}}>
+              <div style={{lineHeight: '30px', width: '300px', wordWrap: 'break-word', position: 'relative', left: '7.5px' }}>
                 {fileName}
               </div>
               <div>
@@ -490,6 +494,8 @@ const ServerMgmtSidebar = () => {
                   hover
                   type='submit'
                   form='fileUpload'
+                  icon={uploadIcon}
+                  iconStyle={{width: '15px', height: '15px'}}
                 >
                   업로드
                 </ServerControlButton>

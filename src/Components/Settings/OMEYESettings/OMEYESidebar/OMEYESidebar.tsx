@@ -8,6 +8,8 @@ import { useEffect } from "react";
 import Button from "../../../Constants/Button";
 import useMessage from "../../../../Hooks/useMessage";
 import { OnlyInputNumberFun } from "../../../../Functions/GlobalFunctions";
+import whiteCheckIcon from "../../../../assets/img/whiteCheckIcon.png"
+import Slider from "../../../Constants/Slider";
 
 const OMEYESidebar = () => {
   const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
@@ -72,6 +74,8 @@ const OMEYESidebar = () => {
         <OMEYEButton
           hover
           onClick={SaveDataFun}
+          icon={whiteCheckIcon}
+          iconStyle={{width: '15px', height: '15px'}}
         >
           저장
         </OMEYEButton>
@@ -105,7 +109,14 @@ const OMEYESidebar = () => {
                   }))
                 }}
               />
-              {/* <div>프로그래스</div> */}
+              {/* <div style={{margin: '20px 0px 30px'}}>
+                <Slider min={1} max={30} value={omeyeSettingsInfo.personFrame} onChange={(val) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    personFrame: Number(val)
+                  }))
+                }}/>
+              </div> */}
             </div>
           </div>
 

@@ -31,16 +31,16 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [changeDropdown, setChangeDropdown] = useState<boolean>(false)
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
+  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues | null>(null)
   const message = useMessage()
-console.log('modifySelectMember',modifySelectMember)
+
   const modifyInit = () => {
     setIsModifyMember(false)
     setUpdateMemeberList(!updateMemeberList)
     setModifySelectMember(modifySelectMemberInit)
     setModifyAccountPassword('')
     setModifyAccountPasswordConfirm('')
-    setSearchRoleValue('USER')
+    setSearchRoleValue(null)
   }
 
   const putUsersAccount = async () => {
@@ -69,8 +69,6 @@ console.log('modifySelectMember',modifySelectMember)
   }
 
   const SelectedRoleValueIndexFun = () => {
-    console.log('modifySelectMember.role',modifySelectMember.role)
-    console.log(RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role))
     if(userInfo.user.role === 'DEVELOPER') {
       return RoleSearchDropdownList.findIndex((_) => _.key === modifySelectMember.role)
     } else if(userInfo.user.role === 'ADMIN') {
@@ -184,15 +182,19 @@ console.log('modifySelectMember',modifySelectMember)
         </div>
         <div>
           {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
-            <RoleDropdown 
-              itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
-              bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
-              onChange={val => {
-                setSearchRoleValue(val.value as RoleValues)
-              }}
-              // valueIndex={SelectedRoleValueIndexFun()}
-              valueIndex={modifySelectMember.role === 'DEVELOPER' ? 2 : modifySelectMember.role === 'ADMIN' ? 1 : 0}
-            />
+            modifySelectMember.role ?
+              <RoleDropdown 
+                itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
+                bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
+                onChange={val => {
+                  setSearchRoleValue(val.value as RoleValues)
+                }}
+                valueIndex={SelectedRoleValueIndexFun()}
+                // valueIndex={modifySelectMember.role === 'DEVELOPER' ? 2 : modifySelectMember.role === 'ADMIN' ? 1 : 0}
+                // valueIndex={userInfo.user.role === 'DEVELOPER' ? 2 : 1}
+              />
+              :
+              <></>
             :
             <div style={{ width: '240px', textAlign: 'center', lineHeight: '30px' }}>
               USER

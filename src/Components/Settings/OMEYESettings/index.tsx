@@ -10,6 +10,7 @@ import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } fr
 import { useRecoilState } from "recoil";
 import useMessage from "../../../Hooks/useMessage";
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions";
+import whiteCheckIcon from "../../../assets/img/whiteCheckIcon.png"
 
 type CCTVIconType = 'DEFAULT' | 'ON_SELECT' | 'START_POINT' | 'END_POINT';
 
@@ -149,6 +150,8 @@ const OMEYESettings = () => {
         <OMEYEButton
           hover
           onClick={SaveDataFun}
+          icon={whiteCheckIcon}
+          iconStyle={{width: '15px', height: '15px'}}
         >
           저장
         </OMEYEButton>
