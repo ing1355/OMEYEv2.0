@@ -148,10 +148,10 @@ const ServerMgmtSidebar = () => {
   const serverCtrlFun = async () => {
     setIsOpenCtrlModal(false);
 
-    if(selectedService === 'reid2' && serviceCommand === 'stop') {
-      message.error({ title: '서비스 제어 에러', msg: 'reid2 서비스는 중지할 수 없습니다' })
-    } else if(selectedService === 'reid2' && serviceCommand === 'restart') {
-      message.error({ title: '서비스 제어 에러', msg: 'reid2 서비스는 중지할 수 없습니다' })
+    if(selectedService === 'back' && serviceCommand === 'stop') {
+      message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 중지할 수 없습니다' })
+    } else if(selectedService === 'back' && serviceCommand === 'restart') {
+      message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 재시작할 수 없습니다' })
     } else {
       const res = await Axios('POST', serverControlApi,{
         serviceCtrl: [{
@@ -337,7 +337,7 @@ const ServerMgmtSidebar = () => {
         </ServerControlButton>
       </div>
       <div style={{marginBottom: '35px'}}>
-        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap'}}>
           <div style={{lineHeight: '35px', fontSize: '1.1rem'}}>서비스 제어</div>
           <div>
             <ServerControlButton
@@ -424,7 +424,7 @@ const ServerMgmtSidebar = () => {
             />
           </div>          
         </div>
-        <div style={{display: 'flex'}}>
+        <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
           <div style={{width: '300px'}}>
             <ServerControlDropdown 
               itemList={logFileDownloadList}
@@ -435,13 +435,13 @@ const ServerMgmtSidebar = () => {
             />
           </div>
           <div>
-            <ServerControlButton
+            <UploadDownloadButton
               onClick={logFileDownloadFun}
               icon={downloadIcon}
               iconStyle={{width: '15px', height: '15px'}}
             >
               다운로드
-            </ServerControlButton>
+            </UploadDownloadButton>
           </div>
         </div>
       </div>
@@ -470,7 +470,7 @@ const ServerMgmtSidebar = () => {
               // modelUploadFun(file);
             }}
           >
-            <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap'}}>
               <div style={{lineHeight: '35px'}}>
                 <label 
                   htmlFor='uploadFile'
@@ -486,11 +486,8 @@ const ServerMgmtSidebar = () => {
                   onChange={handleFileChange}
                 />
               </div>
-              <div style={{lineHeight: '30px', width: '300px', wordWrap: 'break-word', position: 'relative', left: '7.5px' }}>
-                {fileName}
-              </div>
               <div>
-                <ServerControlButton 
+                <UploadDownloadButton 
                   hover
                   type='submit'
                   form='fileUpload'
@@ -498,8 +495,11 @@ const ServerMgmtSidebar = () => {
                   iconStyle={{width: '15px', height: '15px'}}
                 >
                   업로드
-                </ServerControlButton>
+                </UploadDownloadButton>
               </div>
+            </div>              
+            <div style={{lineHeight: '30px', wordWrap: 'break-word', marginTop: '10px' }}>
+              {fileName}
             </div>
           </form>
         </div>
@@ -618,8 +618,8 @@ const ServerMgmtSidebar = () => {
               }}
             />
           </div>
-          <div>
-            <span style={{marginRight: '10px', marginLeft: '20px'}}>
+          <div style={{marginLeft: '20px'}}>
+            <span style={{marginRight: '10px'}}>
               종료 날짜:
             </span>
             <DateInput 
@@ -644,10 +644,10 @@ const ServerMgmtSidebar = () => {
           setIsOpenRebootModal(false);
         }}
         title="서버 재부팅"
-        noComplete={true}
+        noFooter={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          <div>서버를 재부팅하시겠습니까?</div>
+          <div style={{margin: '30px 0px'}}>서버를 재부팅하시겠습니까?</div>
           <div>
             <ModalButton 
               hover
@@ -672,12 +672,12 @@ const ServerMgmtSidebar = () => {
           setIsOpenCtrlModal(false);
         }}
         title="서비스 제어"
-        noComplete={true}
+        noFooter={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          {serviceCommand === 'start' && <div>서비스를 시작하시겠습니까?</div>}
-          {serviceCommand === 'stop' && <div>서비스를 중지하시겠습니까?</div>}
-          {serviceCommand === 'restart' && <div>서비스를 재시작하시겠습니까?</div>}
+          {serviceCommand === 'start' && <div style={{margin: '30px 0px'}}>서비스를 시작하시겠습니까?</div>}
+          {serviceCommand === 'stop' && <div style={{margin: '30px 0px'}}>서비스를 중지하시겠습니까?</div>}
+          {serviceCommand === 'restart' && <div style={{margin: '30px 0px'}}>서비스를 재시작하시겠습니까?</div>}
 
           <div>
             <ModalButton 
@@ -708,6 +708,10 @@ export default ServerMgmtSidebar
 const ServerControlButton = styled(Button)`
   height: 35px;
   margin-left: 10px;
+`
+
+const UploadDownloadButton = styled(Button)`
+  height: 35px;
 `
 
 const ServerControlDropdown = styled(Dropdown)`

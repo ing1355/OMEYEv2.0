@@ -43,6 +43,9 @@ const OMEYESettings = () => {
     
     if(res === undefined) {
       GetOMEYESettingsInfo();
+      message.error({title: '지도 설정 에러', msg: '저장에 실패했습니다'});
+    } else {
+      ChangeZoomLevelFun();
     }
   }
 
@@ -64,6 +67,10 @@ const OMEYESettings = () => {
     
     if(res === undefined) {
       GetOMEYESettingsInfo();
+      message.error({title: '지도 설정 에러', msg: '저장에 실패했습니다'});
+    } else {
+      GetOMEYESettingsInfo();
+      message.success({title: '지도 설정', msg: '저장에 성공했습니다'});
     }
   }
 
@@ -71,12 +78,12 @@ const OMEYESettings = () => {
     // ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
     ChangeMapTypeFun();
     // ChangeMapCustomTileUrlFun();
-    ChangeZoomLevelFun();
+    // ChangeZoomLevelFun();
     
-    setTimeout(()=>{
-      message.success({title: '', msg: '저장 완료'});
-      GetOMEYESettingsInfo();
-    },2000)
+    // setTimeout(()=>{
+    //   message.success({title: '', msg: '저장 완료'});
+    //   GetOMEYESettingsInfo();
+    // },2000)
   }
 
   const SelectMapTypeFun = (mapType: string) => {
@@ -194,7 +201,7 @@ const OMEYESettings = () => {
                     SelectMapTypeFun('KAKAO');
                   }}
                 />
-                <div style={{lineHeight: '30px'}}>카카오맵</div>
+                <div style={{lineHeight: '30px', position: 'relative', top: '2.2px'}}>카카오맵</div>
               </label>
               <label style={{display: 'flex', flexDirection: 'row', marginRight: '15px'}}>
                 <input 
@@ -205,7 +212,7 @@ const OMEYESettings = () => {
                     SelectMapTypeFun('DEFAULT');
                   }}
                 />
-                <div style={{lineHeight: '30px'}}>openstreet</div>
+                <div style={{lineHeight: '30px', position: 'relative', top: '2.2px'}}>openstreet</div>
               </label>  
               <label style={{display: 'flex', flexDirection: 'row', marginRight: '15px'}}>
                 <input 
@@ -216,7 +223,7 @@ const OMEYESettings = () => {
                     SelectMapTypeFun('NAVER');
                   }}        
                 />
-                <div style={{lineHeight: '30px'}}>네이버맵</div>
+                <div style={{lineHeight: '30px', position: 'relative', top: '2.2px'}}>네이버맵</div>
               </label>             
             </div>
           </div>
