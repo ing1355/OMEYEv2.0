@@ -148,11 +148,11 @@ const ServerMgmtSidebar = () => {
   const serverCtrlFun = async () => {
     setIsOpenCtrlModal(false);
 
-    if(selectedService === 'back' && serviceCommand === 'stop') {
-      message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 중지할 수 없습니다' })
-    } else if(selectedService === 'back' && serviceCommand === 'restart') {
-      message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 재시작할 수 없습니다' })
-    } else {
+    // if(selectedService === 'back' && serviceCommand === 'stop') {
+    //   message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 중지할 수 없습니다' })
+    // } else if(selectedService === 'back' && serviceCommand === 'restart') {
+    //   message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 재시작할 수 없습니다' })
+    // } else {
       const res = await Axios('POST', serverControlApi,{
         serviceCtrl: [{
           command: serviceCommand,
@@ -169,7 +169,7 @@ const ServerMgmtSidebar = () => {
       } else {
         message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
       }
-    }
+    // }
   }
 
   function checkValidDate(value: string) {

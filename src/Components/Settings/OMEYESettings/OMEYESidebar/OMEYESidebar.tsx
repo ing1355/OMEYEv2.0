@@ -30,7 +30,7 @@ const OMEYESidebar = () => {
     
     if(res === undefined) {
       GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장 에러'});
+      message.error({title: '', msg: '저장에 실패했습니다'});
     } else {
       ChangeMaxCCTVCountFun();
     }
@@ -41,7 +41,7 @@ const OMEYESidebar = () => {
     
     if(res === undefined) {
       GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장 에러'});
+      message.error({title: '', msg: '저장에 실패했습니다'});
     } else {
       ChangeFPSTypeFun();
     }
@@ -55,10 +55,10 @@ const OMEYESidebar = () => {
     
     if(res === undefined) {
       GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장 에러'});
+      message.error({title: '', msg: '저장에 실패했습니다'});
     } else {
       setTimeout(()=>{
-        message.success({title: '', msg: '저장 완료'});
+        message.success({title: '', msg: '저장 완료했습니다'});
         GetOMEYESettingsInfo();
       },2000)
     }
