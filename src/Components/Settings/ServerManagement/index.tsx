@@ -1,15 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { ButtonBackgroundColor, ButtonBorderColor, InputBackgroundColor } from "../../../styles/global-styled";
-import { serverMgmtInfoApi } from "../../../Constants/ApiRoutes";
+import { GetServerInfoApi, serverMgmtInfoApi } from "../../../Constants/ApiRoutes";
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues";
 import { Progress } from "antd";
 import { LineChart } from "@mui/x-charts";
 import { useRecoilState } from "recoil";
 import { isLogin } from "../../../Model/LoginModel";
 import { decodedJwtToken } from "../../Layout/Header/UserMenu";
+import { Axios } from "../../../Functions/NetworkFunctions";
 
 // type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
 type serviceType = 'detect' | 'main' | 'back' | 'rt' | 'mediaserver' | '';
+
+type SSEServerMgmtInfoType = {
+  monitorVersion: string,
+  upTime: string,
+  serviceStatus: serviceStatusType[],
+  omeyeVersion: omeyeVersionType,
+  cpu: string,
+  gpu: GPUType[],
+  memory: memoryType,
+  disk: string,
+  networkBandwidth: networkBandwidthType,
+  time: string,
+}
 
 type GetSSEServerMgmtInfoType = {
   monitorVersion: string,
@@ -73,6 +87,31 @@ type networkBandwidthType = {
   downlink: string,
 }
 
+type GetServerInfoType = {
+  monitorVersion: string,
+  hardwareInfos: hardwareInfosType,
+  networkInfo: networkInfoType
+}
+
+type hardwareInfosType = {
+  cpu: string,
+  cpu_sockets: string,
+  cpu_threads: string,
+  gpu: string,
+  gpu_sockets: string,
+  mem: string,
+  disk: string,
+  network_speed: string
+}
+
+type networkInfoType = {
+  iface: string,
+  ip: string,
+  netmask: string,
+  gateway: string,
+  dns: string
+}
+
 // const servicesName = [
 //   'detect2',
 //   'main2',
@@ -114,7 +153,8 @@ const ServerManagement = ({visible}: {
     width: window.innerWidth,
     height: window.innerHeight
   });
-  const [serverMgmtInfo, setSeverMgmtInfo] = useState<GetSSEServerMgmtInfoType | null>(null);
+  const [serverMgmtInfo, setSeverMgmtInfo] = useState<SSEServerMgmtInfoType | null>(null);
+  const [fixedServerMgmtInfo, setFixedServerMgmtInfo] = useState<GetServerInfoType | null>(null);
   const [xLabels, setXLabels] = useState([
     '00:00:00',
     '00:00:00',
@@ -226,7 +266,7 @@ const ServerManagement = ({visible}: {
     }
   }
 
-  const diskPercent = (data: string | undefined) => {
+  const deletePercent = (data: string | undefined) => {
     let percent = 0;
 
     if(data) {
@@ -324,9 +364,9 @@ const ServerManagement = ({visible}: {
 
     sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
-      console.log('server management message : ', response);
-      const { monitorVersion, serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
-      // console.log('serverInfo', serverInfo)
+      // console.log('response', response);
+      const { monitorVersion, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as SSEServerMgmtInfoType;
+      console.log('serviceStatus', serviceStatus)
       setSeverMgmtInfo(response);
 
       setXLabels(prevLabels => {
@@ -338,7 +378,7 @@ const ServerManagement = ({visible}: {
       }); 
       setCpuData(prevLabels => {
         const newXLabels = [...prevLabels];
-        const newCpu = Math.round(cpu.use);
+        const newCpu = deletePercent(cpu);
         newXLabels.shift();
         newXLabels.push(newCpu);
         return newXLabels;
@@ -352,7 +392,7 @@ const ServerManagement = ({visible}: {
       });
       setDiskData(prevLabels => {
         const newXLabels = [...prevLabels];
-        const newDisk = diskPercent(disk.use);
+        const newDisk = deletePercent(disk);
         newXLabels.shift();
         newXLabels.push(newDisk);
         return newXLabels;
@@ -421,8 +461,16 @@ const ServerManagement = ({visible}: {
     // }
   }
 
+  const GetGetServerInfo = async () => {
+    const res:GetServerInfoType = await Axios('GET', GetServerInfoApi)
+    if(res) setFixedServerMgmtInfo(res)
+  }
+
   useEffect(() => {
-    if(visible) sseSetting()
+    if(visible) {
+      sseSetting()
+      GetGetServerInfo()
+    }
   },[visible])
 
   return (
@@ -467,28 +515,45 @@ const ServerManagement = ({visible}: {
             </div>
           </div>
         </div>
+
         <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
-          <div style={{marginBottom: '10px'}}>서버 정보</div>
+          <div style={{marginBottom: '10px'}}>네트워크 정보</div>
           <div>
+            <div style={{padding: '10px'}}>Interface name: {fixedServerMgmtInfo?.networkInfo.iface}</div>
+            <div style={{padding: '10px'}}>IP: {fixedServerMgmtInfo?.networkInfo.ip}</div>
+            <div style={{padding: '10px'}}>Netmask: {fixedServerMgmtInfo?.networkInfo.netmask}</div>
+            <div style={{padding: '10px'}}>Gateway: {fixedServerMgmtInfo?.networkInfo.gateway}</div>
+            <div style={{padding: '10px'}}>DNS: {fixedServerMgmtInfo?.networkInfo.dns}</div>
+          </div>
+        </div>
+        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
+          {/* <div style={{marginBottom: '10px'}}>기타 정보</div>
+          <div>
+            <div style={{padding: '10px'}}>Uptime: {uptimeDataFun(serverMgmtInfo?.upTime)}</div>
+          </div> */}
+          <div style={{marginBottom: '10px'}}>하드웨어 정보</div>
+          <div>
+            <div style={{padding: '10px'}}>Cpu: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
+            <div style={{padding: '10px'}}>Cpu sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
+            <div style={{padding: '10px'}}>Cpu threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
+            <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div>
+            <div style={{padding: '10px'}}>Gpu sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
+            <div style={{padding: '10px'}}>Memory: {fixedServerMgmtInfo?.hardwareInfos.mem}</div>
+            <div style={{padding: '10px'}}>Disk: {fixedServerMgmtInfo?.hardwareInfos.disk}</div>
+            <div style={{padding: '10px'}}>Network speed: {Number(separateNumber(fixedServerMgmtInfo?.hardwareInfos.network_speed)).toFixed(0)}{separateUnit(fixedServerMgmtInfo?.hardwareInfos.network_speed)}</div>
+          </div>
+        </div>
+        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
+          <div style={{marginBottom: '10px'}}>버전 정보</div>
+          <div style={{marginBottom: '20px'}}>
             <div style={{padding: '10px'}}>프론트엔드: {process.env.REACT_APP_VERSION}</div>
             <div style={{padding: '10px'}}>백엔드: {serverMgmtInfo?.omeyeVersion.BE}</div>
             <div style={{padding: '10px'}}>AI: {serverMgmtInfo?.omeyeVersion.AI}</div>
           </div>
-        </div>
-        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
-          <div style={{marginBottom: '10px'}}>네트워크 정보</div>
-          <div>
-            <div style={{padding: '10px'}}>Interface name: {serverMgmtInfo?.serverInfo.network.iface}</div>
-            <div style={{padding: '10px'}}>IP: {serverMgmtInfo?.serverInfo.network.ip}</div>
-            <div style={{padding: '10px'}}>Netmask: {serverMgmtInfo?.serverInfo.network.netmask}</div>
-            <div style={{padding: '10px'}}>Gateway: {serverMgmtInfo?.serverInfo.network.gateway}</div>
-            <div style={{padding: '10px'}}>DNS: {serverMgmtInfo?.serverInfo.network.dns}</div>
-          </div>
-        </div>
-        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '18%', padding: '15px'}}>
+
           <div style={{marginBottom: '10px'}}>기타 정보</div>
           <div>
-            <div style={{padding: '10px'}}>Uptime: {uptimeDataFun(serverMgmtInfo?.serverInfo.uptime)}</div>
+            <div style={{padding: '10px'}}>Uptime: {uptimeDataFun(serverMgmtInfo?.upTime)}</div>
           </div>
         </div>
       </div>
@@ -526,7 +591,7 @@ const ServerManagement = ({visible}: {
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
               <div>
                 <div>
-                  <div>사용률: {serverMgmtInfo?.cpu.use ? Math.round(serverMgmtInfo?.cpu.use) : 0}%</div>
+                  <div>사용률: {serverMgmtInfo?.cpu ? serverMgmtInfo?.cpu : '0%'}</div>
                 </div>
                 {/* <div>
                   <Progress type="circle" percent={memoryPercent(serverMgmtInfo?.memory.total, serverMgmtInfo?.memory.used)} width={75} strokeWidth={10} trailColor='#ccc' strokeColor='#4AA372' format={(percent) => `${percent}%`} />
@@ -614,8 +679,8 @@ const ServerManagement = ({visible}: {
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
               <div className='server_management_monitoring_information_card_progress_info'>
                 <div>
-                  <div><span>총량 : </span><span>{serverMgmtInfo?.disk.total}</span></div>
-                  <div><span>사용률 : </span><span>{serverMgmtInfo?.disk.use}</span></div>
+                  {/* <div><span>총량 : </span><span>{serverMgmtInfo?.disk.total}</span></div> */}
+                  <div><span>사용률 : </span><span>{serverMgmtInfo?.disk}</span></div>
                 </div>
               </div>
               <div style={{backgroundColor: 'white'}}>
