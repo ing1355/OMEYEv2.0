@@ -138,7 +138,8 @@ const useMessage = () => {
                 theme:'success',
                 callback: callback ? callback : () => {
                     setReIDMenu(ReIDMenuKeys['REIDRESULT'])
-                }
+                },
+                timer: 60000
             })
         } else if(preset === 'REIDCANCEL') {
             createMessage({

@@ -52,7 +52,7 @@ const _Input = (props?: InputProps) => {
         id: props?.id,
         disabled: props?.disabled,
         placeholder: props?.placeholder,
-        autoComplete: props?.autoComplete || 'off',
+        autoComplete: props?.autoComplete || 'one-time-code',
         autoFocus: props?.autoFocus
     }
     const inputAttributes = {
@@ -60,7 +60,7 @@ const _Input = (props?: InputProps) => {
         tabIndex: props?.tabIndex,
         pattern: props?.pattern
     }
-    if (props?.type === 'textarea') return <TextAreaContainer>
+    if (props?.type === 'textarea') return <TextAreaContainer className={props.className}>
         <textarea
         style={{
             resize: 'none',
@@ -89,7 +89,6 @@ const _Input = (props?: InputProps) => {
     />
     </TextAreaContainer>
     else return <>
-        {props?.type === 'password' && <input type="password" hidden />}
         <input
             onChange={(e) => {
                 if (props?.onChange) {
@@ -105,6 +104,7 @@ const _Input = (props?: InputProps) => {
                     }
                 }
             }}
+            role="presentation"
             style={{
                 ...props?.style,
                 letterSpacing: props?.type === 'password' ? '-4px' : 0

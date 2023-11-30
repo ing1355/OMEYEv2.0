@@ -11,6 +11,7 @@ import { useRecoilState } from "recoil";
 import useMessage from "../../../Hooks/useMessage";
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions";
 import whiteCheckIcon from "../../../assets/img/whiteCheckIcon.png"
+import Form from "../../Constants/Form";
 
 type CCTVIconType = 'DEFAULT' | 'ON_SELECT' | 'START_POINT' | 'END_POINT';
 
@@ -240,10 +241,9 @@ const OMEYESettings = () => {
           <div style={{display: 'flex', marginBottom: '25px'}}>
             <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>지도 파일 업로드</div>
             <div>
-              <form
+              <Form
                 id='fileUpload'
                 onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-                  e.preventDefault();
                   const { uploadFile } = (e.currentTarget.elements as any);
                   const file = uploadFile.files[0];
                   const fileExtension = file?.name.split('.').pop();
@@ -284,7 +284,7 @@ const OMEYESettings = () => {
                     </OMEYEButton>
                   </div>
                 </div>
-              </form>
+              </Form>
             </div>
           </div>
 
@@ -356,7 +356,7 @@ const OMEYESettings = () => {
                 </OMEYEButton>
               </div>
               <div>
-                <form
+                <Form
                   id='CCTVIconFileUpload'
                   onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
                     e.preventDefault();
@@ -406,7 +406,7 @@ const OMEYESettings = () => {
                       </OMEYEButton>
                     </div>
                   </div>
-                </form>
+                </Form>
               </div>
               {/* <div>
                 아이콘 이미지

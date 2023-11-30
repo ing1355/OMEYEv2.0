@@ -86,12 +86,10 @@ export default Contents
 const ContentsContainer = styled.div`
     flex: 1;
     height: 100%;
-    position: relative;
 `
 
 const VideosContainer = styled.div`
     height: 100%;
-    position: relative;
     ${globalStyles.flex({ flexWrap: 'wrap', flexDirection: 'row' })}
 `
 
@@ -100,7 +98,6 @@ const VideoCardContainer = styled.div<{ layoutNum: number }>`
     height: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
     border: 1px solid ${ContentsBorderColor};
     background-color: transparent;
-    z-index: 1;
 `
 
 const VideoTitle = styled.div<{hasIcon: boolean}>`

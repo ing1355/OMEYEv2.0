@@ -452,7 +452,8 @@ const ContentsItemTitleBtn = styled(Button)`
 const ContentsItemInnerContainer = styled.div`
     height: 300px;
     padding: 8px 16px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     border-radius: 10px;
     position: relative;
 `
@@ -466,6 +467,7 @@ const ContentsItemInnerBtnsContainer = styled.div`
 `
 
 const ContentsItemInnerRowContainer = styled.div`
+    width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '36px' })}
     margin-bottom: 16px;
 `
@@ -487,6 +489,7 @@ const ContentsItemInnerColContents = styled.div`
     height: 140px;
     overflow: auto;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '4px' })}
+    min-width: 0;
 `
 
 const ContentsItemInnerTargetImageBoxContainer = styled.div`
@@ -498,6 +501,7 @@ const ContentsItemInnerTargetImageBoxContainer = styled.div`
 `
 
 const ContentsItemInnerHeadItemImageBox = styled(ImageView)`
+    width: 80px;
 `
 
 const ContentsItemInnerColContentWrapper = styled.div`

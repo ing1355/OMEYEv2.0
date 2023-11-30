@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, SingleReIDSelectedData, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
 import ImageView from "../../Condition/Constants/ImageView"
@@ -97,7 +97,7 @@ const ResultImageView = ({ src, subSrc }: ResultImageViewProps) => {
     </ItemMediaContainer>
 }
 
-const CCTVRowContainer = ({conditionData, data, selectedTarget, reIdId, cctvId} : {
+const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId }: {
     conditionData: ReIDResultConditionDataType
     data: ReIDResultDataResultListDataType[]
     selectedTarget: number
@@ -108,24 +108,36 @@ const CCTVRowContainer = ({conditionData, data, selectedTarget, reIdId, cctvId} 
     const [selectedData, setSelectedData] = useRecoilState(SingleReIDSelectedData(reIdId))
     const [globalTargetDatas, setGlobalTargetDatas] = useRecoilState(conditionTargetDatas)
     const [isDown, setIsDown] = useState(false)
+    const [isMove, setIsMove] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
     const isDownRef = useRef(isDown)
+    const isDownPoint = useRef({
+        x: 0,
+        y: 0
+    })
     const message = useMessage()
 
     const moveCallback = useCallback((e: MouseEvent) => {
-        if(isDownRef.current && containerRef.current) {
+        if (isDownRef.current && containerRef.current) {
+            const distance = Math.sqrt((e.screenX - isDownPoint.current.x)**2 + (e.screenY - isDownPoint.current.y)**2)
+            if(distance > 10) {
+                setIsMove(true)
+            }
             containerRef.current.scrollBy({
-                left: e.movementX*-1
+                left: e.movementX * -1
             })
         }
     }, [])
 
     const upCallback = useCallback((e: MouseEvent) => {
         setIsDown(false)
-    },[])
+        setTimeout(() => {
+            setIsMove(false)
+        }, 300);
+    }, [])
 
     useEffect(() => {
-        if(isDown) {
+        if (isDown) {
             document.addEventListener('mousemove', moveCallback)
             document.addEventListener('mouseup', upCallback)
         } else {
@@ -137,9 +149,13 @@ const CCTVRowContainer = ({conditionData, data, selectedTarget, reIdId, cctvId} 
             document.removeEventListener('mousemove', moveCallback)
             document.removeEventListener('mouseup', upCallback)
         }
-    },[isDown])
+    }, [isDown])
 
-    return <TimeGroupCCTVRowContentsContainer isDown={isDown} onMouseDown={() => {
+    return <TimeGroupCCTVRowContentsContainer isDown={isDown} onMouseDown={(e) => {
+        isDownPoint.current = {
+            x: e.screenX,
+            y: e.screenY
+        }
         setIsDown(true)
     }} ref={containerRef}>
         {data.map((result, resultInd) => <TimeGroupCCTVItemBox key={resultInd} selected={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
@@ -150,49 +166,64 @@ const CCTVRowContainer = ({conditionData, data, selectedTarget, reIdId, cctvId} 
                 </ItemMediaContainer>
             </ItemMediasContainer>
             <SelectBtnsContainer>
-                <SelectBtn hover onClick={async () => {
-                    let type = conditionData.resultList.find(r => r.objectId === selectedTarget)?.objectType!
-                    type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
-                    const res = await GetObjectIdByImage([{
-                        type,
-                        image: result.imgUrl
-                    }])
-                    if (res) {
-                        const { imgUrl, accuracy } = { ...result }
-                        setGlobalTargetDatas([...globalTargetDatas, {
+                <SelectBtn disabled={globalTargetDatas.some(_ => _.resultId === result.resultId)} hover onClick={async () => {
+                    if (!isMove) {
+                        let type = conditionData.resultList.find(r => r.objectId === selectedTarget)?.objectType!
+                        type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
+                        const res = await GetObjectIdByImage([{
                             type,
-                            cctvId,
-                            selected: false,
-                            src: imgUrl,
-                            objectId: res[0],
-                            accuracy,
-                            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
+                            image: result.imgUrl
                         }])
-                        message.success({ title: "등록 성공", msg: "현재 결과 이미지를 검색 대상으로 추가하였습니다." })
+                        if (res) {
+                            const { imgUrl, accuracy } = { ...result }
+                            setGlobalTargetDatas([...globalTargetDatas, {
+                                type,
+                                cctvId,
+                                selected: false,
+                                src: imgUrl,
+                                objectId: res[0],
+                                accuracy,
+                                resultId: result.resultId,
+                                method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
+                            }])
+                            message.success({ title: "등록 성공", msg: "현재 결과 이미지를 검색 대상으로 추가하였습니다." })
+                        }
                     }
                 }}>
                     검색 대상 추가
                 </SelectBtn>
-                <SelectBtn hover activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)} onClick={() => {
-                    if (selectedData) {
-                        if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
-                            setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
-                                ...sData,
-                                [selectedTarget]: sData[selectedTarget].filter(target => target.resultId !== result.resultId)
-                            } : sData))
-                        } else {
-                            setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
-                                ...sData,
-                                [selectedTarget]: sData[selectedTarget].concat({ ...result, cctvId })
-                            } : sData))
+                <SelectBtn
+                    hover
+                    activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)}
+                    onMouseDown={e => {
+                        e.currentTarget.blur()
+                    }}
+                    onClick={() => {
+                        if (!isMove) {
+                            if (selectedData) {
+                                if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
+                                    setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
+                                        ...sData,
+                                        [selectedTarget]: sData[selectedTarget].filter(target => target.resultId !== result.resultId)
+                                    } : sData))
+                                } else {
+                                    setSelectedData(selectedData.map((sData, sInd) => selectedCondition === sInd ? {
+                                        ...sData,
+                                        [selectedTarget]: sData[selectedTarget].concat({ ...result, cctvId })
+                                    } : sData))
+                                }
+                            }
                         }
-                    }
-                }}>
+                    }}>
                     <SelectBtnInnerIconContainer>
                         <SelectBtnInnerIcon src={timeIcon} />
-                    </SelectBtnInnerIconContainer> {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}&nbsp;&nbsp;{conditionData.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
+                    </SelectBtnInnerIconContainer> 
+                    {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}
+                    &nbsp;&nbsp;
+                    {conditionData.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
                         <SelectBtnInnerIcon src={similarityIcon} />
-                    </SelectBtnInnerIconContainer>} {result.accuracy}%
+                    </SelectBtnInnerIconContainer>} 
+                    {conditionData.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && `${result.accuracy}%`}
                     <CheckIconContainer checked={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
                         <img src={checkIcon} />
                     </CheckIconContainer>
@@ -219,7 +250,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
 
     useEffect(() => {
         if (selectedView[0] === reIdId) {
-            setSelectedTarget((data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
+            setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
         }
     }, [selectedView, selectedCondition])
 
@@ -289,7 +320,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                                     <TimeGroupCCTVRowTitle>
                                         <CCTVNameById cctvId={key} />
                                     </TimeGroupCCTVRowTitle>
-                                    <CCTVRowContainer cctvId={key} conditionData={_} data={val} selectedTarget={selectedTarget} reIdId={reIdId}/>
+                                    <CCTVRowContainer cctvId={key} conditionData={_} data={val} selectedTarget={selectedTarget} reIdId={reIdId} />
                                 </TimeGroupCCTVRow>)
                             }
                         </TimeGroupContents>
@@ -426,13 +457,13 @@ const TimeGroupCCTVRowTitle = styled.div`
     ${globalStyles.flex()}
 `
 
-const TimeGroupCCTVRowContentsContainer = styled.div<{isDown: boolean}>`
+const TimeGroupCCTVRowContentsContainer = styled.div<{ isDown: boolean }>`
     height: calc(100% - 40px);
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '12px' })}
     width: 100%;
     margin: 8px 0;
     overflow: auto;
-    cursor: ${({isDown}) => isDown ? 'grabbing' : 'grab'};
+    cursor: ${({ isDown }) => isDown ? 'grabbing' : 'grab'};
 `
 
 const TimeGroupCCTVItemBox = styled.div<{ selected: boolean }>`

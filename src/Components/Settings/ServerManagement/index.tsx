@@ -324,7 +324,7 @@ const ServerManagement = ({visible}: {
 
     sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
-      // console.log('response', response);
+      console.log('server management message : ', response);
       const { monitorVersion, serverInfo, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as GetSSEServerMgmtInfoType;
       // console.log('serverInfo', serverInfo)
       setSeverMgmtInfo(response);

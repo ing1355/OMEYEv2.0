@@ -205,7 +205,6 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
                     <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
-                        console.debug(status)
                         if (status === 'downloading') {
                             setCount(0)
                             videoExportCancelFunc()
@@ -261,7 +260,7 @@ const NewExport = () => {
     const currentData = useRef<VideoExportRowDataType>(datas[0])
     const tempTimer = useRef<NodeJS.Timer>()
     const message = useMessage()
-    
+
     useEffect(() => {
         datasRef.current = datas
     }, [datas])
@@ -376,47 +375,36 @@ const NewExport = () => {
             const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent, aiPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
             if (videoUUID) {
                 if (type === 'complete') {
-                    currentData.current = {
-                        ...currentData.current,
-                        progress: {
-                            encodingPercent,
-                            aiPercent,
-                            deIdentificationPercent,
-                            videoPercent,
-                            status: 'RUNNING'
-                        }
+                    currentData.current.videoUUID = videoUUID
+                    currentData.current.progress = {
+                        encodingPercent,
+                        aiPercent,
+                        deIdentificationPercent,
+                        videoPercent,
+                        status: 'RUNNING'
                     }
-                    if (tempTimer.current) clearTimeout(tempTimer.current)
-                    tempTimer.current = setTimeout(() => {
-                        setDatas(datasRef.current.map(_ => _.videoUUID === videoUUID ? currentData.current : _))
-                    }, 200);
                 } else if (type === 'done') {
-                    if (tempTimer.current) clearTimeout(tempTimer.current)
-                    currentData.current = {
-                        ...currentData.current,
-                        status: 'complete'
-                    }
+                    currentData.current.status = 'complete'
                 }
                 if (path) {
+                    currentData.current.path = path
                     message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
-                    currentData.current = {
-                        ...currentData.current,
-                        path
-                    }
                 }
-                setDatas(datasRef.current.map(_ => {
-                    return _.videoUUID === videoUUID ? ({
-                        ...currentData.current
-                    }) : _
-                }))
             }
             if (status && SSEResponseErrorMsg.includes(status)) {
-                console.debug("current State : ", status, datasRef.current, currentUUIDRef.current)
-                setDatas(datasRef.current.map(_ => _.videoUUID === currentUUIDRef.current ? ({
-                    ..._,
-                    status: 'cancel'
-                }) : _))
+                console.debug("current State : ", status, [...datasRef.current], currentUUIDRef.current)
+                currentData.current.progress = {
+                    aiPercent: 0,
+                    videoPercent: 0,
+                    status: 'WAIT'
+                }
+                currentData.current.status = 'cancel'
             }
+            setDatas(datasRef.current.map(_ => {
+                return _.videoUUID === currentUUIDRef.current ? ({
+                    ...currentData.current
+                }) : _
+            }))
             if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                 sseRef.current!.close()
                 sseRef.current = undefined

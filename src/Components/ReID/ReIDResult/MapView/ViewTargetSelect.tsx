@@ -13,9 +13,10 @@ type ViewTargetSelectProps = {
     }[]
     conditionChange: (ind: number[]) => void
     targetChange: (oId: number[][]) => void
+    opened: boolean
 }
 
-const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSelectProps) => {
+const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: ViewTargetSelectProps) => {
     const [selectedCondition, setSelectedCondition] = useState<number[]>([])
     const [selectedTarget, setSelectedTarget] = useState<number[][]>([])
     const [selectedView, setSelectedView] = useState(0)
@@ -30,6 +31,10 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange }: ViewTargetSe
             else setSelectedTarget(datas.map(_ => []))
         }
     }, [datas])
+
+    useEffect(() => {
+        if(opened) setVisible(true)
+    },[opened])
     
     useEffect(() => {
         if (conditionRef.current !== selectedCondition) conditionChange(selectedCondition)

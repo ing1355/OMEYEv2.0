@@ -4,7 +4,7 @@ import Input from "../../Constants/Input"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
-import { useRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
@@ -53,6 +53,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
     onClickCallback: () => void
 }) => {
     const { accuracy, min, max, imageURL } = data
+    const rtData = useRecoilValue(realTimeData)
     
     return <div style={{
         width: '100%',
@@ -72,7 +73,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
             right: '8px',
             fontWeight: 'bold',
             fontSize: '.8rem',
-            backgroundColor: data.accuracy ? getColorByScore(accuracy) : 'transparent',
+            backgroundColor: (accuracy || max) ? (max ? getColorByScore((max / existValueNumsInDescription(rtData.description))*100) : getColorByScore(accuracy)) : 'transparent',
             padding: '4px 6px',
             borderRadius: '12px'
         }}>

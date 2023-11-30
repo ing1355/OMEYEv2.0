@@ -64,6 +64,7 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
     const endMinuteRef = useRef<HTMLInputElement>(null)
     const endSecondRef = useRef<HTMLInputElement>(null)
     const message = useMessage()
+    const initRef = useRef<TimeModalDataType>()
 
     const startTimeInit = (d: Date) => {
         setStartHour(AddZeroFunc(d.getHours()).toString())
@@ -81,6 +82,12 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
         if (visible) {
             if (!defaultValue) {
                 const temp = new Date()
+                initRef.current = noEndTime ? {
+                    startTime: convertFullDatestring(temp) + AddZeroFunc(temp.getHours()) + AddZeroFunc(temp.getMinutes()) + AddZeroFunc(temp.getSeconds())
+                } : {
+                    startTime: convertFullDatestring(temp) + AddZeroFunc(temp.getHours()) + AddZeroFunc(temp.getMinutes()) + AddZeroFunc(temp.getSeconds()),
+                    endTime: convertFullDatestring(temp) + AddZeroFunc(temp.getHours()) + AddZeroFunc(temp.getMinutes()) + AddZeroFunc(temp.getSeconds())
+                }
                 setStartDate(temp)
                 setEndDate(temp)
                 startTimeInit(temp)
@@ -174,7 +181,9 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
 
     return <>
         <DataSelectModal visible={visible} title={title} close={() => {
-            if(defaultValue && JSON.stringify(defaultValue) !== JSON.stringify({
+            if(JSON.stringify(defaultValue || initRef.current) !== JSON.stringify(noEndTime ? {
+                startTime: convertFullDatestring(startDate!) + AddZeroFunc(startHour) + AddZeroFunc(startMinute) + AddZeroFunc(startSecond)
+            } : {
                 startTime: convertFullDatestring(startDate!) + AddZeroFunc(startHour) + AddZeroFunc(startMinute) + AddZeroFunc(startSecond),
                 endTime: convertFullDatestring(endDate!) + AddZeroFunc(endHour) + AddZeroFunc(endMinute) + AddZeroFunc(endSecond)
             })) setConfirmVisible(true)

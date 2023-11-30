@@ -29,7 +29,7 @@ const ReIDConditionForm = () => {
     const [conditionList, setConditionList] = useRecoilState(conditionListDatas)
     const message = useMessage()
     const { targets, rank, time, cctv, isRealTime, etc } = datas
-    
+
     return <>
         <TopInputAndButtonsContainer>
             <TitleInput placeholder={datas.isRealTime ? "실시간 검색 요청" : "타이틀을 입력해주세요."} value={datas.isRealTime ? "실시간 검색 요청" : title} onChange={value => {
@@ -62,21 +62,29 @@ const ReIDConditionForm = () => {
                 }}>
                     내보내기
                 </TopButton>
-                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime || conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({ ...datas, targets: targets.filter(_ => _.selected), cctv: cctv.filter(_ => _.selected), time: time.filter(_ => _.selected), name: datas.title || "빈 타이틀", selected: _.selected }))} onClick={() => {
-                    if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
-                    const filteredTargets = datas.targets.filter(_ => _.selected)
-                    if (!filteredTargets.every(_ => _.type === filteredTargets[0].type)) return message.error({ title: "입력값 에러", msg: "서로 다른 유형의 대상이 선택되었습니다.\n하나의 유형만 선택해주세요."})
-                    let tempConditionData: ConditionListType = { ...datas, selected: false }
-                    tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
-                    tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
-                    tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
-                    tempConditionData.title = tempConditionData.title || "빈 타이틀"
-                    setConditionList(conditionList.concat(tempConditionData))
-                    message.success({
-                        title: "저장 성공",
-                        msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "검색 조건 목록" 메뉴에서 확인할 수 있습니다.'
-                    })
-                }}>
+                <TopButton hover icon={conditionDataSaveIcon} disabled={targets.length === 0 || time.length === 0 || cctv.length === 0 || isRealTime ||
+                    conditionList.some(_ => JSON.stringify({ ..._ }) === JSON.stringify({
+                        ...datas,
+                        targets: targets.filter(_ => _.selected),
+                        cctv: cctv.filter(_ => _.selected),
+                        time: time.filter(_ => _.selected),
+                        title: datas.title || "빈 타이틀",
+                        selected: _.selected
+                    }))} onClick={() => {
+                        if (!(datas.cctv.some(_ => _.selected) && datas.targets.some(_ => _.selected) && datas.time.some(_ => _.selected))) return message.error({ title: "입력값 에러", msg: "조건 저장을 위해선 각 항목별로 최소 1개 이상이 선택되어야 합니다." })
+                        const filteredTargets = datas.targets.filter(_ => _.selected)
+                        if (!filteredTargets.every(_ => _.type === filteredTargets[0].type)) return message.error({ title: "입력값 에러", msg: "서로 다른 유형의 대상이 선택되었습니다.\n하나의 유형만 선택해주세요." })
+                        let tempConditionData: ConditionListType = { ...datas, selected: false }
+                        tempConditionData.cctv = tempConditionData.cctv.filter(_ => _.selected)
+                        tempConditionData.targets = tempConditionData.targets.filter(_ => _.selected)
+                        tempConditionData.time = tempConditionData.time.filter(_ => _.selected)
+                        tempConditionData.title = tempConditionData.title || "빈 타이틀"
+                        setConditionList(conditionList.concat(tempConditionData))
+                        message.success({
+                            title: "저장 성공",
+                            msg: '조건 저장에 성공하였습니다.\n저장하신 조건들은 좌측 "검색 조건 목록" 메뉴에서 확인할 수 있습니다.'
+                        })
+                    }}>
                     현재 조건 저장
                 </TopButton>
             </TopButtonsContainer>

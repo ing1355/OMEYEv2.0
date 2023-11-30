@@ -2,24 +2,25 @@ import { DetailedHTMLProps, FormEvent } from "react"
 
 type FormType = DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement>
 
-const Form = (props?: {
+const Form = ({onSubmit, children, ...props}: {
     children?: JSX.Element | JSX.Element[]
     onSubmit?: (evt: FormEvent<HTMLFormElement>) => void
     className?: FormType['className']
     style?: FormType['style']
+    id?: FormType['id']
 }) => {
     
     return <form
+        autoComplete="off"
         onSubmit={e => {
             e.preventDefault()
-            if(props?.onSubmit) {
-                props.onSubmit(e)
+            if(onSubmit) {
+                onSubmit(e)
             }
         }}
-        className={props?.className}
-        style={props?.style}
+        {...props}
     >
-        {props?.children}
+        {children}
         </form>
 }
 

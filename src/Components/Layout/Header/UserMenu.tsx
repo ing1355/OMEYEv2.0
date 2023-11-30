@@ -55,7 +55,7 @@ const UserMenu = () => {
                 e.stopPropagation()
                 setMenuOpen(false)
             }}>
-                설정
+                내 프로필
             </UserDetailItem>
             <UserDetailItem onClick={async () => {
                 await Axios("POST", LogoutApi)
@@ -92,7 +92,7 @@ const UserDetailContainer = styled.div<{opened: boolean}>`
     top: 100%;
     width: 100px;
     height: 90px;
-    z-index: 100;
+    z-index: 9001;
     border-radius: 8px;
     display: ${({opened}) => opened ? 'block' : 'none'};
 `

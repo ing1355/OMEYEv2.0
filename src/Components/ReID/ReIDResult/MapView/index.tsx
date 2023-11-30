@@ -30,7 +30,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     const [detailResult, setDetailResult] = useState<ReIDResultDataResultListDataType[] | null>(null)
     const resultData = useRecoilValue(ReIDResultData(reIdId))
     const selectedData = useRecoilValue(SingleReIDSelectedData(reIdId))
-    
+
     const filteredViewData = useMemo(() => resultData?.data.map((_, index) => ({
         title: _.title,
         index,
@@ -41,14 +41,19 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
         console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
     }, [selectedData, selectedCondition, selectedTarget])
 
-    const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ => Object.keys(selectedData[_]).filter(__ => selectedTarget[_].includes(Number(__))).flatMap(__ => selectedData[_][Number(__)])).flat().sort((a, b) => a.foundDateTime < b.foundDateTime ? -1 : 1) : [], [selectedData, selectedCondition, selectedTarget])
+    const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ =>{
+        return (selectedData[_] ? Object.keys(selectedData[_]) : []).filter(__ => {
+            return selectedTarget[_].includes(Number(__))
+            }).flatMap(__ => selectedData[_][Number(__)])}).flat().sort((a, b) => {
+                    return a.foundDateTime < b.foundDateTime ? -1 : 1
+                }) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
 
-    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox 
-    key={_.resultId + '1'} 
-    onClick={() => {
-        setDetailResult([_])
-    }}>
+    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox
+        key={_.resultId + '1'}
+        onClick={() => {
+            setDetailResult([_])
+        }}>
         <CCTVImgContainer>
             <CCTVImg src={isStart ? CCTVStartIcon : (isEnd ? CCTVEndIcon : CCTVIcon)} />
         </CCTVImgContainer>
@@ -66,21 +71,15 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     </ResultBox>, [])
 
     const createResultLine = () => <LineContainer>
-        <ResultLine/>
-        <ResultLine/>
-        <ResultLine/>
-        <ResultLine/>
+        <ResultLine />
+        <ResultLine />
+        <ResultLine />
+        <ResultLine />
     </LineContainer>
 
     useEffect(() => {
         setDetailResult(null)
     }, [opened])
-
-    useEffect(() => {
-        if (detailResult) {
-
-        }
-    }, [detailResult])
 
     return <>
         <Container opened={opened}>
@@ -90,13 +89,14 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                     viewChangeForPath={detailResult ? [detailResult[0].cctvId!] : undefined}
                     forAddtraffic
                     reIdId={reIdId}
+                    visible={opened}
                     onlyMap>
                 </MapComponent>
                 <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {
                     setSelectedCondition(conditions)
                 }} targetChange={targets => {
                     setSelectedTarget(targets)
-                }} />
+                }} opened={opened} />
             </MapContainer>
             <ShowContainer>
                 <TargetContainer>
@@ -130,7 +130,8 @@ export default MapView
 
 const Container = styled.div<{ opened: boolean }>`
     height: 100%;
-    ${({ opened }) => opened ? globalStyles.flex({ gap: '12px' }) : `display: none;`}
+    ${globalStyles.flex({gap: '12px'})}
+    visibility: ${({ opened }) => opened ? 'visible' : `hidden`};
     ${globalStyles.fadeOut()}
 `
 
@@ -214,7 +215,7 @@ const ResultBoxBottomContainer = styled.div`
 const LineContainer = styled.div`
     width: ${ResultItemWidth - 130}px;
     height: ${ResultItemHeight}px;
-    ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
 `
 
 const ResultLine = styled.div`

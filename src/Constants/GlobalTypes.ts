@@ -105,6 +105,7 @@ export type CaptureResultListItemType = {
   description?: descriptionParamType
   points?: PointType
   isCurrent?: boolean
+  resultId?: number
 }
 
 export type ReIdSSEResponseType = {

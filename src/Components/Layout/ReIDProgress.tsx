@@ -933,8 +933,13 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         if(reIdId) {
                             setReidResultSelectedView([reIdId])
                             setGlobalCurrentReIdId(reIdId)
+                            setSelectedResultCondition(0)
+                        } else if(type === 'ADDITIONALREID'){
+                            const _additionalParams = params as AdditionalReIDRequestParamsType
+                            setReidResultSelectedView([_additionalParams.reIdId!])
+                            setGlobalCurrentReIdId(_additionalParams.reIdId!)
+                            setSelectedResultCondition(singleReidResultRef.current?.data.length!)
                         }
-                        setSelectedResultCondition(0)
                         setGlobalMenu(ReIdMenuKey)
                         setMenu(ReIDMenuKeys['REIDRESULT'])
                         setProgressStatus({ type, status: PROGRESS_STATUS['RUNNING'] })
@@ -1267,6 +1272,7 @@ const Contents = styled.div<{ opened: boolean }>`
     overflow-y: ${({opened}) => opened ? 'auto' : 'hidden'};
     overflow-y: hidden;
     transition: height .1s ease;
+    margin-bottom: 4px;
     ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '6px' })}
 `
 

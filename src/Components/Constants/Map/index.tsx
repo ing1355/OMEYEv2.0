@@ -37,6 +37,7 @@ type MapComponentProps = PropsWithChildren & {
     isDebug?: boolean
     initEvent?: boolean
     viewChangeForPath?: CameraDataType['cameraId'][]
+    visible?: boolean
 }
 
 const hasCameraInSite = (siteData: SiteDataType) => {
@@ -52,7 +53,7 @@ const findSiteByDuplicatedCCTVs = (cctvs: CameraDataType['cameraId'][], siteData
     return filteredTreeData.filter(_ => hasCameraInSite(_))
 }
 
-const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
+const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath, visible }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
     const [r, setR] = useState('1')
@@ -158,6 +159,14 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
             map.current?.clearPathLines()
         }
     }, [forAddtraffic, pathCameras])
+
+    useEffect(() => {
+        // if(map.current && visible) {
+        //     setTimeout(() => {
+        //         if(map.current) map.current.changeViewToSelectedCCTVs(pathCameras)
+        //     }, 500);
+        // }
+    },[visible])
 
     useEffect(() => {
         if (idForViewChange) {
@@ -451,6 +460,8 @@ export default memo(MapComponent, (prev, next) => {
     if (prev.idForViewChange !== next.idForViewChange) return false
     if (prev.viewChangeForPath !== next.viewChangeForPath) return false
     if (prev.initEvent !== next.initEvent) return false
+    if (prev.reIdId !== next.reIdId) return false
+    if (prev.visible !== next.visible) return false
     return true
 })
 
@@ -467,8 +478,6 @@ const AddReIDInputContainer = styled.div<{ forAddTraffic: boolean }>`
     padding: 16px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
 `
-
-
 
 const AddReIDInputSubContainer = styled.div`
     width: 320px;

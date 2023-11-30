@@ -15,6 +15,7 @@ import synchronizationIcon from "../../../assets/img/synchronizationIcon.png"
 import searchIcon from "../../../assets/img/searchIcon.png"
 import whiteCheckIcon from "../../../assets/img/whiteCheckIcon.png"
 import uploadIcon from "../../../assets/img/uploadIcon.png"
+import Form from "../../Constants/Form"
 
 type getVmsListType = {
   siteList: string[];
@@ -291,7 +292,7 @@ const VMSSettings = ({visible}: {
           <div style={{display: 'flex'}}>
             <div style={{width: '9%', paddingLeft: '15px', lineHeight: '30px'}}>엑셀 업로드</div>
             <div>
-              <form
+              <Form
                 id='fileUpload'
                 onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
                   e.preventDefault();
@@ -338,7 +339,7 @@ const VMSSettings = ({visible}: {
                     </VMSButton>
                   </div>
                 </div>
-              </form>
+              </Form>
             </div>
           </div>
           <div style={{display: 'flex'}}>

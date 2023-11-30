@@ -57,7 +57,6 @@ const Video = memo(({ info, cctvId, objectFit, isTime, timeValue, src, noLogo }:
     }, [info])
     
     useEffect(() => {
-        console.debug("here11 : " , cctvId, timeValue)
         if(cctvId && timeValue) {
             Axios('GET', GetCameraVideoUrlApi(cctvId, timeValue.startTime)).then(({uuid, url}) => {
                 if(uuid) {

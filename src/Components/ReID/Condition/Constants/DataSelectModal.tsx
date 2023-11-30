@@ -3,7 +3,7 @@ import { PropsWithChildren, useCallback, useEffect, useRef } from "react"
 import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import ModalCloseIcon from '../../../../assets/img/modalCloseIcon.png'
-import checkIcon from '../../../../assets/img/whiteCheckIcon.png'
+import checkIcon from '../../../../assets/img/pointCheckIcon.png'
 import { useRecoilValue } from "recoil"
 import { conditionMenu } from "../../../../Model/ConditionMenuModel"
 import { conditionRoute } from "../../../../Model/ConditionRouteModel"
@@ -60,8 +60,7 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
                 <HeaderBtns>
                     <Back onClick={complete} tabIndex={-1}>
                         <img src={checkIcon} style={{
-                            height: '28px',
-                            opacity: 0.5
+                            height: '28px'
                         }} />
                     </Back>
                     <Back onClick={close} tabIndex={-1}>
@@ -85,6 +84,7 @@ const Background = styled.div<{ visible: boolean }>`
     width: 100%;
     height: 100%;
     top: 0;
+    left: 0;
     z-index: 9000;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
     overflow: hidden;
@@ -97,6 +97,7 @@ const Background = styled.div<{ visible: boolean }>`
 const Rest = styled.div`
     flex: 1;
     height: 100%;
+    backdrop-filter: blur(2px);
 `
 
 const Container = styled.div<{ visible: boolean }>`
@@ -132,6 +133,10 @@ const HeaderBtns = styled.div`
 const Back = styled(Button)`
     background-color: transparent;
     border: none;
+    opacity: 0.5;
+    &:hover {
+        opacity: 1;
+    }
 `
 
 const ContentsContainer = styled.div`

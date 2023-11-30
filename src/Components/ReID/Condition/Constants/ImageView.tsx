@@ -91,10 +91,6 @@ const ImageView = forwardRef<HTMLImageElement, ImageViewProps>(({ src, style, ch
         }}
         className={className}
         style={{
-            width: src ? '100%' : '50%',
-            height: src ? '100%' : '50%',
-            maxWidth: src ? '100%' : '100px',
-            maxHeight: src ? '100%' : '60px',
             ...style
         }}
         onClick={(e) => {
@@ -135,8 +131,10 @@ const ImageContainer = styled.div<{ isSrc: boolean }>`
     ${({ isSrc }) => isSrc && 'cursor: zoom-in;'}
     position: relative;
     z-index: 1001;
-    width: 100%;
-    height: 100%;
+    width: ${({isSrc}) => isSrc ? 100 : 50}%;
+    height: ${({isSrc}) => isSrc ? 100 : 50}%;
+    max-width: ${({isSrc}) => isSrc ? '100%' : '100px'};
+    max-height: ${({isSrc}) => isSrc ? '100%' : '60px'};
     ${globalStyles.flex()}
 `
 
