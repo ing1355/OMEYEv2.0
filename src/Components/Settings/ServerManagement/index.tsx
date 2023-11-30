@@ -462,7 +462,7 @@ const ServerManagement = ({visible}: {
     // }
   }
 
-  const GetGetServerInfo = async () => {
+  const GetServerInfo = async () => {
     const res:GetServerInfoType = await Axios('GET', GetServerInfoApi)
     if(res) setFixedServerMgmtInfo(res)
   }
@@ -470,7 +470,7 @@ const ServerManagement = ({visible}: {
   useEffect(() => {
     if(visible) {
       sseSetting()
-      GetGetServerInfo()
+      GetServerInfo()
     }
   },[visible])
 
