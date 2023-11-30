@@ -292,7 +292,7 @@ const ContentsWrapper = () => {
             else addTimeData({ time: [data.startTime, data.endTime!], selected: false })
         }} visible={timeVisible} close={() => {
             setTimeVisible(false)
-        }} />
+        }} lowBlur/>
         <AreaSelect
             title={`그룹 ${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
             visible={areaVisible}
@@ -312,7 +312,7 @@ const ContentsWrapper = () => {
             }} close={() => {
                 setAreaVisible(false)
                 setAreaIndex(-1)
-            }} />
+            }} lowBlur/>
     </>
 }
 

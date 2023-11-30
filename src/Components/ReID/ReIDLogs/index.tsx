@@ -15,6 +15,10 @@ import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
 import clearIcon from '../../../assets/img/rankUpIcon.png'
+import resultIcon from '../../../assets/img/resultIcon.png'
+import userIcon from '../../../assets/img/UserIcon.png'
+import timeIcon from '../../../assets/img/ProgressTimeIcon.png'
+import targetIcon from '../../../assets/img/targetIcon.png'
 import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
@@ -121,7 +125,34 @@ const ReIDLogs = () => {
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
                                 }}>
-                                    <ContentsItemTitle>{_.userId} - No.{_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
+                                    <ContentsItemTitle>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={resultIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            분석번호 {_.reidId}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={userIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {_.userId}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={timeIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {convertFullTimeStringToHumanTimeFormat(_.createdTime)}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={targetIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {
+                                                _.requestGroups.map(__ => __.targetObjects[0].type).map(__ => ReIDObjectTypes.find(___ => ___.key === __)?.title).deduplication().join(', ')
+                                            }
+                                        </div>
+                                    </ContentsItemTitle>
                                     <ContentsItemTitleBtnsContainer>
                                         {/* <ContentsItemTitleBtn hover onClick={() => {
 
@@ -435,9 +466,27 @@ const SubTitleItemsContainer = styled.div`
 `
 
 const ContentsItemTitle = styled.div`
-    font-size: 1.3rem;
-    ${globalStyles.flex()}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '24px' })}
     height: 32px;
+    & > div {
+        font-size: 1.1rem;
+        height: 100%;
+        ${globalStyles.flex({flexDirection:'row', gap: '2px'})}
+        &:first-child {
+            font-weight: bold;
+            font-family: NanumGothicBold;
+        }
+    }
+`
+
+const ContentsItemTitleInnerIcon = styled.div`
+    ${globalStyles.flex()}
+    padding: 5px;
+    height: 100%;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
 const ContentsItemTitleBtnsContainer = styled.div`

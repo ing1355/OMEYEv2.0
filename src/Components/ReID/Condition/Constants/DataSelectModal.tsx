@@ -16,9 +16,10 @@ type DataSelectModalProps = PropsWithChildren<{
     title: React.ReactNode
     className?: string
     width?: CSSProperties['width']
+    lowBlur?: boolean
 }>
 
-const DataSelectModal = ({ visible, children, title, className, width, close, complete }: DataSelectModalProps) => {
+const DataSelectModal = ({ visible, children, title, className, width, close, complete, lowBlur }: DataSelectModalProps) => {
     const c_menu = useRecoilValue(conditionMenu)
     const c_route = useRecoilValue(conditionRoute)
     const menu = useRecoilValue(menuState)
@@ -47,7 +48,7 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
     return <Background visible={visible}>
         <Rest onClick={() => {
             close()
-        }} />
+        }} lowBlur={lowBlur || false}/>
         <Container style={{
             width: width || '840px'
         }} visible={visible}>
@@ -94,10 +95,10 @@ const Background = styled.div<{ visible: boolean }>`
     background-color: rgba(0,0,0,.3);
 `
 
-const Rest = styled.div`
+const Rest = styled.div<{lowBlur: boolean}>`
     flex: 1;
     height: 100%;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(${({lowBlur}) => lowBlur ? 0.5 : 2}px);
 `
 
 const Container = styled.div<{ visible: boolean }>`

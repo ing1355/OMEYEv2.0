@@ -14,9 +14,10 @@ type AreaSelectProps = {
     close: () => void
     title: string
     singleSelect?: boolean
+    lowBlur?: boolean
 }
 
-const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect }: AreaSelectProps) => {
+const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect, lowBlur=false }: AreaSelectProps) => {
     const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
     const [needInit, setNeedInit] = useState(false)
     const [confirmVisible, setConfirmVisible] = useState(false)
@@ -51,7 +52,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
         else close()
     }} complete={() => {
         if(!completeCallback()) close()
-    }}>
+    }} lowBlur={lowBlur}>
         <Container>
             <TreeAndMapComponent selectedCCTVs={selectedCCTVs} setSelectedCCTVs={setSelectedCCTVs} singleSelect={singleSelect} visible={visible} />
         </Container>

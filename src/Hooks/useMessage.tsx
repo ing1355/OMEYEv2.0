@@ -2,7 +2,7 @@ import { CSSProperties, createElement, useCallback } from 'react'
 import ReactDOM from 'react-dom/client';
 import { HeaderHeight } from '../Constants/CSSValues';
 import styled from 'styled-components';
-import { SectionBackgroundColor, globalStyles } from '../styles/global-styled';
+import { ModalBoxShadow, SectionBackgroundColor, globalStyles } from '../styles/global-styled';
 import closeIconImg from '../assets/img/closeIcon.png'
 import infoIcon from '../assets/img/infoIcon.png'
 import successIcon from '../assets/img/successIcon.png'
@@ -23,7 +23,7 @@ const renderJsxToContainer = (container: HTMLElement, node: React.ReactNode, opt
 let globalContainer: HTMLElement | undefined = undefined
 
 type MessageThemeType = 'info' | 'warning' | 'error' | 'success'
-type MessagePresetType = 'REIDCOMPLETE' | 'REIDSTART' | 'WRONG_PARAMETER' | 'REIDCANCEL' | 'REIDERROR'
+type MessagePresetType = 'REIDCOMPLETE' | 'REIDSTART' | 'WRONG_PARAMETER' | 'REIDCANCEL' | 'REIDERROR' | 'SERVER_CONNECTION_ERROR'
 
 const mainColorByTheme = (theme: MessageThemeType): CSSProperties['color'] => {
     if(theme === 'info') return '#007BD6'
@@ -163,6 +163,12 @@ const useMessage = () => {
                 msg: msg || "입력값이 잘못되었습니다.",
                 theme: 'error'
             })
+        } else if(preset === 'SERVER_CONNECTION_ERROR') {
+            createMessage({
+                title: "서버 에러",
+                msg: msg || "서버와의 연결이 종료되었습니다.\n서버 상태를 확인해주세요.",
+                theme: 'error'
+            })
         }
     },[])
 
@@ -204,6 +210,7 @@ const MessageContainer = styled.div`
     &:not(:first-child) {
 
     }
+    box-shadow: ${ModalBoxShadow};
     background-color: ${SectionBackgroundColor};
     ${globalStyles.slideToLeft()}
 `

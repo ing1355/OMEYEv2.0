@@ -81,16 +81,16 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
                 발견 시각 : {convertFullTimeStringToHumanTimeFormat(time)}
             </ItemDescriptionContentText>
         }
-        {
+        {/* {
             accuracy && <ItemDescriptionContentText>
                 유사율 : {accuracy}%
             </ItemDescriptionContentText>
-        }
-        {
+        } */}
+        {/* {
             ocr && <ItemDescriptionContentText>
                 번호판 : {ocr}
             </ItemDescriptionContentText>
-        }
+        } */}
         {
             type === ReIDObjectTypeKeys[ObjectTypes['FACE']] && <ItemDescriptionContentText>
                 마스크 착용 여부 : {mask ? '착용' : '미착용'}

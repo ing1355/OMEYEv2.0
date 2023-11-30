@@ -22,6 +22,7 @@ type TimeModalProps = {
     visible: boolean
     close: () => void
     noEndTime?: boolean
+    lowBlur?: boolean
 }
 
 type TimeInputProps = {
@@ -49,7 +50,7 @@ export const TimeInput = ({ value, label, onChange, maxLength, inputRef, isHour 
     </TimeInputContainer>
 }
 
-const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }: TimeModalProps) => {
+const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, lowBlur=false }: TimeModalProps) => {
     const [startDate, setStartDate] = useState<Date | null>(null)
     const [endDate, setEndDate] = useState<Date | null>(null)
     const [startHour, setStartHour] = useState('00')
@@ -190,7 +191,7 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close }:
             else close()
         }} complete={() => {
             if(!completeCallback()) close()
-        }}>
+        }} lowBlur={lowBlur}>
             <Wrapper>
                 <Container>
                     <Title>

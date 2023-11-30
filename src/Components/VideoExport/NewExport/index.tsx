@@ -17,7 +17,7 @@ import { SseStartApi, VideoExportApi } from "../../../Constants/ApiRoutes"
 import { Axios, videoExportCancelFunc } from "../../../Functions/NetworkFunctions"
 import { VideoExportApiParameterType, VideoExportRowDataType, VideoExportSseResponseType } from "../../../Model/VideoExportDataModel"
 import OptionSelect from "./OptionSelect"
-import { CustomEventSource, IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource, HealthCheckTimerDuration, IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
 import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
@@ -25,9 +25,10 @@ import encodingIcon from '../../../assets/img/encodingIcon.png'
 import editIcon from '../../../assets/img/cctvEditIcon.png'
 import useMessage from "../../../Hooks/useMessage"
 import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
-import { useRecoilValue } from "recoil"
+import { useRecoilValue, useSetRecoilState } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
 import ForLog from "../../Constants/ForLog"
+import { isLogin } from "../../../Model/LoginModel"
 
 type ParameterInputType = {
     index: number
@@ -258,8 +259,9 @@ const NewExport = () => {
     const sseRef = useRef<EventSource>()
     const datasRef = useRef(datas)
     const currentData = useRef<VideoExportRowDataType>(datas[0])
-    const tempTimer = useRef<NodeJS.Timer>()
     const message = useMessage()
+    const healthCheckTimer = useRef<NodeJS.Timer>()
+    const setIsLogin = useSetRecoilState(isLogin)
 
     useEffect(() => {
         datasRef.current = datas
@@ -356,6 +358,16 @@ const NewExport = () => {
                     return _
                 }
             }))
+            healthCheckTimer.current = setTimeout(() => {
+                currentData.current.status = 'cancel'
+                message.preset('SERVER_CONNECTION_ERROR')
+                setDatas(datasRef.current.map(_ => {
+                    return _.videoUUID === currentUUIDRef.current ? ({
+                        ...currentData.current
+                    }) : _
+                }))
+                setIsLogin(null)
+            }, HealthCheckTimerDuration);
         } else {
             if (sseRef.current) {
                 sseRef.current.close()
@@ -399,6 +411,13 @@ const NewExport = () => {
                     status: 'WAIT'
                 }
                 currentData.current.status = 'cancel'
+            } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
+                if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                healthCheckTimer.current = setTimeout(() => {
+                    currentData.current.status = 'cancel'
+                    message.preset('SERVER_CONNECTION_ERROR')
+                    setIsLogin(null)
+                }, HealthCheckTimerDuration);
             }
             setDatas(datasRef.current.map(_ => {
                 return _.videoUUID === currentUUIDRef.current ? ({
@@ -406,6 +425,7 @@ const NewExport = () => {
                 }) : _
             }))
             if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
+                if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
                 sseRef.current!.close()
                 sseRef.current = undefined
             }

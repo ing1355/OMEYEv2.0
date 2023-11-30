@@ -183,6 +183,7 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                                 src: imgUrl,
                                 objectId: res[0],
                                 accuracy,
+                                time: result.foundDateTime,
                                 resultId: result.resultId,
                                 method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
                             }])
@@ -195,10 +196,8 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                 <SelectBtn
                     hover
                     activate={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId)}
-                    onMouseDown={e => {
-                        e.currentTarget.blur()
-                    }}
                     onClick={() => {
+                        console.time("click Select")
                         if (!isMove) {
                             if (selectedData) {
                                 if (selectedData[selectedCondition][selectedTarget].find(target => target.resultId === result.resultId)) {
@@ -214,6 +213,7 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                                 }
                             }
                         }
+                        console.timeEnd("click Select")
                     }}>
                     <SelectBtnInnerIconContainer>
                         <SelectBtnInnerIcon src={timeIcon} />
@@ -310,7 +310,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                                 </>
                             }
                         </NoDataContainer>}
-                    {_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.filter(__ => Array.from(__.results).some(([key, val]) => val.length > 0)).map((__, _ind) => <TimeGroupContainer key={_ind}>
+                    {_.resultList.find(__ => __.objectId === selectedTarget)?.timeAndCctvGroup.filter(__ => Array.from(__.results).some(([key, val]) => val.length > 0)).map((__, _ind) => <TimeGroupContainer key={_ind} rowNums={Array.from(__.results).length}>
                         <TimeGroupTitle>
                             {convertFullTimeStringToHumanTimeFormat(__.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(__.endTime)}
                         </TimeGroupTitle>
@@ -423,10 +423,8 @@ const ResultListItemsContainer = styled.div<{ isProgress: boolean }>`
     padding: 6px 12px;
 `
 
-const TimeGroupContainer = styled.div`
-    height: auto;
-    max-height: 100%;
-    overflow: auto;
+const TimeGroupContainer = styled.div<{rowNums: number}>`
+    height: ${({rowNums}) => rowNums * 248 + 48}px;
     &:not(:first-child) {
         margin-top: 8px;
     }
@@ -436,6 +434,8 @@ const TimeGroupTitle = styled.div`
     height: 48px;
     font-size: 1.4rem;
     font-weight: 700;
+    border: 1px solid ${ContentsBorderColor};
+    border-radius: 12px;
     ${globalStyles.flex()}
 `
 
@@ -453,7 +453,7 @@ const TimeGroupCCTVRowTitle = styled.div`
     height: 32px;
     background-color: ${ContentsBorderColor};
     border-radius: 12px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     ${globalStyles.flex()}
 `
 
