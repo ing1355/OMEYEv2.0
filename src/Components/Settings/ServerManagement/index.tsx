@@ -8,6 +8,7 @@ import { useRecoilState } from "recoil";
 import { isLogin } from "../../../Model/LoginModel";
 import { decodedJwtToken } from "../../Layout/Header/UserMenu";
 import { Axios } from "../../../Functions/NetworkFunctions";
+import resetIcon from "../../../assets/img/resetIcon.png"
 
 // type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
 type serviceType = 'detect' | 'main' | 'back' | 'rt' | 'mediaserver' | '';
@@ -366,7 +367,7 @@ const ServerManagement = ({visible}: {
       const response = JSON.parse(res.data);
       // console.log('response', response);
       const { monitorVersion, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as SSEServerMgmtInfoType;
-      console.log('serviceStatus', serviceStatus)
+      // console.log('serviceStatus', serviceStatus)
       setSeverMgmtInfo(response);
 
       setXLabels(prevLabels => {
@@ -461,7 +462,7 @@ const ServerManagement = ({visible}: {
     // }
   }
 
-  const GetGetServerInfo = async () => {
+  const GetServerInfo = async () => {
     const res:GetServerInfoType = await Axios('GET', GetServerInfoApi)
     if(res) setFixedServerMgmtInfo(res)
   }
@@ -469,13 +470,26 @@ const ServerManagement = ({visible}: {
   useEffect(() => {
     if(visible) {
       sseSetting()
-      GetGetServerInfo()
+      GetServerInfo()
     }
   },[visible])
 
   return (
     <div>
-      <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>모니터링 <span>v{serverMgmtInfo?.monitorVersion}</span></div>
+      <div style={{display: 'flex'}}>
+        <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>
+          모니터링 <span>v{serverMgmtInfo?.monitorVersion}</span>
+        </div>
+        <div 
+          style={{cursor: 'pointer', marginLeft: '10px'}}
+          onClick={sseSetting}
+        >
+          <img 
+            src={resetIcon} 
+            style={{ height: '20px' }}
+          />
+        </div>
+      </div>
       <div style={{display: 'flex', gap: '10px', justifyContent: 'space-between', marginBottom: '15px'}}>
         <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', width: '46%', padding: '10px'}}>
           <div style={{marginBottom: '10px'}}>서비스 정보</div>
