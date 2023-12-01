@@ -7,7 +7,7 @@ import { fpsSettingApi, getSettingsInfoApi, maxAnalyzeDurationApi, maxCCTVCountA
 import { useEffect } from "react";
 import Button from "../../../Constants/Button";
 import useMessage from "../../../../Hooks/useMessage";
-import { OnlyInputNumberFun } from "../../../../Functions/GlobalFunctions";
+import { MaxInputNumberFun, OnlyInputNumberFun } from "../../../../Functions/GlobalFunctions";
 import whiteCheckIcon from "../../../../assets/img/whiteCheckIcon.png"
 import Slider from "../../../Constants/Slider";
 
@@ -65,7 +65,11 @@ const OMEYESidebar = () => {
   } 
 
   const SaveDataFun = () => {
-    ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
+    if(omeyeSettingsInfo.personFrame < 1 || omeyeSettingsInfo.faceFrame < 1 || omeyeSettingsInfo.carFrame < 1 || omeyeSettingsInfo.attributionFrame < 1) {
+      message.error({title: 'FPS 설정 에러', msg: 'FPS의 최소값은 1 입니다'});
+    } else {
+      ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
+    }
   }
 
   return (
@@ -103,20 +107,21 @@ const OMEYESidebar = () => {
                 value={omeyeSettingsInfo.personFrame ? omeyeSettingsInfo.personFrame : 0}
                 onChange={(e) => {
                   const num = OnlyInputNumberFun(e)
+                  const noMaxNum = MaxInputNumberFun(num, 30)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    personFrame: parseInt(num)
+                    personFrame: noMaxNum
                   }))
                 }}
               />
-              {/* <div style={{margin: '20px 0px 30px'}}>
-                <Slider min={1} max={30} value={omeyeSettingsInfo.personFrame} onChange={(val) => {
+              <div style={{margin: '35px 0px'}}>
+                <Slider min={1} max={30} value={omeyeSettingsInfo.personFrame} isFooter={true} onChange={(val) => {
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
                     personFrame: Number(val)
                   }))
                 }}/>
-              </div> */}
+              </div>
             </div>
           </div>
 
@@ -128,13 +133,21 @@ const OMEYESidebar = () => {
                 value={omeyeSettingsInfo.faceFrame ? omeyeSettingsInfo.faceFrame : 0}
                 onChange={(e) => {
                   const num = OnlyInputNumberFun(e)
+                  const noMaxNum = MaxInputNumberFun(num, 30)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    faceFrame: parseInt(num)
+                    faceFrame: noMaxNum
                   }))
                 }}
               />
-              {/* <div>프로그래스</div> */}
+              <div style={{margin: '35px 0px'}}>
+                <Slider min={1} max={30} value={omeyeSettingsInfo.faceFrame} isFooter={true} onChange={(val) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    faceFrame: Number(val)
+                  }))
+                }}/>
+              </div>
             </div>
           </div>
 
@@ -146,13 +159,21 @@ const OMEYESidebar = () => {
                 value={omeyeSettingsInfo.carFrame ? omeyeSettingsInfo.carFrame : 0}
                 onChange={(e) => {
                   const num = OnlyInputNumberFun(e)
+                  const noMaxNum = MaxInputNumberFun(num, 30)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    carFrame: parseInt(num)
+                    carFrame: noMaxNum
                   }))
                 }}
               />
-              {/* <div>프로그래스</div> */}
+              <div style={{margin: '35px 0px'}}>
+                <Slider min={1} max={30} value={omeyeSettingsInfo.carFrame} isFooter={true} onChange={(val) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    carFrame: Number(val)
+                  }))
+                }}/>
+              </div>
             </div>
           </div>
 
@@ -164,13 +185,21 @@ const OMEYESidebar = () => {
                 value={omeyeSettingsInfo.attributionFrame ? omeyeSettingsInfo.attributionFrame : 0}
                 onChange={(e) => {
                   const num = OnlyInputNumberFun(e)
+                  const noMaxNum = MaxInputNumberFun(num, 30)
                   setOmeyeSettingsInfo((pre) => ({
                     ...pre,
-                    attributionFrame: parseInt(num)
+                    attributionFrame: noMaxNum
                   }))
                 }}
               />
-              {/* <div>프로그래스</div> */}
+              <div style={{margin: '35px 0px'}}>
+                <Slider min={1} max={30} value={omeyeSettingsInfo.attributionFrame} isFooter={true} onChange={(val) => {
+                  setOmeyeSettingsInfo((pre) => ({
+                    ...pre,
+                    attributionFrame: Number(val)
+                  }))
+                }}/>
+              </div>
             </div>
           </div>
         </div>
@@ -180,7 +209,7 @@ const OMEYESidebar = () => {
       <div style={{marginBottom: '30px'}}>
         <div>
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '20px'}}>
-            <div style={{width: '25%'}}>
+            <div style={{width: '25%', minWidth: '200px'}}>
               최대 선택 가능 CCTV 수
             </div>
           </div>
@@ -189,7 +218,7 @@ const OMEYESidebar = () => {
         <div>
           {/* 최대 선택 가능 CCTV 수 (과거 영상) */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>과거영상</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '200px'}}>과거영상</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.maxAnalyzeCount ? omeyeSettingsInfo.maxAnalyzeCount : 0}
@@ -207,7 +236,7 @@ const OMEYESidebar = () => {
 
           {/* 최대 선택 가능 CCTV 수 (실시간) */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '35px'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>실시간</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '200px'}}>실시간</div>
             <div style={{width: '75%'}}>
               <OMEYESettingsSideBarInput 
                 value={omeyeSettingsInfo.maxLiveAnalyzeCount ? omeyeSettingsInfo.maxLiveAnalyzeCount : 0}
@@ -227,7 +256,7 @@ const OMEYESidebar = () => {
 
       {/* 최대 허용 분석 영상 시간 */}
       <div style={{display: 'flex', flexDirection: 'row', marginBottom: '10px'}}>
-        <div style={{width: '25%', lineHeight: '30px'}}>최대 허용 분석 영상 시간</div>
+        <div style={{width: '25%', lineHeight: '30px', minWidth: '200px'}}>CCTV 당 최대 허용 분석 영상 시간</div>
         <div style={{width: '75%'}}>
           <OMEYESettingsSideBarInput 
             value={omeyeSettingsInfo.maxAnalyzeDuration ? omeyeSettingsInfo.maxAnalyzeDuration : 0}
@@ -260,6 +289,7 @@ const OMEYESettingsSideBarInput = styled(Input)`
   text-align: center;
   flex: 0 0 480px;
   color: white;
+  width: 100px;
 `
 
 const OMEYEButton = styled(Button)`

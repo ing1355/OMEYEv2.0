@@ -98,7 +98,7 @@ type hardwareInfosType = {
   cpu: string,
   cpu_sockets: string,
   cpu_threads: string,
-  gpu: string,
+  gpu: string[],
   gpu_sockets: string,
   mem: string,
   disk: string,
@@ -547,11 +547,16 @@ const ServerManagement = ({visible}: {
           </div> */}
           <div style={{marginBottom: '10px'}}>하드웨어 정보</div>
           <div>
-            <div style={{padding: '10px'}}>Cpu: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
-            <div style={{padding: '10px'}}>Cpu sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
-            <div style={{padding: '10px'}}>Cpu threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
-            <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div>
-            <div style={{padding: '10px'}}>Gpu sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
+            <div style={{padding: '10px'}}>CPU: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
+            <div style={{padding: '10px'}}>CPU sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
+            <div style={{padding: '10px'}}>CPU threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
+            {/* <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div> */}
+            {fixedServerMgmtInfo?.hardwareInfos.gpu.map((data)=>{
+              return (
+                <div style={{padding: '10px'}}>{data}</div>
+              )
+            })}
+            <div style={{padding: '10px'}}>GPU sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
             <div style={{padding: '10px'}}>Memory: {fixedServerMgmtInfo?.hardwareInfos.mem}</div>
             <div style={{padding: '10px'}}>Disk: {fixedServerMgmtInfo?.hardwareInfos.disk}</div>
             <div style={{padding: '10px'}}>Network speed: {Number(separateNumber(fixedServerMgmtInfo?.hardwareInfos.network_speed)).toFixed(0)}{separateUnit(fixedServerMgmtInfo?.hardwareInfos.network_speed)}</div>
@@ -596,7 +601,7 @@ const ServerManagement = ({visible}: {
                   ].slice(0, serverMgmtInfo?.gpu.length || 0)}
                   xAxis={[{ scaleType: 'point', data: xLabels }]}
                   yAxis={[{ label: 'GPU (%)', min: 0, max: 100 }]}
-                />
+                ></LineChart>
               </div>
             </div>
           </div>

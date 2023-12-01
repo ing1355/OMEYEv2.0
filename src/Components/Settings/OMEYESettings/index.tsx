@@ -190,8 +190,8 @@ const OMEYESettings = () => {
         <div>
           {/* 타입 */}
           <div style={{display: 'flex', flexDirection: 'row', marginBottom: '25px'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>타입</div>
-            <div style={{display: 'flex', flexDirection: 'row'}}>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '120px'}}>타입</div>
+            <div style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
               <label style={{display: 'flex', flexDirection: 'row', marginRight: '15px'}}>
                 <input 
                   type="radio" 
@@ -245,7 +245,7 @@ const OMEYESettings = () => {
 
           {/* 지도 파일 업로드 */}
           <div style={{display: 'flex', marginBottom: '25px'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>지도 파일 업로드</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '120px'}}>지도 파일 업로드</div>
             <div>
               <form
                 id='fileUpload'
@@ -262,7 +262,7 @@ const OMEYESettings = () => {
                   MapFileUploadFun(file);
                 }}
               >
-                <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap'}}>
                   <div style={{lineHeight: '30px'}}>
                     <label 
                       htmlFor='uploadFile'
@@ -297,38 +297,42 @@ const OMEYESettings = () => {
 
           {/* 줌 범위 */}
           <div style={{display: 'flex', marginBottom: '25px'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>줌 범위</div>
-            <div>
-              최소: 
-              <DayInput 
-                value={omeyeSettingsInfo?.minZoom ? omeyeSettingsInfo?.minZoom : 0}
-                onChange={(e) => {
-                  const num = OnlyInputNumberFun(e)
-                  setOmeyeSettingsInfo((pre) => ({
-                    ...pre,
-                    minZoom: parseInt(num)
-                  }))
-                }}
-              /> 
-              최대: 
-              <DayInput 
-                value={omeyeSettingsInfo?.maxZoom ? omeyeSettingsInfo?.maxZoom : 0}
-                onChange={(e) => {
-                  const num = OnlyInputNumberFun(e)
-                  setOmeyeSettingsInfo((pre) => ({
-                    ...pre,
-                    maxZoom: parseInt(num)
-                  }))
-                }}
-              />
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '120px'}}>줌 범위</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                최소: 
+                <DayInput 
+                  value={omeyeSettingsInfo?.minZoom ? omeyeSettingsInfo?.minZoom : 0}
+                  onChange={(e) => {
+                    const num = OnlyInputNumberFun(e)
+                    setOmeyeSettingsInfo((pre) => ({
+                      ...pre,
+                      minZoom: parseInt(num)
+                    }))
+                  }}
+                /> 
+              </div>
+              <div>
+                최대: 
+                <DayInput 
+                  value={omeyeSettingsInfo?.maxZoom ? omeyeSettingsInfo?.maxZoom : 0}
+                  onChange={(e) => {
+                    const num = OnlyInputNumberFun(e)
+                    setOmeyeSettingsInfo((pre) => ({
+                      ...pre,
+                      maxZoom: parseInt(num)
+                    }))
+                  }}
+                />
+              </div>
             </div>
           </div>
 
           {/* CCTV 아이콘 설정 */}
           <div style={{display: 'flex'}}>
-            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px'}}>CCTV 아이콘 설정</div>
+            <div style={{width: '25%', paddingLeft: '10px', lineHeight: '30px', minWidth: '120px'}}>CCTV 아이콘 설정</div>
             <div style={{display: 'flex', flexDirection: 'column'}}>
-              <div style={{marginBottom: '20px'}}>
+              <div style={{marginBottom: '20px', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '10px'}}>
                 <OMEYEButton 
                   activate={selectedCCTVIcon === 'DEFAULT'}
                   onClick={() => {
@@ -384,7 +388,7 @@ const OMEYESettings = () => {
                     // }
                   }}
                 >
-                  <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap'}}>
                     <div style={{lineHeight: '30px'}}>
                       <label 
                         htmlFor='CCTVIconUploadFile'
@@ -455,5 +459,4 @@ const MapInput = styled(Input)`
 
 const OMEYEButton = styled(Button)`
   height: 30px;
-  margin-right: 10px;
 `
