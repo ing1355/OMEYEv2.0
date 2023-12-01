@@ -4,7 +4,7 @@ import Input from "../../Constants/Input"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
@@ -13,7 +13,7 @@ import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
 import useMessage from "../../../Hooks/useMessage"
-import { CustomEventSource, GetAuthorizationToken, HealthCheckTimerDuration } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource, GetAuthorizationToken } from "../../../Constants/GlobalConstantsValues"
 import { PROGRESS_STATUS, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseStatusType } from "../../../Model/ProgressModel"
 import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
@@ -21,7 +21,7 @@ import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys
 import CCTVNameById from "../../Constants/CCTVNameById"
 import realtimeStartIcon from '../../../assets/img/realtimeStartIcon.png'
 import realtimeStopIcon from '../../../assets/img/realtimeStopIcon.png'
-import { isLogin } from "../../../Model/LoginModel"
+import useServerConnection from "../../../Hooks/useServerConnection"
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -78,7 +78,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
             padding: '4px 6px',
             borderRadius: '12px'
         }}>
-            {(min && max) ? `${data.min} ~ ${data.max}` : (data.accuracy || 0) + '%'}
+            {(min && max) ? `${min} ~ ${max}` : (accuracy && `${accuracy}%`)}
         </div>
         <div style={{
             position: 'absolute',
@@ -127,8 +127,15 @@ const RealTimeReID = () => {
     const imagesRef = useRef<RealTimeResponseDataType[]>([])
     const accuracyRef = useRef(rtData.threshHold)
     const changeTimer = useRef<NodeJS.Timer>()
-    const healthCheckTimer = useRef<NodeJS.Timer>()
-    const setIsLogin = useSetRecoilState(isLogin)
+    const {healthCheckClear, healthCheckTimerRegister} = useServerConnection()
+
+    const healthCheckClearCallback = () => {
+        setRtStatus(PROGRESS_STATUS['IDLE'])
+    }
+
+    const healthCheckRegisterCallback = () => {
+        healthCheckTimerRegister(healthCheckClearCallback)
+    }
 
     useLayoutEffect(() => {
         selectedRef.current = selected
@@ -136,7 +143,7 @@ const RealTimeReID = () => {
 
     useLayoutEffect(() => {
         if(rtStatus === PROGRESS_STATUS['IDLE']) {
-            clearTimeout(healthCheckTimer.current)
+            healthCheckClear()
         }
         statusRef.current = rtStatus
     }, [rtStatus])
@@ -201,11 +208,6 @@ const RealTimeReID = () => {
                     URL.revokeObjectURL(_.imageURL)
                 })
                 imagesRef.current = []
-                healthCheckTimer.current = setTimeout(() => {
-                    setRtStatus(PROGRESS_STATUS['IDLE'])
-                    message.preset('SERVER_CONNECTION_ERROR')
-                    setIsLogin(null)
-                }, HealthCheckTimerDuration);
             } else {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
                 sseRef.current?.close()
@@ -246,20 +248,16 @@ const RealTimeReID = () => {
                             });
                     }
                 }
-                if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
+                if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                    healthCheckRegisterCallback()
+                } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                     console.debug('realtime sse end')
                     setRtStatus(PROGRESS_STATUS['IDLE'])
-                    clearInterval(timerId)
-                    if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                    healthCheckClear()
                     sseRef.current!.close();
                     sseRef.current = undefined
                 } else if (status === SSEResponseMsgTypeKeys[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
-                    if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
-                    healthCheckTimer.current = setTimeout(() => {
-                        setRtStatus(PROGRESS_STATUS['IDLE'])
-                        message.preset('SERVER_CONNECTION_ERROR')
-                        setIsLogin(null)
-                    }, HealthCheckTimerDuration);
+                    healthCheckRegisterCallback()
                 }
             } catch (e) {
                 console.debug("realtime Error : ", e)
@@ -408,7 +406,7 @@ const RealTimeReID = () => {
                                     {selected?.cameraId ? <CCTVNameById cctvId={selected.cameraId} /> : '정보 없음'}
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
-                            <ResultDetailDescriptionRow>
+                            {rtData.type !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <ResultDetailDescriptionRow>
                                 <ResultDetailDescriptionCol>
                                     {rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? '탐지 개수' : '유사율'}
                                 </ResultDetailDescriptionCol>
@@ -418,7 +416,7 @@ const RealTimeReID = () => {
                                         {selected?.accuracy || 0}%
                                     </>}
                                 </ResultDetailDescriptionCol>
-                            </ResultDetailDescriptionRow>
+                            </ResultDetailDescriptionRow>}
                             <ResultDetailDescriptionRow>
                                 <ResultDetailDescriptionCol>
                                     탐지된 시간
@@ -567,6 +565,8 @@ const ResultDetailDescriptionRow = styled.div`
 
 const ResultDetailDescriptionCol = styled.div`
     &:nth-child(2) {
+        overflow: auto;
+        text-align: center;
         background-color: ${InputBackgroundColor};
         border-radius: 8px;
     }
@@ -576,6 +576,7 @@ const ResultDetailDescriptionCol = styled.div`
 `
 
 const ResultDetailMapContainer = styled.div`
+    flex: 1;
     width: 100%;
     height: calc(100% - ${48 + 36 * 3}px);
 `

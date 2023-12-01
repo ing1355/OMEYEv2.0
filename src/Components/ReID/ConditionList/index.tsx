@@ -10,6 +10,7 @@ import { PROGRESS_STATUS, ProgressRequestParams, ProgressStatus, ReIdRequestFlag
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import filterIcon from '../../../assets/img/filterIcon.png'
 import { conditionListDatas } from "../../../Model/ConditionDataModel"
+import useMessage from "../../../Hooks/useMessage"
 
 const ListFilterItems: {
     key: ReIDObjectTypeKeys | 'ALL'
@@ -27,6 +28,7 @@ const ConditionList = () => {
     const progressStatus = useRecoilValue(ProgressStatus)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
+    const message = useMessage()
     
     return <Container>
         <Header>
@@ -43,6 +45,7 @@ const ConditionList = () => {
                 }
             </TypeTabs>
             <CompleteBtn icon={reidReqIcon} disabled={progressStatus.status === PROGRESS_STATUS['RUNNING'] || !conditionList.find(_ => _.selected)} concept="activate" onClick={() => {
+                if(progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({title: "입력값 에러", msg:"이미 고속분석 요청이 진행 중입니다."})
                 setRequestFlag(true)
                 setProgressRequestParams({
                     type: 'REID',

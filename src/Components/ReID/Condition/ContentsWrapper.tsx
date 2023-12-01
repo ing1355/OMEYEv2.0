@@ -53,9 +53,8 @@ const ContentsWrapper = () => {
     const { targets, rank, time, title, cctv, isRealTime, etc } = _conditionData
     const message = useMessage()
     const allSelected = useMemo(() => {
-        if(time.length === 0 && targets.length === 0 && cctv.length === 0) return false
-        return time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected)
-    },[_conditionData])
+        return isRealTime ? (targets.every(_ => _.selected) && cctv.every(_ => _.selected)) : (time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected))
+    },[_conditionData, isRealTime])
     
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
@@ -130,6 +129,7 @@ const ContentsWrapper = () => {
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
                 } else {
                     if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간 그룹을 1개 이상 선택해주세요."})
+                    if(progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({title: "입력값 에러", msg:"이미 고속분석 요청이 진행 중입니다."})
                     setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
@@ -243,29 +243,37 @@ const ContentsWrapper = () => {
                     </HeaderHistories>
                 </HeaderSubContainer>
                 <CompleteButtons>
-                    {routeInfo.length === 1 && <CompleteButton hover disabled={(isRealTime && targets.length > 1) || (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
+                    {routeInfo.length === 1 && <CompleteButton hover disabled={isRealTime ? (targets.length === 0 && cctv.length === 0) : (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
                         if(allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,
                                 selected: false
                             })))
-                            setTimeData(time.map(_ => ({
-                                ..._,
-                                selected: false
-                            })))
+                            if(!isRealTime) {
+                                setTimeData(time.map(_ => ({
+                                    ..._,
+                                    selected: false
+                                })))
+                            }
                             setAreaData(cctv.map(_ => ({
                                 ..._,
                                 selected: false
                             })))
                         } else {
-                            setTargetDatas(targets.map(_ => ({
-                                ..._,
-                                selected: true
-                            })))
-                            setTimeData(time.map(_ => ({
-                                ..._,
-                                selected: true
-                            })))
+                            if(isRealTime && targets.length > 1) {
+                                message.error({title: "입력값 에러", msg:"실시간 분석은 하나의 대상만 선택해야 합니다."})
+                            } else {
+                                setTargetDatas(targets.map(_ => ({
+                                    ..._,
+                                    selected: true
+                                })))
+                            }
+                            if(!isRealTime) {
+                                setTimeData(time.map(_ => ({
+                                    ..._,
+                                    selected: true
+                                })))
+                            }
                             setAreaData(cctv.map(_ => ({
                                 ..._,
                                 selected: true

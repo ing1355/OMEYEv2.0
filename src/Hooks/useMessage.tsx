@@ -67,11 +67,10 @@ export class Message {
                 </MessageOkBtn>}
             </MessageFooter>
         </MessageContainer>)
-        console.debug(timer || (callback && Infinity) || 5000)
         this._container = container
         this._timerId = setTimeout(() => {
             this.deleteMessage()
-        }, timer || (callback && Infinity) || 5000);
+        }, timer || (callback && 3600000) || 5000);
     }
 
     deleteContainer() {
@@ -139,8 +138,7 @@ const useMessage = () => {
                 theme:'success',
                 callback: callback ? callback : () => {
                     setReIDMenu(ReIDMenuKeys['REIDRESULT'])
-                },
-                timer: 60000
+                }
             })
         } else if(preset === 'REIDCANCEL') {
             createMessage({
@@ -159,7 +157,10 @@ const useMessage = () => {
             createMessage({
                 title: "분석 실패",
                 msg: msg!,
-                theme: 'error'
+                theme: 'error',
+                callback: () => {
+                    
+                }
             })
         } else if(preset === 'WRONG_PARAMETER') {
             createMessage({

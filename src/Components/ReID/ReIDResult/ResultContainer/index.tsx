@@ -1,7 +1,7 @@
 import styled from "styled-components"
 import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, SingleReIDSelectedData, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
 import ImageView from "../../Condition/Constants/ImageView"
@@ -279,12 +279,12 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
             </TargetsContainer>
             <ResultListGroupContainer>
                 {/* <ForLog data={globalCurrentReIdId}/>
-                <ForLog data={progressStatus.status}/>
                 <ForLog data={requestParams.type}/>
-                <ForLog data={data.data}/>
+                <ForLog data={data.data}/> */}
+                {/* <ForLog data={progressData}/>
                 <ForLog data={selectedCondition}/> */}
                 {globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) && <ProgressContainer>
-                    <ProgressItem percent={progressData[selectedCondition] ? Math.floor(getConditionPercent(progressData[selectedCondition].times)) : 0} color={ContentsActivateColor} />
+                    <ProgressItem percent={progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition] ? Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition].times)) : 0} color={ContentsActivateColor} />
                 </ProgressContainer>}
                 <ResultDescriptionContainer>
                     <DescriptionReIdIdTextContainer>
