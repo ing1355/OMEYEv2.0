@@ -17,6 +17,7 @@ import { RangePickerProps } from "antd/es/date-picker";
 import moment from 'moment';
 import uploadIcon from "../../../../assets/img/uploadIcon.png"
 import downloadIcon from "../../../../assets/img/downloadIcon.png"
+import Form from "../../../Constants/Form";
 
 // const ServerControlDropdownList = [
 //   {
@@ -453,7 +454,7 @@ const ServerMgmtSidebar = () => {
       <div style={{marginBottom: '35px', lineHeight: '35px'}}>
         <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>모델 파일 업로드</div>
         <div>
-          <form
+          <Form
             id='fileUpload'
             onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
               e.preventDefault();
@@ -501,7 +502,7 @@ const ServerMgmtSidebar = () => {
             <div style={{lineHeight: '30px', wordWrap: 'break-word', marginTop: '10px' }}>
               {fileName}
             </div>
-          </form>
+          </Form>
         </div>
       </div>
       <div style={{marginBottom: '25px', lineHeight: '30px'}}>

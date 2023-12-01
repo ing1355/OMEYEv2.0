@@ -6,7 +6,7 @@ import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
 import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Button from "../../Constants/Button"
 import { useEffect, useRef, useState } from "react"
-import { ReIDLogDataSaveToJSON, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
+import { ReIDLogDataSaveToJSON, UploadSingleConditionJsonData, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
 import ImageView from "../Condition/Constants/ImageView"
 import { useRecoilState, useSetRecoilState } from "recoil"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
@@ -15,11 +15,19 @@ import Form from "../../Constants/Form"
 import CollapseArrow from "../../Constants/CollapseArrow"
 import searchIcon from '../../../assets/img/searchIcon.png'
 import clearIcon from '../../../assets/img/rankUpIcon.png'
+import resultIcon from '../../../assets/img/resultIcon.png'
+import userIcon from '../../../assets/img/UserIcon.png'
+import timeIcon from '../../../assets/img/ProgressTimeIcon.png'
+import targetIcon from '../../../assets/img/targetIcon.png'
 import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { AllReIDSelectedResultData, ReIDResultSelectedCondition, ReIDResultSelectedView } from "../../../Model/ReIdResultModel"
 import { GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import Pagination from "../../Layout/Pagination"
+import { ConditionDataType, conditionData } from "../../../Model/ConditionDataModel"
+import useMessage from "../../../Hooks/useMessage"
+import useConditionRoutes from "../Condition/Hooks/useConditionRoutes"
+import { ReIDConditionFormRoute } from "../Condition/Constants/RouteInfo"
 
 const bottomColStyle = {
     alignItems: 'flex-start'
@@ -32,8 +40,8 @@ const bottomColTitleStyle = {
 type ObjectTypeSearchValues = ReIDObjectTypeKeys | 'all'
 
 const ReIDLogs = () => {
-    // const setReIDResultData = useSetRecoilState(ReIDResultData)
     const [menu, setMenu] = useRecoilState(conditionMenu)
+    const [allDatas, setAllDatas] = useRecoilState(conditionData)
     const [opened, setOpened] = useState<ReIDLogDataType['reidId']>(0)
     const [timeVisible, setTimeVisible] = useState(false)
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
@@ -47,8 +55,10 @@ const ReIDLogs = () => {
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
     const setReIDSelectedcondition = useSetRecoilState(ReIDResultSelectedCondition)
     const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
-    const {logs, setParams, refresh} = useReIDLogDatas(params)
-    
+    const { logs, setParams, refresh } = useReIDLogDatas(params)
+    const message = useMessage()
+    const { routeJump } = useConditionRoutes()
+
     useEffect(() => {
         if (menu === ReIDMenuKeys['REIDLOGS']) refresh()
         else setOpened(0)
@@ -56,7 +66,7 @@ const ReIDLogs = () => {
 
     useEffect(() => {
         if (menu === ReIDMenuKeys['REIDLOGS']) setParams(params)
-    },[params])
+    }, [params])
 
     return <Container>
         <TimeModal visible={timeVisible} close={() => {
@@ -98,7 +108,7 @@ const ReIDLogs = () => {
                             e.stopPropagation()
                             setTimeValue(undefined)
                         }}>
-                            <ClearBtn src={clearIcon}/>
+                            <ClearBtn src={clearIcon} />
                         </ClearBtnContainer>}
                     </DateSearch>
                     <SearchButton hover icon={searchIcon} type="submit">
@@ -115,7 +125,34 @@ const ReIDLogs = () => {
                                     if (opened === _.reidId) setOpened(0)
                                     else setOpened(_.reidId)
                                 }}>
-                                    <ContentsItemTitle>{_.userId} - No.{_.reidId} ({convertFullTimeStringToHumanTimeFormat(_.createdTime)}) - {ReIDObjectTypes.find(__ => __.key === _.requestGroups[0].targetObjects[0].type)?.title}</ContentsItemTitle>
+                                    <ContentsItemTitle>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={resultIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            분석번호 {_.reidId}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={userIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {_.userId}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={timeIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {convertFullTimeStringToHumanTimeFormat(_.createdTime)}
+                                        </div>
+                                        <div>
+                                            <ContentsItemTitleInnerIcon>
+                                                <img src={targetIcon} />
+                                            </ContentsItemTitleInnerIcon>
+                                            {
+                                                _.requestGroups.map(__ => __.targetObjects[0].type).map(__ => ReIDObjectTypes.find(___ => ___.key === __)?.title).deduplication().join(', ')
+                                            }
+                                        </div>
+                                    </ContentsItemTitle>
                                     <ContentsItemTitleBtnsContainer>
                                         {/* <ContentsItemTitleBtn hover onClick={() => {
 
@@ -125,22 +162,24 @@ const ReIDLogs = () => {
                                         {_.requestGroups && _.requestGroups.length > 0 && _.requestGroups[0].timeGroups.length > 0 && _.requestGroups[0].timeGroups[0].startTime !== 'live' && <ContentsItemTitleBtn hover onClick={async (e) => {
                                             e.stopPropagation()
                                             const temp = await GetReIDResultById(_.reidId)
-                                            const newData: ReIDResultType = {...temp, data: temp.data.map(d => ({
-                                                ...d,
-                                                resultList: d.resultList.map(r => ({
-                                                    ...r,
-                                                    timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
-                                                        const _ = new Map()
-                                                        Object.keys(t.results).forEach(__ => {
-                                                            _.set(__, (t.results as any)[Number(__)])
+                                            const newData: ReIDResultType = {
+                                                ...temp, data: temp.data.map(d => ({
+                                                    ...d,
+                                                    resultList: d.resultList.map(r => ({
+                                                        ...r,
+                                                        timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                                                            const _ = new Map()
+                                                            Object.keys(t.results).forEach(__ => {
+                                                                _.set(__, (t.results as any)[Number(__)])
+                                                            })
+                                                            return {
+                                                                ...t,
+                                                                results: _
+                                                            }
                                                         })
-                                                        return {
-                                                            ...t,
-                                                            results: _
-                                                        }
-                                                    })
+                                                    }))
                                                 }))
-                                            }))}
+                                            }
                                             if (reidResults.some(r => r.reIdId === _.reidId)) {
                                                 setReidResults(reidResults.map(r => r.reIdId === _.reidId ? newData : r))
                                             } else {
@@ -159,23 +198,45 @@ const ReIDLogs = () => {
                                 {
                                     _.requestGroups.map((__, _ind) => <ContentsItemSubContainer opened={true} key={_ind}>
                                         <ContentsItemSubTitleContainer>
-                                            <div />
                                             {__.title === 'live' ? '실시간 분석' : __.title}
-                                            <SubTitleItemsContainer>
+                                        </ContentsItemSubTitleContainer>
+                                        <ContentsItemInnerContainer>
+                                            <ContentsItemInnerBtnsContainer>
                                                 <ContentsItemTitleBtn hover onClick={async () => {
-                                                    // const resultData = await Axios("GET", GetReidDataApi(_.reidId)) as ReIDResultType
+                                                    const isRealTime = __.timeGroups[0].startTime === 'live'
+                                                    let _: ConditionDataType = {
+                                                        title: isRealTime ? '' : __.title,
+                                                        etc: isRealTime ? '' : __.etc,
+                                                        rank: isRealTime ? 10 : __.rank,
+                                                        cctv: __.cameraGroups.map(_ => ({
+                                                            selected: false,
+                                                            cctvList: _
+                                                        })),
+                                                        time: isRealTime ? [] : __.timeGroups.map(_ => ({
+                                                            selected: false,
+                                                            time: [_.startTime, _.endTime]
+                                                        })),
+                                                        targets: __.targetObjects.map(_ => ({
+                                                            objectId: _.id,
+                                                            type: _.type,
+                                                            src: _.imgUrl,
+                                                            method: 'JSONUPLOAD',
+                                                            ocr: _.ocr
+                                                        })),
+                                                        isRealTime: isRealTime
+                                                    }
+                                                    setMenu(ReIDMenuKeys['CONDITION'])
+                                                    routeJump(ReIDConditionFormRoute.key)
+                                                    setAllDatas(_)
+                                                }}>
+                                                    검색 조건으로 가져오기
+                                                </ContentsItemTitleBtn>
+                                                <ContentsItemTitleBtn hover onClick={async () => {
                                                     ReIDLogDataSaveToJSON(__)
-                                                    // DownloadSingleConditionJsonData(resultData.data[_ind])
                                                 }}>
                                                     데이터 다운로드
                                                 </ContentsItemTitleBtn>
-                                                {/* <Arrow opened={subOpened.includes(_ind)} onClick={() => {
-                                                    if (subOpened.includes(_ind)) setSubOpened(subOpened.filter(___ => ___ !== _ind))
-                                                    else setSubOpened(subOpened.concat(_ind))
-                                                }} /> */}
-                                            </SubTitleItemsContainer>
-                                        </ContentsItemSubTitleContainer>
-                                        <ContentsItemInnerContainer>
+                                            </ContentsItemInnerBtnsContainer>
                                             <ContentsItemInnerRowContainer>
                                                 <ContentsItemInnerColContainer>
                                                     <ContentsItemInnerColTitle>
@@ -231,8 +292,8 @@ const ReIDLogs = () => {
                                                     <ContentsItemInnerColContents>
                                                         {
                                                             __.timeGroups[0].startTime === 'live' ? <ContentsItemInnerColContentWrapper key={ind}>
-                                                            실시간 분석
-                                                        </ContentsItemInnerColContentWrapper> : __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
+                                                                실시간 분석
+                                                            </ContentsItemInnerColContentWrapper> : __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
                                                                 {convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(time.endTime)}
                                                             </ContentsItemInnerColContentWrapper>)
                                                         }
@@ -272,8 +333,8 @@ const ReIDLogs = () => {
                         }
                     </ContentsContainer>
                     <Pagination currentPage={params.page} setCurrentPage={(page) => {
-                        _setParams({...params, page})
-                    }} totalCount={logs.data.totalCount} dataPerPage={10}/>
+                        _setParams({ ...params, page })
+                    }} totalCount={logs.data.totalCount} dataPerPage={10} />
                 </> : <NoDataContentsContainer>
                     서버에 저장된 분석 결과가 존재하지 않습니다.
                 </NoDataContentsContainer>
@@ -355,14 +416,14 @@ const NoDataContentsContainer = styled.div`
 `
 
 const ContentsContainer = styled.div`
-    max-height: ${window.innerHeight - 220}px;
+    height: ${window.innerHeight - 260}px;
     width: 100%;
     overflow: auto;
     color: white;
 `
 
 const ContentsItemContainer = styled.div<{ opened: boolean, nums: number }>`
-    height: ${({ opened, nums }) => opened ? `${nums * 352 + 40}px`: (44 + 'px')};
+    height: ${({ opened, nums }) => opened ? `${nums * 352 + 40}px` : (44 + 'px')};
     transition: height .25s ease-out;
     border: 2px solid ${ContentsBorderColor};
     border-radius: 12px;
@@ -388,10 +449,11 @@ height: ${({ opened }) => opened ? 348 : 40}px;
 
 const ContentsItemSubTitleContainer = styled.div`
     height: 36px;
+    line-height: 36px;
     margin-bottom: 8px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
     border-radius: 10px;
     background-color: ${ContentsBorderColor};
+    text-align: center;
 `
 
 const SubTitleItemsContainer = styled.div`
@@ -404,9 +466,27 @@ const SubTitleItemsContainer = styled.div`
 `
 
 const ContentsItemTitle = styled.div`
-    font-size: 1.3rem;
-    ${globalStyles.flex()}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '24px' })}
     height: 32px;
+    & > div {
+        font-size: 1.1rem;
+        height: 100%;
+        ${globalStyles.flex({flexDirection:'row', gap: '2px'})}
+        &:first-child {
+            font-weight: bold;
+            font-family: NanumGothicBold;
+        }
+    }
+`
+
+const ContentsItemTitleInnerIcon = styled.div`
+    ${globalStyles.flex()}
+    padding: 5px;
+    height: 100%;
+    & > img {
+        width: 100%;
+        height: 100%;
+    }
 `
 
 const ContentsItemTitleBtnsContainer = styled.div`
@@ -421,11 +501,22 @@ const ContentsItemTitleBtn = styled(Button)`
 const ContentsItemInnerContainer = styled.div`
     height: 300px;
     padding: 8px 16px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     border-radius: 10px;
+    position: relative;
+`
+
+const ContentsItemInnerBtnsContainer = styled.div`
+    position: absolute;
+    top: 0px;
+    right: 16px;
+    height: 32px;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
 `
 
 const ContentsItemInnerRowContainer = styled.div`
+    width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '36px' })}
     margin-bottom: 16px;
 `
@@ -447,6 +538,7 @@ const ContentsItemInnerColContents = styled.div`
     height: 140px;
     overflow: auto;
     ${globalStyles.flex({ justifyContent: 'flex-start', gap: '4px' })}
+    min-width: 0;
 `
 
 const ContentsItemInnerTargetImageBoxContainer = styled.div`
@@ -458,6 +550,7 @@ const ContentsItemInnerTargetImageBoxContainer = styled.div`
 `
 
 const ContentsItemInnerHeadItemImageBox = styled(ImageView)`
+    width: 80px;
 `
 
 const ContentsItemInnerColContentWrapper = styled.div`

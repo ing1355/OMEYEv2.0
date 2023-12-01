@@ -93,9 +93,8 @@ const NoDataTitle = styled.div`
 `
 
 const ListContainer = styled.div`
-    max-height: calc(100% - 42px);
-    margin-bottom: 16px;
+    height: ${window.innerHeight - 300}px;
     width: 100%;
     overflow: auto;
-    ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', gap: '1%', alignItems: 'flex-start', justifyContent: 'flex-start' })}
+    ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', gap: '1%', alignItems: 'stretch', justifyContent: 'flex-start' })}
 `

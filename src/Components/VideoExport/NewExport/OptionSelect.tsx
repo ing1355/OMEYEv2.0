@@ -127,19 +127,22 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                 ctx.closePath()
             }
             if (submitPoints.length > 0) {
-                ctx.beginPath()
-                ctx.fillStyle = "black"
                 submitPoints.forEach(_ => {
+                    ctx.beginPath()
+                    ctx.fillStyle = "black"
                     _.forEach((__, ind) => {
                         if (ind === 0) {
                             ctx.moveTo(__[0], __[1])
                         } else {
                             ctx.lineTo(__[0], __[1])
+                            if(ind === _.length - 1) {
+                                ctx.lineTo(_[0][0], _[0][1])
+                            }
                         }
                     })
+                    ctx.closePath()
+                    ctx.fill()
                 })
-                ctx.fill()
-                ctx.closePath()
             }
         }
     }, [clickPoints, submitPoints])
@@ -317,9 +320,7 @@ const DescriptionContainer = styled.div`
 `
 
 const DescriptionInput = styled(Input)`
-    height: 100%;
-    flex: 1;
-    pointer-events: none;
+    width: 100%;
 `
 
 const MaskingInfoIcon = styled.img`

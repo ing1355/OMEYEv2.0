@@ -365,7 +365,7 @@ const ServerManagement = ({visible}: {
 
     sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
-      // console.log('response', response);
+      console.log('server Management Message : ', response);
       const { monitorVersion, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as SSEServerMgmtInfoType;
       // console.log('serviceStatus', serviceStatus)
       setSeverMgmtInfo(response);
@@ -469,8 +469,14 @@ const ServerManagement = ({visible}: {
 
   useEffect(() => {
     if(visible) {
-      sseSetting()
       GetServerInfo()
+      sseSetting()
+    }
+    return () => {
+      if(sseRef.current) {
+        sseRef.current.close()
+        sseRef.current = undefined
+      }
     }
   },[visible])
 

@@ -62,7 +62,7 @@ const ReIDResult = () => {
     }
 
     useEffect(() => {
-        if (!IS_PRODUCTION) test()
+        // if (!IS_PRODUCTION) test()
     }, [])
 
     return <>
@@ -103,7 +103,7 @@ const ReIDResult = () => {
             </Header>
             <ContentsContainer>
                 {
-                    reIDResultKeys.map((_, ind) => <ResultContainer key={ind} reidId={_} visible={!isMapView && (selectedView[0] === _)} />)
+                    reIDResultKeys.map((_, ind) => <ResultContainer key={ind} reIdId={_} visible={!isMapView && (selectedView[0] === _)} />)
                 }
                 <MapView opened={isMapView} reIdId={selectedView[0]} />
             </ContentsContainer>

@@ -37,6 +37,7 @@ type MapComponentProps = PropsWithChildren & {
     isDebug?: boolean
     initEvent?: boolean
     viewChangeForPath?: CameraDataType['cameraId'][]
+    visible?: boolean
 }
 
 const hasCameraInSite = (siteData: SiteDataType) => {
@@ -52,7 +53,7 @@ const findSiteByDuplicatedCCTVs = (cctvs: CameraDataType['cameraId'][], siteData
     return filteredTreeData.filter(_ => hasCameraInSite(_))
 }
 
-const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath }: MapComponentProps) => {
+const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewChange, forAddtraffic, children, cameras, singleCamera, forSingleCamera, reIdId, onlyMap, noSelect, initEvent, viewChangeForPath, visible }: MapComponentProps) => {
     const [trafficOverlayView, setTrafficOverlayView] = useState(false)
     const [circleSelectOverlayView, setCircleSelectOverlayView] = useState(false)
     const [r, setR] = useState('1')
@@ -160,6 +161,14 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [forAddtraffic, pathCameras])
 
     useEffect(() => {
+        // if(map.current && visible) {
+        //     setTimeout(() => {
+        //         if(map.current) map.current.changeViewToSelectedCCTVs(pathCameras)
+        //     }, 500);
+        // }
+    },[visible])
+
+    useEffect(() => {
         if (idForViewChange) {
             map.current?.viewChangeById(idForViewChange)
         }
@@ -244,30 +253,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
     },[duplicatedCCTVSelect])
 
-    // const createSiteRowByCollapse = (data: SiteDataType) => {
-    //     const isOpened = collapseOpen.includes(data.fullName)
-    //     return <CCTVRowContainer opened={isOpened} key={data.fullName}>
-    //         <CCTVTitleContainer onClick={() => {
-    //             if(isOpened) {
-    //                 setCollapseOpen(collapseOpen.filter(_ => _ !== data.fullName))
-    //             } else {
-    //                 setCollapseOpen(collapseOpen.concat(data.fullName))
-    //             }
-    //         }}>
-    //             {data.siteName}
-    //             <CollapseContainer>
-    //                 <CollapseArrow opened={isOpened} style={{
-    //                     width: '100%',
-    //                     height: '100%'
-    //                 }} />
-    //             </CollapseContainer>
-    //         </CCTVTitleContainer>
-    //         <CCTVRowContentsContainer>
-    //             {data.cameras.map(_ => createCameraRow(_))}
-    //         </CCTVRowContentsContainer>
-    //     </CCTVRowContainer>
-    // }
-
     return <>
         <MapContainer ref={mapElement} 
         onMouseEnter={e => {
@@ -313,7 +298,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 </CCTVListContainer>}
             </ControlsContainer>
             {children || <></>}
-            {forAddtraffic ? <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
+            {forAddtraffic && <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
                 <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
                     setSelectedAddtionalTarget(data)
                 }} value={selectedAddtionalTarget} />
@@ -424,7 +409,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         더 찾아보기
                     </AddReIDInputBtn>
                 </AddReIDInputSubContainer>
-            </AddReIDInputContainer> : <AddReIDInputContainer forAddTraffic={false} ref={circleSelectContainer}>
+            </AddReIDInputContainer>}
+            {!forAddtraffic && <AddReIDInputContainer forAddTraffic={false} ref={circleSelectContainer}>
                 <AddReIDInputSubContainer>
                     <AddReIDInputRow>
                         <AddReIDInputLabel>
@@ -474,6 +460,8 @@ export default memo(MapComponent, (prev, next) => {
     if (prev.idForViewChange !== next.idForViewChange) return false
     if (prev.viewChangeForPath !== next.viewChangeForPath) return false
     if (prev.initEvent !== next.initEvent) return false
+    if (prev.reIdId !== next.reIdId) return false
+    if (prev.visible !== next.visible) return false
     return true
 })
 
@@ -490,8 +478,6 @@ const AddReIDInputContainer = styled.div<{ forAddTraffic: boolean }>`
     padding: 16px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
 `
-
-
 
 const AddReIDInputSubContainer = styled.div`
     width: 320px;

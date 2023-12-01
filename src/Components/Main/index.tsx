@@ -55,7 +55,7 @@ const Main = () => {
                 GetAllSitesData().then(res => {
                     setSitesState({
                         state: 'IDLE',
-                        data: res
+                        data: res.filter(_ => _.siteId !== 77)
                     })
                 })
             } else {
@@ -76,7 +76,7 @@ const Main = () => {
 
     return <>
         {!isComplete && <LoadingComponent />}
-        {!isLoading && <Menus />}
+        {!isLoading && <Menus/>}
     </>
 }
 
@@ -91,5 +91,4 @@ const LoadingContainer = styled.div`
     height: 100%;
     z-index: 9999;
     background-color: ${GlobalBackgroundColor};
-    pointer-event: none;
 `

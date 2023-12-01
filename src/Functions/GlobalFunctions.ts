@@ -171,7 +171,7 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
         })),
         isRealTime: isRealTime
     }
-    DownloadSingleConditionJsonData(_)
+    DownloadSingleConditionJsonData(_, isRealTime ? 'RealTime' : data.title)
 }
 
 export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataType) => void, errCallback?: (error: unknown) => void) {
@@ -202,13 +202,13 @@ export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDat
     upload.click()
 }
 
-export function DownloadSingleConditionJsonData(data: ConditionDataType) {
+export function DownloadSingleConditionJsonData(data: ConditionDataType, title: string) {
     let output = JSON.stringify(data, null, 4);
     const blob = new Blob([output]);
     const fileDownlaoadUrl = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
     downloadLink.href = fileDownlaoadUrl;
-    downloadLink.download = convertFullTimeString(new Date()) + '.json';
+    downloadLink.download = title + '_' + convertFullTimeString(new Date()) + '.json';
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -313,7 +313,7 @@ export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys)
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['IMAGEUPLOAD']]:
             return '이미지 업로드'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['DESCRIPTION']]:
-            return '인상착의'
+            return '인상착의 지정'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]:
             return '분석 결과'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['JSONUPLOAD']]:

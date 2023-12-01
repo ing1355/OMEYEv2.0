@@ -17,7 +17,7 @@ import { SseStartApi, VideoExportApi } from "../../../Constants/ApiRoutes"
 import { Axios, videoExportCancelFunc } from "../../../Functions/NetworkFunctions"
 import { VideoExportApiParameterType, VideoExportRowDataType, VideoExportSseResponseType } from "../../../Model/VideoExportDataModel"
 import OptionSelect from "./OptionSelect"
-import { CustomEventSource, IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource, HealthCheckTimerDuration, IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
 import { OptionTags } from "../Constants"
 import ProgressAIIcon from '../../../assets/img/ProgressAIIcon.png'
 import ProgressVideoIcon from '../../../assets/img/ProgressVideoIcon.png'
@@ -25,9 +25,10 @@ import encodingIcon from '../../../assets/img/encodingIcon.png'
 import editIcon from '../../../assets/img/cctvEditIcon.png'
 import useMessage from "../../../Hooks/useMessage"
 import { SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes } from "../../../Model/ProgressModel"
-import { useRecoilValue } from "recoil"
+import { useRecoilValue, useSetRecoilState } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
 import ForLog from "../../Constants/ForLog"
+import { isLogin } from "../../../Model/LoginModel"
 
 type ParameterInputType = {
     index: number
@@ -205,7 +206,6 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
                     <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
-                        console.debug(status)
                         if (status === 'downloading') {
                             setCount(0)
                             videoExportCancelFunc()
@@ -259,9 +259,10 @@ const NewExport = () => {
     const sseRef = useRef<EventSource>()
     const datasRef = useRef(datas)
     const currentData = useRef<VideoExportRowDataType>(datas[0])
-    const tempTimer = useRef<NodeJS.Timer>()
     const message = useMessage()
-    
+    const healthCheckTimer = useRef<NodeJS.Timer>()
+    const setIsLogin = useSetRecoilState(isLogin)
+
     useEffect(() => {
         datasRef.current = datas
     }, [datas])
@@ -357,6 +358,16 @@ const NewExport = () => {
                     return _
                 }
             }))
+            healthCheckTimer.current = setTimeout(() => {
+                currentData.current.status = 'cancel'
+                message.preset('SERVER_CONNECTION_ERROR')
+                setDatas(datasRef.current.map(_ => {
+                    return _.videoUUID === currentUUIDRef.current ? ({
+                        ...currentData.current
+                    }) : _
+                }))
+                setIsLogin(null)
+            }, HealthCheckTimerDuration);
         } else {
             if (sseRef.current) {
                 sseRef.current.close()
@@ -376,48 +387,45 @@ const NewExport = () => {
             const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent, aiPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
             if (videoUUID) {
                 if (type === 'complete') {
-                    currentData.current = {
-                        ...currentData.current,
-                        progress: {
-                            encodingPercent,
-                            aiPercent,
-                            deIdentificationPercent,
-                            videoPercent,
-                            status: 'RUNNING'
-                        }
+                    currentData.current.videoUUID = videoUUID
+                    currentData.current.progress = {
+                        encodingPercent,
+                        aiPercent,
+                        deIdentificationPercent,
+                        videoPercent,
+                        status: 'RUNNING'
                     }
-                    if (tempTimer.current) clearTimeout(tempTimer.current)
-                    tempTimer.current = setTimeout(() => {
-                        setDatas(datasRef.current.map(_ => _.videoUUID === videoUUID ? currentData.current : _))
-                    }, 200);
                 } else if (type === 'done') {
-                    if (tempTimer.current) clearTimeout(tempTimer.current)
-                    currentData.current = {
-                        ...currentData.current,
-                        status: 'complete'
-                    }
+                    currentData.current.status = 'complete'
                 }
                 if (path) {
+                    currentData.current.path = path
                     message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
-                    currentData.current = {
-                        ...currentData.current,
-                        path
-                    }
                 }
-                setDatas(datasRef.current.map(_ => {
-                    return _.videoUUID === videoUUID ? ({
-                        ...currentData.current
-                    }) : _
-                }))
             }
             if (status && SSEResponseErrorMsg.includes(status)) {
-                console.debug("current State : ", status, datasRef.current, currentUUIDRef.current)
-                setDatas(datasRef.current.map(_ => _.videoUUID === currentUUIDRef.current ? ({
-                    ..._,
-                    status: 'cancel'
-                }) : _))
+                console.debug("current State : ", status, [...datasRef.current], currentUUIDRef.current)
+                currentData.current.progress = {
+                    aiPercent: 0,
+                    videoPercent: 0,
+                    status: 'WAIT'
+                }
+                currentData.current.status = 'cancel'
+            } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
+                if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                healthCheckTimer.current = setTimeout(() => {
+                    currentData.current.status = 'cancel'
+                    message.preset('SERVER_CONNECTION_ERROR')
+                    setIsLogin(null)
+                }, HealthCheckTimerDuration);
             }
+            setDatas(datasRef.current.map(_ => {
+                return _.videoUUID === currentUUIDRef.current ? ({
+                    ...currentData.current
+                }) : _
+            }))
             if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
+                if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
                 sseRef.current!.close()
                 sseRef.current = undefined
             }

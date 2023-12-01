@@ -176,6 +176,7 @@ const GlobalStyle = createGlobalStyle`
    }
    img {
     pointer-events: none;
+    user-drag: none;
    }
    * {
       box-sizing: border-box;

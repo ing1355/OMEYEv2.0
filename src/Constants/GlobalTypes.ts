@@ -105,15 +105,8 @@ export type CaptureResultListItemType = {
   description?: descriptionParamType
   points?: PointType
   isCurrent?: boolean
+  resultId?: number
 }
-
-export type ReIdSSEResponseType = {
-  statusCode: number;
-  percent: number;
-  status: string;
-  reidId: number;
-  error: string;
-};
 
 export type BasicLogDataType<T> = {
   results: T

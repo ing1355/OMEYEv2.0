@@ -180,7 +180,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureType, userCaptu
         }}>
             <canvas
                 ref={rectCanvasRef}
-                style={{ position: 'absolute', zIndex: '1', pointerEvents: 'none', width: '100%', height: '100%', visibility: captureType === 'auto' ? 'visible' : 'hidden' }}
+                style={{ position: 'absolute', zIndex: '1', pointerEvents: 'none', width: '100%', height: '100%', visibility: (captureType === 'auto' && src) ? 'visible' : 'hidden' }}
             />
             <canvas
                 ref={userCanvasRef}
@@ -191,7 +191,7 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureType, userCaptu
                     cursor: 'crosshair', 
                     width: '100%', 
                     height: '100%', 
-                    visibility: (userCaptureOn && captureType === 'user') ? 'visible' : 'hidden' 
+                    visibility: (userCaptureOn && captureType === 'user' && src) ? 'visible' : 'hidden' 
                 }}
                 onMouseDown={(e) => {
                     if (userCaptureOn) {

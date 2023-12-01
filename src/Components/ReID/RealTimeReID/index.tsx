@@ -4,7 +4,7 @@ import Input from "../../Constants/Input"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
-import { useRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
@@ -13,7 +13,7 @@ import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
 import useMessage from "../../../Hooks/useMessage"
-import { CustomEventSource, GetAuthorizationToken } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource, GetAuthorizationToken, HealthCheckTimerDuration } from "../../../Constants/GlobalConstantsValues"
 import { PROGRESS_STATUS, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseStatusType } from "../../../Model/ProgressModel"
 import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
@@ -21,6 +21,7 @@ import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys
 import CCTVNameById from "../../Constants/CCTVNameById"
 import realtimeStartIcon from '../../../assets/img/realtimeStartIcon.png'
 import realtimeStopIcon from '../../../assets/img/realtimeStopIcon.png'
+import { isLogin } from "../../../Model/LoginModel"
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -37,10 +38,10 @@ type RealTimeResponseDataType = {
 }
 
 const existValueNumsInDescription = (data?: descriptionDataType) => {
-    if(!data) return 0;
+    if (!data) return 0;
     return Object.keys(data).map(_ => {
         const subItem = data[_ as DescriptionCategoryKeyType]
-        return Object.keys(subItem).flatMap(__ => subItem[__ as descriptionSubDataKeys<keyof descriptionDataType>]).filter(_ => _ && (_ as string|string[]).length > 0).length
+        return Object.keys(subItem).flatMap(__ => subItem[__ as descriptionSubDataKeys<keyof descriptionDataType>]).filter(_ => _ && (_ as string | string[]).length > 0).length
     }).reduce((pre, cur) => pre + cur, 0)
 }
 
@@ -53,7 +54,8 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
     onClickCallback: () => void
 }) => {
     const { accuracy, min, max, imageURL } = data
-    
+    const rtData = useRecoilValue(realTimeData)
+
     return <div style={{
         width: '100%',
         height: imageBoxHeight + 'px',
@@ -72,7 +74,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
             right: '8px',
             fontWeight: 'bold',
             fontSize: '.8rem',
-            backgroundColor: data.accuracy ? getColorByScore(accuracy) : 'transparent',
+            backgroundColor: (accuracy || max) ? (max ? getColorByScore((max / existValueNumsInDescription(rtData.description)) * 100) : getColorByScore(accuracy)) : 'transparent',
             padding: '4px 6px',
             borderRadius: '12px'
         }}>
@@ -125,12 +127,17 @@ const RealTimeReID = () => {
     const imagesRef = useRef<RealTimeResponseDataType[]>([])
     const accuracyRef = useRef(rtData.threshHold)
     const changeTimer = useRef<NodeJS.Timer>()
+    const healthCheckTimer = useRef<NodeJS.Timer>()
+    const setIsLogin = useSetRecoilState(isLogin)
 
     useLayoutEffect(() => {
         selectedRef.current = selected
     }, [selected])
 
     useLayoutEffect(() => {
+        if(rtStatus === PROGRESS_STATUS['IDLE']) {
+            clearTimeout(healthCheckTimer.current)
+        }
         statusRef.current = rtStatus
     }, [rtStatus])
 
@@ -165,7 +172,7 @@ const RealTimeReID = () => {
     useEffect(() => {
         console.debug("RealTime Status Change : ", rtStatus)
         if (rtStatus === PROGRESS_STATUS['RUNNING']) {
-            if(!rtData.objectId) {
+            if (!rtData.objectId) {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
                 return message.error({ title: '입력값 에러', msg: '분석 대상이 존재하지 않습니다.\n검색 조건 설정에서 먼저 실시간 분석을 진행해주세요.' })
             }
@@ -194,6 +201,11 @@ const RealTimeReID = () => {
                     URL.revokeObjectURL(_.imageURL)
                 })
                 imagesRef.current = []
+                healthCheckTimer.current = setTimeout(() => {
+                    setRtStatus(PROGRESS_STATUS['IDLE'])
+                    message.preset('SERVER_CONNECTION_ERROR')
+                    setIsLogin(null)
+                }, HealthCheckTimerDuration);
             } else {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
                 sseRef.current?.close()
@@ -238,8 +250,16 @@ const RealTimeReID = () => {
                     console.debug('realtime sse end')
                     setRtStatus(PROGRESS_STATUS['IDLE'])
                     clearInterval(timerId)
+                    if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
                     sseRef.current!.close();
                     sseRef.current = undefined
+                } else if (status === SSEResponseMsgTypeKeys[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
+                    if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                    healthCheckTimer.current = setTimeout(() => {
+                        setRtStatus(PROGRESS_STATUS['IDLE'])
+                        message.preset('SERVER_CONNECTION_ERROR')
+                        setIsLogin(null)
+                    }, HealthCheckTimerDuration);
                 }
             } catch (e) {
                 console.debug("realtime Error : ", e)
@@ -273,7 +293,7 @@ const RealTimeReID = () => {
                     대상 이미지 : <ObjectTag activate={!(!rtData.src)} disabled={!rtData.src}>
                         자세히 보기
                         {rtData.src && <ObjectImageContainer>
-                            <ImageView src={rtData.src}/>
+                            <ImageView src={rtData.src} />
                         </ObjectImageContainer>}
                     </ObjectTag>
                 </div>
@@ -385,7 +405,7 @@ const RealTimeReID = () => {
                                     CCTV 이름
                                 </ResultDetailDescriptionCol>
                                 <ResultDetailDescriptionCol>
-                                    {selected?.cameraId ? <CCTVNameById cctvId={selected.cameraId}/> : '정보 없음'}
+                                    {selected?.cameraId ? <CCTVNameById cctvId={selected.cameraId} /> : '정보 없음'}
                                 </ResultDetailDescriptionCol>
                             </ResultDetailDescriptionRow>
                             <ResultDetailDescriptionRow>

@@ -3,6 +3,7 @@ import { PropsWithChildren, useCallback, useEffect, useRef } from "react"
 import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import ModalCloseIcon from '../../../../assets/img/modalCloseIcon.png'
+import checkIcon from '../../../../assets/img/pointCheckIcon.png'
 import { useRecoilValue } from "recoil"
 import { conditionMenu } from "../../../../Model/ConditionMenuModel"
 import { conditionRoute } from "../../../../Model/ConditionRouteModel"
@@ -15,38 +16,39 @@ type DataSelectModalProps = PropsWithChildren<{
     title: React.ReactNode
     className?: string
     width?: CSSProperties['width']
+    lowBlur?: boolean
 }>
 
-const DataSelectModal = ({ visible, children, title, className, width, close, complete }: DataSelectModalProps) => {
+const DataSelectModal = ({ visible, children, title, className, width, close, complete, lowBlur }: DataSelectModalProps) => {
     const c_menu = useRecoilValue(conditionMenu)
     const c_route = useRecoilValue(conditionRoute)
     const menu = useRecoilValue(menuState)
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
 
     const escCallback = (e: KeyboardEvent) => {
-        if(e.key === 'Escape') {
-            if(close) close()
+        if (e.key === 'Escape') {
+            if (close) close()
         }
     }
 
     useEffect(() => {
-        if(visible) {
-            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+        if (visible) {
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
             callbackRef.current = escCallback
-            if(callbackRef.current) document.addEventListener('keydown', callbackRef.current)
+            if (callbackRef.current) document.addEventListener('keydown', callbackRef.current)
         } else {
-            if(callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
         }
-    },[visible, escCallback])
+    }, [visible, escCallback])
 
     useEffect(() => {
-        if(visible) close()
-    },[c_menu, c_route, menu])
-    
+        if (visible) close()
+    }, [c_menu, c_route, menu])
+
     return <Background visible={visible}>
         <Rest onClick={() => {
             close()
-        }} />
+        }} lowBlur={lowBlur || false}/>
         <Container style={{
             width: width || '840px'
         }} visible={visible}>
@@ -55,15 +57,19 @@ const DataSelectModal = ({ visible, children, title, className, width, close, co
                     <Title>
                         {title}
                     </Title>
-                    <Complete onClick={complete} tabIndex={-1} activate>
-                        선택
-                    </Complete>
                 </TitleContainer>
-                <Back onClick={close} tabIndex={-1}>
-                    <img src={ModalCloseIcon} style={{
-                        height: '28px'
-                    }} />
-                </Back>
+                <HeaderBtns>
+                    <Back onClick={complete} tabIndex={-1}>
+                        <img src={checkIcon} style={{
+                            height: '28px'
+                        }} />
+                    </Back>
+                    <Back onClick={close} tabIndex={-1}>
+                        <img src={ModalCloseIcon} style={{
+                            height: '28px'
+                        }} />
+                    </Back>
+                </HeaderBtns>
             </Header>
             {visible && <ContentsContainer className={className}>
                 {children}
@@ -79,6 +85,7 @@ const Background = styled.div<{ visible: boolean }>`
     width: 100%;
     height: 100%;
     top: 0;
+    left: 0;
     z-index: 9000;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-end' })}
     overflow: hidden;
@@ -88,9 +95,10 @@ const Background = styled.div<{ visible: boolean }>`
     background-color: rgba(0,0,0,.3);
 `
 
-const Rest = styled.div`
+const Rest = styled.div<{lowBlur: boolean}>`
     flex: 1;
     height: 100%;
+    backdrop-filter: blur(${({lowBlur}) => lowBlur ? 0.5 : 2}px);
 `
 
 const Container = styled.div<{ visible: boolean }>`
@@ -117,14 +125,19 @@ const Title = styled.div`
 `
 
 const TitleContainer = styled.div`
-    ${globalStyles.flex({flexDirection:'row', justifyContent:'flex-start', gap: '12px'})}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '12px' })}
 `
 
-const Complete = styled(Button)`
+const HeaderBtns = styled.div`
 `
+
 const Back = styled(Button)`
     background-color: transparent;
     border: none;
+    opacity: 0.5;
+    &:hover {
+        opacity: 1;
+    }
 `
 
 const ContentsContainer = styled.div`

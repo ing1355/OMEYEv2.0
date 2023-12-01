@@ -21,6 +21,8 @@ export const VideoExportMenuKey: VideoExportMenuKeyType = 'VIDEOEXPORTMENU'
 export const AreaAnalyzeMenuKey: AreaAnalyzeMenuKeyType = 'AREAANALAYZE'
 export const SettingsMenuKey: SettingsMenuKeyType = 'SETTINGSMENU'
 
+export const HealthCheckTimerDuration = 5500
+
 export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
 
 export const CustomEventSource = async (url: string) => new EventSource(url, {

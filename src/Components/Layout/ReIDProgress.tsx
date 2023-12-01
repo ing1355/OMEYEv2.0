@@ -17,11 +17,12 @@ import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
 import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
-import { CustomEventSource, IS_PRODUCTION, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
+import { CustomEventSource, HealthCheckTimerDuration, IS_PRODUCTION, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
 import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
 import { ReIDMenuKeys } from "../ReID/ConstantsValues"
 import { menuState } from "../../Model/MenuModel"
+import { isLogin } from "../../Model/LoginModel"
 
 type ReIDProgressProps = {
     visible: boolean
@@ -61,7 +62,9 @@ const CCTVProgressRow = ({ data, cctvId }: {
 }) => {
     const { aiPercent, videoPercent, status, errReason } = data
     return <CCTVProgressContainer>
-        <CCTVProgressDataContainer>
+        <CCTVProgressDataContainer style={{
+            position: 'relative'
+        }}>
             <CCTVProgressDataIconContainer>
                 <CCTVProgressDataIconContents src={ProgressLocationIcon} />
             </CCTVProgressDataIconContainer>
@@ -136,7 +139,7 @@ const ConditionGroupContainer = ({ num, progressData, visible }: {
                     else setTimeGroupOpened(timeGroupOpened.concat(_ind))
                 }}>
                     <TimeGroupIcon>
-                        <CCTVProgressDataIconContents src={ProgressTimeIcon}/>
+                        <CCTVProgressDataIconContents src={ProgressTimeIcon} />
                     </TimeGroupIcon>
                     <TimeGroupTitle>
                         {__.time}
@@ -215,9 +218,11 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const progressTimer = useRef<NodeJS.Timer>()
     const reidResultTimer = useRef<NodeJS.Timer>()
     const additinoalReidResultTimer = useRef<NodeJS.Timer>()
-    
+    const healthCheckTimer = useRef<NodeJS.Timer>()
+    const setIsLogin = useSetRecoilState(isLogin)
+
     useEffect(() => {
-        if(!IS_PRODUCTION) setProgressData([
+        if (!IS_PRODUCTION) setProgressData([
             {
                 "times": [
                     {
@@ -705,8 +710,8 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                 "title": "사람(전신) 검색"
             }
         ])
-    },[])
-    
+    }, [])
+
     useEffect(() => {
         reidResultRef.current = reidResult
         reidResultTempRef.current = reidResult
@@ -723,19 +728,24 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     useEffect(() => {
         console.debug('progressStatus 변경 : ', progressStatus)
-        if (progressStatus.status === PROGRESS_STATUS['RUNNING']) setIsProgress(true)
-        else setIsProgress(false)
+        if (progressStatus.status === PROGRESS_STATUS['RUNNING']) {
+            setIsProgress(true)
+        }
+        else {
+            setIsProgress(false)
+        }
     }, [progressStatus])
 
     useEffect(() => {
-        if(isProgress) {
+        if (isProgress) {
             window.addEventListener('unload', reidCancelFunc, {
                 once: true,
             });
         } else {
+            clearTimeout(healthCheckTimer.current)
             window.removeEventListener('unload', reidCancelFunc)
         }
-    },[isProgress])
+    }, [isProgress])
 
     useEffect(() => {
         const intervalTime = 500
@@ -807,7 +817,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                                 startTime: ___.startTime,
                                                 endTime: ___.endTime,
                                                 results: new Map()
-                                                // results: cctvIds.flat().reduce((acc, cur) => ({ ...acc, [cur]: [] }), {})
                                             }))
                                         }))
                                     })
@@ -844,10 +853,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                             startTime: ____.startTime,
                                             endTime: ____.endTime,
                                             results: new Map()
-                                            // results: __.cctvIds.flat().reduce((acc, cur) => ({
-                                            //     ...acc,
-                                            //     [cur]: []
-                                            // }), {})
                                         }))
                                     }))
                                 }))
@@ -885,7 +890,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         }) : _)
                     } else {
                         console.debug(`${type} type sse data message : `, data)
-                        if(SSEResponseSingleProgressErrorMsg.includes(status)) {
+                        if (SSEResponseSingleProgressErrorMsg.includes(status)) {
                             console.debug(`${type} sse fail event`)
                             progressDataRef.current = progressDataRef.current.map((_, ind) => ind === conditionIndex ? ({
                                 times: _.times.map((__, _ind) => _ind === timeIndex ? ({
@@ -929,12 +934,22 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         setProgressStatus({ type, status: PROGRESS_STATUS['CANCELD'] })
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_START']]) {
                         console.debug(`${type} start event`)
+                        healthCheckTimer.current = setTimeout(() => {
+                            setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
+                            message.error({ title: "서버 에러", msg: "서버와의 연결이 종료되었습니다." })
+                            setIsLogin(null)
+                        }, HealthCheckTimerDuration);
                         message.preset('REIDSTART')
-                        if(reIdId) {
+                        if (reIdId) {
                             setReidResultSelectedView([reIdId])
                             setGlobalCurrentReIdId(reIdId)
+                            setSelectedResultCondition(0)
+                        } else if (type === 'ADDITIONALREID') {
+                            const _additionalParams = params as AdditionalReIDRequestParamsType
+                            setReidResultSelectedView([_additionalParams.reIdId!])
+                            setGlobalCurrentReIdId(_additionalParams.reIdId!)
+                            setSelectedResultCondition(singleReidResultRef.current?.data.length!)
                         }
-                        setSelectedResultCondition(0)
                         setGlobalMenu(ReIdMenuKey)
                         setMenu(ReIDMenuKeys['REIDRESULT'])
                         setProgressStatus({ type, status: PROGRESS_STATUS['RUNNING'] })
@@ -944,8 +959,16 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                             message.preset('REIDERROR', errorCode)
                             setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
                         }
+                        if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
                         sseRef.current?.close()
                         sseRef.current = undefined
+                    } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
+                        if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                        healthCheckTimer.current = setTimeout(() => {
+                            setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
+                            message.preset('SERVER_CONNECTION_ERROR')
+                            setIsLogin(null)
+                        }, HealthCheckTimerDuration);
                     }
 
                     switch (type) {
@@ -960,7 +983,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                             resultList: __.resultList.map(___ => ___.objectId === objectId ? {
                                                 ...___,
                                                 timeAndCctvGroup: ___.timeAndCctvGroup.map((____, _ind) => {
-                                                    if(_ind === timeIndex) {
+                                                    if (_ind === timeIndex) {
                                                         const temp = ____.results
                                                         temp.set(cctvId, results)
                                                         return {
@@ -988,7 +1011,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                                         resultList: __.resultList.map(___ => ___.objectId === objectId ? {
                                             ...___,
                                             timeAndCctvGroup: ___.timeAndCctvGroup.map((____, _ind) => {
-                                                if(_ind === timeIndex) {
+                                                if (_ind === timeIndex) {
                                                     const temp = ____.results
                                                     temp.set(cctvId, results)
                                                     return {
@@ -1028,12 +1051,12 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     useEffect(() => {
         console.debug('Request Params 변경 : ', _progressRequestParams, requestFlag)
-        if(requestFlag) {
+        if (requestFlag) {
             if (_progressRequestParams.type) {
                 let temp: typeof progressData = [];
                 if (_progressRequestParams.type === 'REID') {
                     const _params = params as ReIDRequestParamsType[]
-                    console.log("params : ",_params)
+                    console.log("params : ", _params)
                     if (!_params.every(_ => _.objects.every(__ => __.type === _.objects[0].type))) {
                         setProgressRequestParams(defaultProgressRequestParams)
                         return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
@@ -1086,7 +1109,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
             setRequestFlag(false)
         }
     }, [_progressRequestParams, requestFlag])
-    
+
     return <>
         <SmallProgress percent={getAllProgressPercent(progressData)} color="white" noString />
         <ProgressContainer visible={visible} onClick={(e) => {
@@ -1264,9 +1287,10 @@ const Contents = styled.div<{ opened: boolean }>`
     padding: 12px;
     max-height: 100%;
     height: ${({ opened }) => opened ? 'auto' : '60px'};
-    overflow-y: ${({opened}) => opened ? 'auto' : 'hidden'};
+    overflow-y: ${({ opened }) => opened ? 'auto' : 'hidden'};
     overflow-y: hidden;
     transition: height .1s ease;
+    margin-bottom: 4px;
     ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '6px' })}
 `
 
@@ -1274,13 +1298,11 @@ const CCTVProgressContainer = styled.div`
     flex: 0 0 49%;
     max-width: 49%;
     height: ${rowHeight}px;
-    ${globalStyles.flex({ gap : '4px'})}
+    ${globalStyles.flex({ gap: '4px' })}
 `
 
 const CCTVProgressDataContainer = styled.div`
     width: 100%;
-    z-index: 9999;
-    position: relative;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '4px' })}
 `
 
@@ -1294,7 +1316,7 @@ const CCTVProgressDataIconContents = styled.img`
     height: 100%;
 `
 
-const CCTVProgressDataTitleContainer = styled.div<{isFail: boolean}>`
+const CCTVProgressDataTitleContainer = styled.div<{ isFail: boolean }>`
     font-size: .8rem;
     overflow: hidden;
     white-space: nowrap;
@@ -1302,13 +1324,14 @@ const CCTVProgressDataTitleContainer = styled.div<{isFail: boolean}>`
     flex: 0 0 calc(90% - 16px)%;
     font-weight: 300;
     font-family: NanumGothicLight;
-    ${({isFail}) => isFail && `
-        color: red;
+    ${({ isFail }) => isFail && `
+        color: #ff8eb3;
         cursor: pointer;
         &:before,&:after {
             visibility:hidden;
             opacity:0;
             position:absolute;
+            z-index: 9995;
             left:50%;
             transform:translateX(-50%);
             white-space:nowrap;
@@ -1320,8 +1343,8 @@ const CCTVProgressDataTitleContainer = styled.div<{isFail: boolean}>`
             content:attr(data-tooltip);
             height:13px;
             position:absolute;
-            top:-20px;
-            padding:5px 10px;
+            top: 30px;
+            padding: 5px 10px;
             border-radius:5px;
             color:#fff;
             background: ${SectionBackgroundColor};
@@ -1329,20 +1352,20 @@ const CCTVProgressDataTitleContainer = styled.div<{isFail: boolean}>`
         }
         &:after {
             content: '';
-            border-left:5px solid transparent;
-            top:2px;
-            border-right:5px solid transparent;
-            border-top:5px solid ${SectionBackgroundColor};
+            border-left: 5px solid transparent;
+            top:20px;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid ${SectionBackgroundColor};
         }
         &:hover:before {
             visibility:visible;
             opacity:1;
-            top:-30px
+            top: 25px
         }
         &:hover:after {
             visibility:visible;
             opacity:1;
-            top:-8px
+            top: 18px
         }
     `}
 `

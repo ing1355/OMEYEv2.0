@@ -116,6 +116,7 @@ const Container = styled.div<{ visible: boolean }>`
     top: 0;
     width: 100%;
     height: 100%;
+    backdrop-filter: blur(2px);
     background-color: rgba(0,0,0,.4);
     ${globalStyles.flex()}
     display: ${({ visible }) => visible ? 'flex' : 'none'};

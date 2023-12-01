@@ -21,7 +21,7 @@ const Settings = () => {
   const [login, setIsLogin] = useRecoilState(isLogin)
   const currentMenu = useRecoilValue(menuState)
   const userInfo = decodedJwtToken(login!)
-
+  
   const ViewByCategory = ({ type }: {
     type: settingsCategoryType
   }) => {
