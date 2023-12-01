@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, RefreshApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, RefreshApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -30,7 +30,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         method,
         url,
         responseType: ([serverLogFilesDownloadApi].includes(url!)) ? 'blob' : 'json',
-        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, serverControlApi, modelFileUploadApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
+        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, serverControlApi, modelFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
             "Content-Type": ([VmsExcelUploadApi, modelFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
             'Authorization': GetAuthorizationToken()
