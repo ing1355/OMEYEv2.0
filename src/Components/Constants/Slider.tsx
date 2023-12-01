@@ -8,9 +8,10 @@ type SliderProps = {
     value: number
     onChange: (val: number) => void
     step?: number
+    isFooter?: boolean
 }
 
-const Slider = ({ min, max, value, onChange, step }: SliderProps) => {
+const Slider = ({ min, max, value, onChange, step, isFooter }: SliderProps) => {
     const tick = 100 / (max - min)
     const percent = value === max ? 100 : (tick * (value - 1))
 
@@ -32,6 +33,12 @@ const Slider = ({ min, max, value, onChange, step }: SliderProps) => {
                 }}
             />
         </SliderContainer>
+        {isFooter && 
+            <div style={{marginTop: '10px', width: '100%', display: 'flex', justifyContent: 'space-between'}}>
+                <div style={{color: 'white'}}>{min}</div>
+                <div style={{color: 'white'}}>{max}</div>   
+             </div>
+        }
     </Container>
 }
 

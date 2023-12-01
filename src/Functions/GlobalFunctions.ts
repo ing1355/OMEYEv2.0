@@ -358,4 +358,14 @@ export const OnlyInputNumberFun = (e: string) => {
     const inputValue = e;
     const replacedValue = inputValue.replace(/[^0-9]/g, '');
     return replacedValue
-  }
+}
+
+export const MaxInputNumberFun = (num: string, max: number) => {
+    let inputValue = parseInt(num);
+    
+    if(inputValue >= max) {
+        inputValue = 30
+    }
+
+    return inputValue
+}

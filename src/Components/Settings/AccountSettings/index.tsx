@@ -168,7 +168,7 @@ const AccountSettings = ({visible}: {
 
   const allCheckFun = () => {
     let isAll = false
-    let usersAccountAllTemp = usersAccountRows.results
+    let usersAccountAllTemp = usersAccountRows.results.filter((_)=>!(_.username === 'admin' || _.username === 'omeye'))
 
     if(userInfo.user.role === 'ADMIN') {
       usersAccountAllTemp = usersAccountRows.results.filter((_)=>_.role !== 'DEVELOPER')
@@ -292,10 +292,11 @@ const AccountSettings = ({visible}: {
             <div style={{width: '2%'}}
               onClick={() => {
                 let userUuidAllTemp:string[] = []
+                let filtedTemp = usersAccountRows.results.filter((_) =>!(_.username === 'omeye' || _.username === 'admin'))
   
                 if(!allCheckFun()) {
-                  if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = usersAccountRows.results.map((_) => _.id)
-                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = usersAccountRows.results.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id)
+                  if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = filtedTemp.map((_) => _.id)
+                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = filtedTemp.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id)
                 }
                 
                 setSelectUsers(userUuidAllTemp)
@@ -322,24 +323,28 @@ const AccountSettings = ({visible}: {
                   return (
                     <div 
                       key={'usersAccountRows' + index}
-                      style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
+                      style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: data.username === 'admin' || data.username === 'omeye' || userInfo.user.role === 'USER' ? 'default' : 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
                       onClick={() => {
                         if(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) {
-                          const isDelete = selectUsers.find((_) => _ === data.id)
-                          let selectTemp:string[] = []
-  
-                          if(isDelete) {
-                            selectTemp = selectUsers.filter((_) => _ !== data.id)
-                          } else {
-                            selectTemp = selectUsers.concat(data.id)
+                          if(!(data.username === 'admin' || data.username === 'omeye')) {
+                            const isDelete = selectUsers.find((_) => _ === data.id)
+                            let selectTemp:string[] = []
+    
+                            if(isDelete) {
+                              selectTemp = selectUsers.filter((_) => _ !== data.id)
+                            } else {
+                              selectTemp = selectUsers.concat(data.id)
+                            }
+                            setSelectUsers(selectTemp)
                           }
-                          setSelectUsers(selectTemp)
                         }
                       }}
                     >
                       <div style={{width: '2%'}}>
                         {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) ?
-                          <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/>
+                            !(data.username === 'admin' || data.username === 'omeye') ?
+                              <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/>
+                            : <></>
                         :
                           <></>
                         }
@@ -351,7 +356,7 @@ const AccountSettings = ({visible}: {
                       <div style={{width: '20%', lineHeight: '20px'}}>{data.email}</div>
                       <div style={{width: '18%', lineHeight: '20px'}}>{data.phoneNumber}</div>
                       {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
-                      <div style={{width: '5%', lineHeight: '20px'}} onClick={() => {
+                      <div style={{width: '5%', lineHeight: '20px', cursor: 'pointer'}} onClick={() => {
                         setIsModifyMember(true);
                         setModifySelectMember({
                           id: data.id,

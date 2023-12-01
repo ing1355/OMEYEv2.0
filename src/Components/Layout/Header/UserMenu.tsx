@@ -9,6 +9,7 @@ import jwtDecode from "jwt-decode"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { LogoutApi } from "../../../Constants/ApiRoutes"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { ModifiedName } from "../../../Model/AccountDataModel"
 
 export const decodedJwtToken = (token: string) => {
     return jwtDecode(token) as {
@@ -30,6 +31,7 @@ const UserMenu = () => {
     const userInfo = decodedJwtToken(login!)
     const [menuOpen, setMenuOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+    const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
     
     const containerClickHandler = useCallback((ev: MouseEvent) => {
         if(!containerRef.current?.contains(ev.target as Node)) setMenuOpen(false)
@@ -48,7 +50,7 @@ const UserMenu = () => {
         setMenuOpen(!menuOpen)
     }}>
         <UserMenuIcon src={UserIcon} />
-        {userInfo.user.name} 님
+        {modifiedName ? modifiedName : userInfo.user.name} 님
         <UserArrowIcon src={ArrowIcon} />
         <UserDetailContainer opened={menuOpen}>
             {/* <UserDetailItem onClick={(e) => {
@@ -60,6 +62,7 @@ const UserMenu = () => {
             <UserDetailItem onClick={async () => {
                 await Axios("POST", LogoutApi)
                 setIsLogin(null)
+                setModifiedName(null)
             }}>
                 로그아웃
             </UserDetailItem>

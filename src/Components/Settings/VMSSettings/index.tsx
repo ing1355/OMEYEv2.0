@@ -348,14 +348,15 @@ const VMSSettings = ({visible}: {
               <img src={synchronizationIcon} width='15px' height='15px' style={{position: 'relative', top: '7px', left: '8px'}}/>
             </div>
             <div>
-              연동될 VMS 내의 사이트 및 CCTV 정보를 원모어아이의 데이터베이스에 동기화하는 과정입니다. 
-              <br />
-              동기화하는 경우, 현재 진행하고 있는 서비스에 영향을 미칠 수 있습니다. 
-              <br />
-              동기화를 진행하시겠습니까?
-              <br />
-              <br />
-
+              <div style={{marginBottom: '10px'}}>
+                연동될 VMS 내의 사이트 및 CCTV 정보를 원모어아이의 데이터베이스에 동기화하는 과정입니다. 
+              </div>
+              <div style={{marginBottom: '10px'}}>
+                동기화하는 경우, 현재 진행하고 있는 서비스에 영향을 미칠 수 있습니다.
+              </div>
+              <div style={{marginBottom: '25px'}}>
+                동기화를 진행하시겠습니까?
+              </div>
               <div style={{display: 'flex', flexDirection: 'column'}}>
                 <div style={{marginBottom: '15px'}}>
                   <input 

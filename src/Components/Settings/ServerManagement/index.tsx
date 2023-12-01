@@ -556,9 +556,12 @@ const ServerManagement = ({visible}: {
             <div style={{padding: '10px'}}>CPU: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
             <div style={{padding: '10px'}}>CPU sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
             <div style={{padding: '10px'}}>CPU threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
-            <div style={{padding: '10px'}}>GPU</div>
-            {fixedServerMgmtInfo?.hardwareInfos?.gpu?.length! > 0 && fixedServerMgmtInfo?.hardwareInfos?.gpu!.map((_, ind) => <div style={{padding: '5px', paddingLeft: '20px'}}>{ind + 1}: {_.split(": ")[1]}</div>)}
-            {/* <div style={{padding: '10px'}}>GPU: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div> */}
+            {/* <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div> */}
+            {fixedServerMgmtInfo?.hardwareInfos.gpu.map((data)=>{
+              return (
+                <div style={{padding: '10px'}}>{data}</div>
+              )
+            })}
             <div style={{padding: '10px'}}>GPU sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
             <div style={{padding: '10px'}}>Memory: {fixedServerMgmtInfo?.hardwareInfos.mem}</div>
             <div style={{padding: '10px'}}>Disk: {fixedServerMgmtInfo?.hardwareInfos.disk}</div>
@@ -604,7 +607,7 @@ const ServerManagement = ({visible}: {
                   ].slice(0, serverMgmtInfo?.gpu.length || 0)}
                   xAxis={[{ scaleType: 'point', data: xLabels }]}
                   yAxis={[{ label: 'GPU (%)', min: 0, max: 100 }]}
-                />
+                ></LineChart>
               </div>
             </div>
           </div>

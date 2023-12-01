@@ -3,7 +3,7 @@ import Modal from "../../Layout/Modal"
 import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import { useRecoilState } from "recoil"
-import { IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
+import { IsModifyMember, ModifiedName, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
 import { useEffect, useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
@@ -32,6 +32,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues | null>(null)
+  const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
   const message = useMessage()
 
   const modifyInit = () => {
@@ -56,6 +57,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     
     if(res !== undefined) {
       if(res) {
+        setModifiedName(modifySelectMember.name)
         message.success({ title: '멤버 정보 수정', msg: '멤버의 정보를 수정했습니다' })
         modifyInit()
       } else {
