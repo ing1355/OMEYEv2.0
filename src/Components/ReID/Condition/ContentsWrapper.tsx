@@ -25,6 +25,7 @@ import useMessage from "../../../Hooks/useMessage"
 import { PersonDescriptionResultImageID } from "./Constants/ConstantsValues"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
+import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "./Constants/Params"
 
 const ContentsWrapper = () => {
     const [homeHover, setHomeHover] = useState(false)
@@ -168,7 +169,7 @@ const ContentsWrapper = () => {
                         src: image,
                         selected: false,
                         objectId: objectIds4[0],
-                        method: 'Description',
+                        method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['DESCRIPTION']],
                         description: personDescriptionData
                     }))
                     return routeJump(ReIDConditionFormRoute.key)

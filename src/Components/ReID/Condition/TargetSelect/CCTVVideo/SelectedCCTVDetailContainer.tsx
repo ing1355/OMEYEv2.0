@@ -40,7 +40,7 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
         })).concat(resultList.map(_ => ({
             ..._,
             method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['CCTV']],
-            cctvName: selected?.name,
+            cctvId: selected?.cameraId,
             selected: false,
             time: captureTime,
             isCurrent: true

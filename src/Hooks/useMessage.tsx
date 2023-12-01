@@ -67,10 +67,11 @@ export class Message {
                 </MessageOkBtn>}
             </MessageFooter>
         </MessageContainer>)
+        console.debug(timer || (callback && Infinity) || 5000)
         this._container = container
         this._timerId = setTimeout(() => {
             this.deleteMessage()
-        }, timer || 5000);
+        }, timer || (callback && Infinity) || 5000);
     }
 
     deleteContainer() {
@@ -144,7 +145,10 @@ const useMessage = () => {
         } else if(preset === 'REIDCANCEL') {
             createMessage({
                 title: '요청이 취소됨',
-                msg: '분석 요청이 취소되었습니다.\n다시 요청해주세요.'
+                msg: '분석 요청이 취소되었습니다.\n다시 요청해주세요.',
+                callback: () => {
+
+                }
             })
         } else if(preset === 'REIDSTART') {
             createMessage({

@@ -466,15 +466,26 @@ const SubTitleItemsContainer = styled.div`
 `
 
 const ContentsItemTitle = styled.div`
+    flex: 1;
     ${globalStyles.flex({ flexDirection: 'row', gap: '24px' })}
     height: 32px;
     & > div {
         font-size: 1.1rem;
         height: 100%;
-        ${globalStyles.flex({flexDirection:'row', gap: '2px'})}
+        ${globalStyles.flex({flexDirection:'row', gap: '2px', justifyContent:'flex-start'})}
         &:first-child {
             font-weight: bold;
             font-family: NanumGothicBold;
+            flex: 0 0 166px;
+        }
+        &:nth-child(2) {
+            flex: 0 0 190px;
+        }
+        &:nth-child(3) {
+            flex: 0 0 200px;
+        }
+        &:nth-child(4) {
+            flex: 1;
         }
     }
 `
