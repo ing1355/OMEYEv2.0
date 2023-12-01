@@ -98,7 +98,7 @@ type hardwareInfosType = {
   cpu: string,
   cpu_sockets: string,
   cpu_threads: string,
-  gpu: string,
+  gpu: string[],
   gpu_sockets: string,
   mem: string,
   disk: string,
@@ -365,7 +365,7 @@ const ServerManagement = ({visible}: {
 
     sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
-      // console.log('response', response);
+      console.log('server Management Message : ', response);
       const { monitorVersion, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as SSEServerMgmtInfoType;
       // console.log('serviceStatus', serviceStatus)
       setSeverMgmtInfo(response);
@@ -469,8 +469,14 @@ const ServerManagement = ({visible}: {
 
   useEffect(() => {
     if(visible) {
-      sseSetting()
       GetServerInfo()
+      sseSetting()
+    }
+    return () => {
+      if(sseRef.current) {
+        sseRef.current.close()
+        sseRef.current = undefined
+      }
     }
   },[visible])
 
@@ -547,11 +553,13 @@ const ServerManagement = ({visible}: {
           </div> */}
           <div style={{marginBottom: '10px'}}>하드웨어 정보</div>
           <div>
-            <div style={{padding: '10px'}}>Cpu: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
-            <div style={{padding: '10px'}}>Cpu sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
-            <div style={{padding: '10px'}}>Cpu threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
-            <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div>
-            <div style={{padding: '10px'}}>Gpu sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
+            <div style={{padding: '10px'}}>CPU: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
+            <div style={{padding: '10px'}}>CPU sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
+            <div style={{padding: '10px'}}>CPU threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
+            <div style={{padding: '10px'}}>GPU</div>
+            {fixedServerMgmtInfo?.hardwareInfos?.gpu?.length! > 0 && fixedServerMgmtInfo?.hardwareInfos?.gpu!.map((_, ind) => <div style={{padding: '5px', paddingLeft: '20px'}}>{ind + 1}: {_.split(": ")[1]}</div>)}
+            {/* <div style={{padding: '10px'}}>GPU: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div> */}
+            <div style={{padding: '10px'}}>GPU sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>
             <div style={{padding: '10px'}}>Memory: {fixedServerMgmtInfo?.hardwareInfos.mem}</div>
             <div style={{padding: '10px'}}>Disk: {fixedServerMgmtInfo?.hardwareInfos.disk}</div>
             <div style={{padding: '10px'}}>Network speed: {Number(separateNumber(fixedServerMgmtInfo?.hardwareInfos.network_speed)).toFixed(0)}{separateUnit(fixedServerMgmtInfo?.hardwareInfos.network_speed)}</div>

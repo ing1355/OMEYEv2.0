@@ -147,7 +147,7 @@ const ItemSelectBtn = styled(Button)`
 const ItemDescriptionContents = styled.div`
     flex: 0 0 calc(100% - 28px);
     padding: 0px 6px;
-    ${globalStyles.flex({ gap: '8px' })}
+    ${globalStyles.flex({ gap: '10px' })}
     overflow-wrap: anywhere;
 `
 

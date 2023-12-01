@@ -51,12 +51,12 @@ const UserMenu = () => {
         {userInfo.user.name} 님
         <UserArrowIcon src={ArrowIcon} />
         <UserDetailContainer opened={menuOpen}>
-            <UserDetailItem onClick={(e) => {
+            {/* <UserDetailItem onClick={(e) => {
                 e.stopPropagation()
                 setMenuOpen(false)
             }}>
                 내 프로필
-            </UserDetailItem>
+            </UserDetailItem> */}
             <UserDetailItem onClick={async () => {
                 await Axios("POST", LogoutApi)
                 setIsLogin(null)
@@ -91,7 +91,7 @@ const UserDetailContainer = styled.div<{opened: boolean}>`
     background-color: ${SectionBackgroundColor};
     top: 100%;
     width: 100px;
-    height: 90px;
+    height: 45px;
     z-index: 9001;
     border-radius: 8px;
     display: ${({opened}) => opened ? 'block' : 'none'};
@@ -102,7 +102,7 @@ const UserDetailItem = styled.div`
         color: ${TextActivateColor};
     }
     font-size: .9rem;
-    height: 50%;
+    height: 100%;
     cursor: pointer;
     ${globalStyles.flex()}
 `

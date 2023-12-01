@@ -313,7 +313,7 @@ export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys)
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['IMAGEUPLOAD']]:
             return '이미지 업로드'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['DESCRIPTION']]:
-            return '인상착의'
+            return '인상착의 지정'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]:
             return '분석 결과'
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['JSONUPLOAD']]:

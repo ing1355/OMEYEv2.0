@@ -108,14 +108,6 @@ export type CaptureResultListItemType = {
   resultId?: number
 }
 
-export type ReIdSSEResponseType = {
-  statusCode: number;
-  percent: number;
-  status: string;
-  reidId: number;
-  error: string;
-};
-
 export type BasicLogDataType<T> = {
   results: T
   totalCount: number

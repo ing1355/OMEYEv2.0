@@ -21,7 +21,7 @@ const VideoCard = memo(({ cctvId }: {
     const [cctvs, setCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
     const monitoringStatus = useRecoilValue(MonitoringDatas('status'))
     const [timeVisible, setTimeVisible] = useState(false)
-    const [timeValue, setTimeValue] = useState<TimeModalDataType|undefined>(undefined)
+    const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
     return <>
         <VideoTitle hasIcon={!(!cctvId)}>
             {cctvId && <VideoTimeIcon onClick={() => {
@@ -37,13 +37,13 @@ const VideoCard = memo(({ cctvId }: {
             </VideoCloseIcon>}
         </VideoTitle>
         {cctvId && <VideoInner>
-            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={timeValue}/>
+            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={timeValue} />
         </VideoInner>}
         <TimeModal visible={timeVisible} title="영상 시간 선택" onChange={value => {
             setTimeValue(value)
         }} noEndTime close={() => {
             setTimeVisible(false)
-        }} defaultValue={timeValue}/>
+        }} defaultValue={timeValue} />
     </>
 }, (pre, next) => {
     if (pre.cctvId !== next.cctvId) return false
@@ -53,11 +53,11 @@ const VideoCard = memo(({ cctvId }: {
 const Contents = () => {
     const monitoringLayoutNums = useRecoilValue(MonitoringDatas('layoutNum'))
     const monitoringCCTVs = useRecoilValue(MonitoringDatas('CCTVs'))
-    const cctvListTemp = useRef<(CameraDataType['cameraId']|undefined)[]>([])
+    const cctvListTemp = useRef<(CameraDataType['cameraId'] | undefined)[]>([])
 
     const cctvList = useMemo(() => {
         let count = 0
-        let temp: (number|undefined)[] = Array.from({length: monitoringLayoutNums as number})
+        let temp: (number | undefined)[] = Array.from({ length: monitoringLayoutNums as number })
         const _new = monitoringCCTVs as CameraDataType['cameraId'][]
         const _old = cctvListTemp.current as CameraDataType['cameraId'][]
         const added = _new.filter(_ => !_old.includes(_))
@@ -65,8 +65,8 @@ const Contents = () => {
         temp = temp.map((_, ind) => cctvListTemp.current[ind] ? (deleted.includes(cctvListTemp.current[ind]!) ? added[count++] : cctvListTemp.current[ind]) : added[count++])
         cctvListTemp.current = [...temp]
         return temp
-    },[monitoringCCTVs, monitoringLayoutNums])
-    
+    }, [monitoringCCTVs, monitoringLayoutNums])
+
     return <ContentsContainer>
         <VideosContainer>
             <NoImage>
@@ -74,7 +74,7 @@ const Contents = () => {
             </NoImage>
             {
                 cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind}>
-                    <VideoCard cctvId={cctvList[ind]}/>
+                    <VideoCard cctvId={cctvList[ind]} />
                 </VideoCardContainer>)
             }
         </VideosContainer>
@@ -91,6 +91,7 @@ const ContentsContainer = styled.div`
 const VideosContainer = styled.div`
     height: 100%;
     ${globalStyles.flex({ flexWrap: 'wrap', flexDirection: 'row' })}
+    box-sizing: border-box;
 `
 
 const VideoCardContainer = styled.div<{ layoutNum: number }>`
@@ -100,17 +101,18 @@ const VideoCardContainer = styled.div<{ layoutNum: number }>`
     background-color: transparent;
 `
 
-const VideoTitle = styled.div<{hasIcon: boolean}>`
+const VideoTitle = styled.div<{ hasIcon: boolean }>`
     height: 24px;
     background-color: ${SectionBackgroundColor};
     line-height: 24px;
     text-align: center;
     padding: 0 4px;
-    padding-right: ${({hasIcon}) => hasIcon ? 50 : 4}px;
+    padding-right: ${({ hasIcon }) => hasIcon ? 50 : 4}px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     position: relative;
+    ${globalStyles.fadeOut()}
 `
 
 const VideoCloseIcon = styled.div`
@@ -149,8 +151,11 @@ const VideoInner = styled.div`
 `
 
 const NoImage = styled.div`
-    width: 100%;
+    width: calc(100% - 64px);
     height: 100%;
     position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
     ${globalStyles.flex()}
 `
