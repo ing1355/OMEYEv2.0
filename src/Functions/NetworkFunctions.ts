@@ -6,7 +6,7 @@ import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 
-type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE"
+type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
 export const getLocalIp = async (url: string) => {
     const conn = new RTCPeerConnection()
@@ -36,7 +36,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
             'Authorization': GetAuthorizationToken()
         }
     }
-    if (method === 'POST' || method === 'PUT') {
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
         options.data = bodyOrParams
     } else {
         options.params = bodyOrParams
