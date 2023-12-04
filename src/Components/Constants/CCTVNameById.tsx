@@ -8,7 +8,7 @@ const CCTVNameById = ({ cctvId }: {
     const name = useRecoilValue(GetCameraById(Number(cctvId)))?.name
     
     return <>
-        {name}
+        {name || '정보 없음'}
     </>
 }
 

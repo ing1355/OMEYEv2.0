@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, ModalBoxShadow, SectionBackgroundColor, globalStyles, loadingAIAnalysisColor, loadingVideoDownloadColor } from "../../styles/global-styled"
+import { ProgressCCTVErrorColor, ProgressErrorColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, ModalBoxShadow, SectionBackgroundColor, globalStyles, loadingAIAnalysisColor, loadingVideoDownloadColor } from "../../styles/global-styled"
 import React, { Suspense, useEffect, useRef, useState } from "react"
 import Button from "../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
@@ -16,13 +16,14 @@ import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "..
 import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useMessage from "../../Hooks/useMessage"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressRequestType, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
 import { CustomEventSource, HealthCheckTimerDuration, IS_PRODUCTION, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
 import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
 import { conditionMenu } from "../../Model/ConditionMenuModel"
 import { ReIDMenuKeys } from "../ReID/ConstantsValues"
 import { menuState } from "../../Model/MenuModel"
-import { isLogin } from "../../Model/LoginModel"
+import useServerConnection from "../../Hooks/useServerConnection"
+import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
 
 type ReIDProgressProps = {
     visible: boolean
@@ -219,7 +220,17 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const reidResultTimer = useRef<NodeJS.Timer>()
     const additinoalReidResultTimer = useRef<NodeJS.Timer>()
     const healthCheckTimer = useRef<NodeJS.Timer>()
-    const setIsLogin = useSetRecoilState(isLogin)
+    const {healthCheckClear, healthCheckTimerRegister} = useServerConnection()
+
+    const healthCheckClearCallback = (type: ProgressRequestType) => {
+        setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
+    }
+
+    const healthCheckRegisterCallback = (type: ProgressRequestType) => {
+        healthCheckTimerRegister(() => {
+            healthCheckClearCallback(type)
+        })
+    }
 
     useEffect(() => {
         if (!IS_PRODUCTION) setProgressData([
@@ -781,6 +792,17 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                 clearInterval(additinoalReidResultTimer.current)
             }
         }
+        return () => {
+            if (progressTimer.current) {
+                clearInterval(progressTimer.current)
+            }
+            if (reidResultTimer.current) {
+                clearInterval(reidResultTimer.current)
+            }
+            if (additinoalReidResultTimer) {
+                clearInterval(additinoalReidResultTimer.current)
+            }
+        }
     }, [isProgress])
 
     async function sseSetting() {
@@ -871,7 +893,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                     const { type } = _progressRequestParams
                     const data = JSON.parse(res.data.replace(/\\/gi, '')) as SSEProgressResponseType
                     const { conditionIndex, timeIndex, cctvId, aiPercent, videoPercent, status, reIdId, errorCode } = data
-
                     if (aiPercent || videoPercent) {
                         console.debug(`${type} type sse percent message : `, data)
                         progressDataRef.current = progressDataRef.current.map((_, ind) => ind === conditionIndex ? ({
@@ -909,14 +930,15 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         }
                     }
 
-                    if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_COMPLETE']]) {
+                    if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                        healthCheckRegisterCallback(type)
+                    } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_COMPLETE']]) {
                         setProgressStatus({ type: type, status: PROGRESS_STATUS['COMPLETE'] })
                         let callback;
                         switch (type) {
                             case 'REID':
                             case 'ADDITIONALREID': {
                                 callback = () => {
-                                    console.debug(currentReIdIdRef.current, type, singleReidResultRef.current)
                                     setReidResultSelectedView([currentReIdIdRef.current])
                                     if (type === 'REID') setSelectedResultCondition(0)
                                     else setSelectedResultCondition(singleReidResultRef.current?.data.length! - 1)
@@ -934,11 +956,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         setProgressStatus({ type, status: PROGRESS_STATUS['CANCELD'] })
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_START']]) {
                         console.debug(`${type} start event`)
-                        healthCheckTimer.current = setTimeout(() => {
-                            setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
-                            message.error({ title: "서버 에러", msg: "서버와의 연결이 종료되었습니다." })
-                            setIsLogin(null)
-                        }, HealthCheckTimerDuration);
                         message.preset('REIDSTART')
                         if (reIdId) {
                             setReidResultSelectedView([reIdId])
@@ -959,16 +976,11 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                             message.preset('REIDERROR', errorCode)
                             setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
                         }
-                        if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                        healthCheckClear()
                         sseRef.current?.close()
                         sseRef.current = undefined
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
-                        if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
-                        healthCheckTimer.current = setTimeout(() => {
-                            setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
-                            message.preset('SERVER_CONNECTION_ERROR')
-                            setIsLogin(null)
-                        }, HealthCheckTimerDuration);
+                        healthCheckRegisterCallback(type)
                     }
 
                     switch (type) {
@@ -1111,9 +1123,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     }, [_progressRequestParams, requestFlag])
 
     return <>
-        <SmallProgress percent={getAllProgressPercent(progressData)} color="white" noString />
-        <ProgressContainer visible={visible} onClick={(e) => {
-            e.stopPropagation()
+        <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
+        <ProgressContainer visible={visible} setVisible={(v) => {
+            if(!v) close()
         }}>
             <Arrow />
             <HeaderContainer>
@@ -1152,7 +1164,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         {progressStatus.status === PROGRESS_STATUS['COMPLETE'] ? '결과 보기' : '전체 분석 취소'}
                     </CancelBtn>
                 </Header>
-                <Progress percent={getAllProgressPercent(progressData) || 0} color={ContentsActivateColor} />
+                <Progress percent={getAllProgressPercent(progressData) || 0} color={progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : ContentsActivateColor} />
             </HeaderContainer>
             <ContentsWrapper>
                 {progressData.map((_, ind) => <ConditionGroupContainer key={ind} num={ind} progressData={_} visible={visible} />)}
@@ -1167,7 +1179,7 @@ const progressContainerBackgroundColor = SectionBackgroundColor
 const rowHeight = 72
 const headerHeight = 54
 
-const ProgressContainer = styled.div<{ visible: boolean }>`
+const ProgressContainer = styled(VisibleToggleContainer)<{ visible: boolean }>`
     position: absolute;
     cursor: default;
     top: calc(100% + 14px);
@@ -1325,7 +1337,7 @@ const CCTVProgressDataTitleContainer = styled.div<{ isFail: boolean }>`
     font-weight: 300;
     font-family: NanumGothicLight;
     ${({ isFail }) => isFail && `
-        color: #ff8eb3;
+        color: ${ProgressCCTVErrorColor};
         cursor: pointer;
         &:before,&:after {
             visibility:hidden;

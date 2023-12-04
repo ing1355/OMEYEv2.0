@@ -7,7 +7,7 @@ import useConditionRoutes from "../Hooks/useConditionRoutes"
 import { ObjectTypeSelectRoute } from "../Constants/RouteInfo"
 import ImageView from "../Constants/ImageView"
 import Button from "../../../Constants/Button"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import IconBtn from "../../../Constants/IconBtn"
 import TargetDescriptionByType from "../Constants/TargetDescriptionByType"
 import useMessage from "../../../../Hooks/useMessage"
@@ -18,15 +18,15 @@ import targetIcon from '../../../../assets/img/targetIcon.png'
 export type PlateStatusType = 'none' | 'add' | 'update'
 
 const TargetSelectColumn = () => {
-    const [plateStatus, setPlateStatus] = useState<PlateStatusType>('none')
     const [datas, setDatas] = useRecoilState(conditionTargetDatas)
     const isRealTime = useRecoilValue(conditionIsRealTimeData)
     const { routePush } = useConditionRoutes()
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const datasRef = useRef(datas)
     const message = useMessage()
 
     const initAction = () => {
         setDatas([])
-        setPlateStatus('none')
     }
 
     const addAction = () => {
@@ -37,8 +37,17 @@ const TargetSelectColumn = () => {
         setDatas(datas.every(_ => _.selected) ? datas.map(_ => ({ ..._, selected: false })) : datas.map(_ => ({ ..._, selected: true })))
     }
 
-    return <Container>
-        <ConditionParamsInputColumnComponent
+    useEffect(() => {
+        if(datasRef.current.length < datas.length) {
+            scrollRef.current?.scrollTo({
+                top: scrollRef.current.clientHeight,
+                behavior: 'smooth'
+            })
+        }
+        datasRef.current = datas
+    },[datas])
+
+    return <ConditionParamsInputColumnComponent
             title={`대상(${datas.filter(_ => _.selected).length}/${datas.length})`}
             isTarget
             initAction={initAction}
@@ -47,6 +56,7 @@ const TargetSelectColumn = () => {
             noDataText="대상 추가"
             isDataExist={datas.length > 0}
             allSelectAction={allSelectAction}
+            scrollRef={scrollRef}
             allSelected={datas.length > 0 && datas.every(_ => _.selected)}>
             {datas.map((_, ind) => <ItemContainer key={ind} selected={_.selected || false} onClick={() => {
                 if (_.selected) {
@@ -87,21 +97,12 @@ const TargetSelectColumn = () => {
                 </ItemSubContainer>
             </ItemContainer>)}
         </ConditionParamsInputColumnComponent>
-    </Container>
 }
 
 export default TargetSelectColumn
 
 const Container = styled.div`
     ${globalStyles.conditionParamsColumnContainer}
-`
-
-const ItemsScrollContainer = styled.div`
-    overflow-y: auto;
-    width: 100%;
-    height: calc(100% - 170px);
-    ${globalStyles.conditionParamsColumnContainer}
-    justify-content: flex-start;
 `
 
 const ItemContainer = styled.div<{ selected: boolean }>`
@@ -145,6 +146,7 @@ const ItemSelectBtn = styled(Button)`
 `
 
 const ItemDescriptionContents = styled.div`
+    width: 100%;
     flex: 0 0 calc(100% - 28px);
     padding: 0px 6px;
     ${globalStyles.flex({ gap: '10px' })}

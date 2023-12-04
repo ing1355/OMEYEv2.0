@@ -13,8 +13,7 @@ const Menus = () => {
         setCurrentMenu(null)
     }
 
-    return <Container>
-        {/* <HomeBtn src={HomeIcon} onClick={goToMain} /> */}
+    return currentMenu && <Container>
         <MenuItemsContainer>
             {
                 MenuItemList.map((_, ind) => <MenuItem key={ind} selected={currentMenu === _.key} onClick={() => {

@@ -70,7 +70,7 @@ export class Message {
         this._container = container
         this._timerId = setTimeout(() => {
             this.deleteMessage()
-        }, timer || 5000);
+        }, timer || (callback && 3600000) || 5000);
     }
 
     deleteContainer() {
@@ -138,13 +138,15 @@ const useMessage = () => {
                 theme:'success',
                 callback: callback ? callback : () => {
                     setReIDMenu(ReIDMenuKeys['REIDRESULT'])
-                },
-                timer: 60000
+                }
             })
         } else if(preset === 'REIDCANCEL') {
             createMessage({
                 title: '요청이 취소됨',
-                msg: '분석 요청이 취소되었습니다.\n다시 요청해주세요.'
+                msg: '분석 요청이 취소되었습니다.\n다시 요청해주세요.',
+                callback: () => {
+
+                }
             })
         } else if(preset === 'REIDSTART') {
             createMessage({
@@ -155,7 +157,10 @@ const useMessage = () => {
             createMessage({
                 title: "분석 실패",
                 msg: msg!,
-                theme: 'error'
+                theme: 'error',
+                callback: () => {
+                    
+                }
             })
         } else if(preset === 'WRONG_PARAMETER') {
             createMessage({

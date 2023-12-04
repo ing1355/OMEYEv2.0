@@ -141,12 +141,6 @@ export const ReIDAllResultData = selector({ // reid 결과 받아서 결과 추�
         set(_reidResultSelctedView, [newValue[0].reIdId])
       }
       if (needAddedReId) { // 새로 분석 요청 했을 시
-        console.debug('here22 !! : ', [...selectedTemp, {
-          reIdId: needAddedReId.reIdId,
-          datas: needAddedReId.data.map(_ => _.resultList.reduce((acc, val) => ({
-            ...acc, [val.objectId]: []
-          }), {}))
-        }])
         set(_reidSelectedDatas, [...selectedTemp, {
           reIdId: needAddedReId.reIdId,
           datas: needAddedReId.data.map(_ => _.resultList.reduce((acc, val) => ({

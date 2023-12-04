@@ -37,9 +37,9 @@ const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
 
 
 const msgByStatusCode = (code: number, msg?: string) => {
-  if(code === 500) {
-    return "서버 통신 에러"
-  }
+  // if(code === 500) {
+  //   return "서버 통신 에러"
+  // }
   return msg || '서버 상태를 확인해주세요.'
 }
 
@@ -60,10 +60,12 @@ const App = () => {
       if (err.response) {
         const { status, data } = err.response
         const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
-        _message.error({
-          title: serverErrorTitleByStatusCode(status),
-          msg: msgByStatusCode(status, (errorCode || message))
-        })
+        if(!success) {
+          _message.error({
+            title: serverErrorTitleByStatusCode(status),
+            msg: msgByStatusCode(status, (errorCode || message))
+          })
+        }
         if (code === 401 || status === 502) {
           setLoginState(null)
         }

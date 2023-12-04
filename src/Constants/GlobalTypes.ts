@@ -100,7 +100,6 @@ export type CaptureResultListItemType = {
   method?: ConditionDataTargetSelectMethodTypeKeys
   objectId?: number
   selected?: boolean
-  cctvName?: CameraDataType['name']
   ocr?: string
   description?: descriptionParamType
   points?: PointType

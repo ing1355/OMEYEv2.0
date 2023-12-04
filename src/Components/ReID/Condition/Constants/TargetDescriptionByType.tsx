@@ -72,7 +72,7 @@ const TargetDescriptionItem = ({ icon, title, children }: PropsWithChildren<Targ
 }
 
 const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
-    const { cctvName, cctvId, time, accuracy, type, mask, method, description, ocr } = data
+    const { cctvId, time, accuracy, type, mask, method, description, ocr } = data
 
     return <>
         {
@@ -91,8 +91,8 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
             </TargetDescriptionItem>
         }
         {
-            (cctvName || cctvId) && <TargetDescriptionItem icon={cctvIcon} title="CCTV">
-                {cctvName || <CCTVNameById cctvId={cctvId || 0}/>}
+            cctvId && <TargetDescriptionItem icon={cctvIcon} title="CCTV">
+                <CCTVNameById cctvId={cctvId}/>
             </TargetDescriptionItem>
         }
         {

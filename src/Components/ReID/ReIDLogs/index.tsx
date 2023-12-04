@@ -41,7 +41,6 @@ type ObjectTypeSearchValues = ReIDObjectTypeKeys | 'all'
 
 const ReIDLogs = () => {
     const [menu, setMenu] = useRecoilState(conditionMenu)
-    const [allDatas, setAllDatas] = useRecoilState(conditionData)
     const [opened, setOpened] = useState<ReIDLogDataType['reidId']>(0)
     const [timeVisible, setTimeVisible] = useState(false)
     const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
@@ -49,13 +48,14 @@ const ReIDLogs = () => {
     const [params, _setParams] = useState({
         page: 1
     })
-
+    
     const titleInputRef = useRef<HTMLInputElement>()
-
+    
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
     const setReIDSelectedcondition = useSetRecoilState(ReIDResultSelectedCondition)
     const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
     const { logs, setParams, refresh } = useReIDLogDatas(params)
+    const setAllDatas = useSetRecoilState(conditionData)
     const message = useMessage()
     const { routeJump } = useConditionRoutes()
 
@@ -68,6 +68,10 @@ const ReIDLogs = () => {
         if (menu === ReIDMenuKeys['REIDLOGS']) setParams(params)
     }, [params])
 
+    useEffect(() => {
+        setOpened(0)
+    },[logs])
+
     return <Container>
         <TimeModal visible={timeVisible} close={() => {
             setTimeVisible(false)
@@ -77,7 +81,7 @@ const ReIDLogs = () => {
                 let _: ReIDSearchParamsType = {
                     page: 1
                 }
-                if (titleInputRef.current && titleInputRef.current.value) _.desc = titleInputRef.current.value
+                if (titleInputRef.current && titleInputRef.current.value) _.searchText = titleInputRef.current.value
                 if (searchValue !== 'all') _.type = searchValue
                 if (timeValue) {
                     _.from = timeValue.startTime
@@ -466,15 +470,26 @@ const SubTitleItemsContainer = styled.div`
 `
 
 const ContentsItemTitle = styled.div`
+    flex: 1;
     ${globalStyles.flex({ flexDirection: 'row', gap: '24px' })}
     height: 32px;
     & > div {
         font-size: 1.1rem;
         height: 100%;
-        ${globalStyles.flex({flexDirection:'row', gap: '2px'})}
+        ${globalStyles.flex({flexDirection:'row', gap: '2px', justifyContent:'flex-start'})}
         &:first-child {
             font-weight: bold;
             font-family: NanumGothicBold;
+            flex: 0 0 166px;
+        }
+        &:nth-child(2) {
+            flex: 0 0 190px;
+        }
+        &:nth-child(3) {
+            flex: 0 0 200px;
+        }
+        &:nth-child(4) {
+            flex: 1;
         }
     }
 `

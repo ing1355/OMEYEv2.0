@@ -42,11 +42,11 @@ export type ReIDLogDataType = {
 
 export type ReIDSearchParamsType = {
     type?: ReIDObjectTypeKeys
-    desc?: string
     from?: string
     to?: string
     page: number
     size?: number
+    searchText?: string
 }
 
 type ReIDLogApiResponseType = BasicLogDataType<ReIDLogDataType[]>

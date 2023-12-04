@@ -29,6 +29,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil"
 import { GetCameraById } from "../../../Model/SiteDataModel"
 import ForLog from "../../Constants/ForLog"
 import { isLogin } from "../../../Model/LoginModel"
+import useServerConnection from "../../../Hooks/useServerConnection"
 
 type ParameterInputType = {
     index: number
@@ -45,7 +46,7 @@ const videoDownloadByPath = (path: string, fileName: string) => {
 
 const msgByStatus = (status: VideoExportRowDataType['status'], progress?: VideoExportRowDataType['progress']) => {
     switch (status) {
-        case 'canDownload': return '다운로드 가능'
+        case 'canDownload': return <>&nbsp;</>
         case 'complete': return '완료'
         case 'downloading': {
             if (progress) {
@@ -260,8 +261,21 @@ const NewExport = () => {
     const datasRef = useRef(datas)
     const currentData = useRef<VideoExportRowDataType>(datas[0])
     const message = useMessage()
-    const healthCheckTimer = useRef<NodeJS.Timer>()
     const setIsLogin = useSetRecoilState(isLogin)
+    const {healthCheckClear, healthCheckTimerRegister} = useServerConnection()
+
+    const healthCheckClearCallback = () => {
+        currentData.current.status = 'cancel'
+        setDatas(datasRef.current.map(_ => {
+            return _.videoUUID === currentUUIDRef.current ? ({
+                ...currentData.current
+            }) : _
+        }))
+    }
+
+    const healthCheckRegisterCallback = () => {
+        healthCheckTimerRegister(healthCheckClearCallback)
+    }
 
     useEffect(() => {
         datasRef.current = datas
@@ -358,16 +372,6 @@ const NewExport = () => {
                     return _
                 }
             }))
-            healthCheckTimer.current = setTimeout(() => {
-                currentData.current.status = 'cancel'
-                message.preset('SERVER_CONNECTION_ERROR')
-                setDatas(datasRef.current.map(_ => {
-                    return _.videoUUID === currentUUIDRef.current ? ({
-                        ...currentData.current
-                    }) : _
-                }))
-                setIsLogin(null)
-            }, HealthCheckTimerDuration);
         } else {
             if (sseRef.current) {
                 sseRef.current.close()
@@ -403,8 +407,9 @@ const NewExport = () => {
                     message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
                 }
             }
-            if (status && SSEResponseErrorMsg.includes(status)) {
-                console.debug("current State : ", status, [...datasRef.current], currentUUIDRef.current)
+            if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                healthCheckRegisterCallback()
+            } else if (status && SSEResponseErrorMsg.includes(status)) {
                 currentData.current.progress = {
                     aiPercent: 0,
                     videoPercent: 0,
@@ -412,12 +417,7 @@ const NewExport = () => {
                 }
                 currentData.current.status = 'cancel'
             } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
-                if (healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
-                healthCheckTimer.current = setTimeout(() => {
-                    currentData.current.status = 'cancel'
-                    message.preset('SERVER_CONNECTION_ERROR')
-                    setIsLogin(null)
-                }, HealthCheckTimerDuration);
+                healthCheckRegisterCallback()
             }
             setDatas(datasRef.current.map(_ => {
                 return _.videoUUID === currentUUIDRef.current ? ({
@@ -425,7 +425,7 @@ const NewExport = () => {
                 }) : _
             }))
             if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
-                if(healthCheckTimer.current) clearTimeout(healthCheckTimer.current)
+                healthCheckClear()
                 sseRef.current!.close()
                 sseRef.current = undefined
             }
