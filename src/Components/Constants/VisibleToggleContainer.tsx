@@ -13,6 +13,27 @@ const VisibleToggleContainer = ({
 }: VisibleToggleContainerProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const visibleRef = useRef<(e: MouseEvent) => void>()
+    const callbackRef = useRef<(e: KeyboardEvent) => void>()
+
+    const close = () => {
+        setVisible(false)
+    }
+
+    const escCallback = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            if (close) close()
+        }
+    }
+
+    useEffect(() => {
+        if (visible) {
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+            callbackRef.current = escCallback
+            if (callbackRef.current) document.addEventListener('keydown', callbackRef.current)
+        } else {
+            if (callbackRef.current) document.removeEventListener('keydown', callbackRef.current)
+        }
+    }, [visible, escCallback])
 
     const blurClickCallback = useCallback((e: MouseEvent) => {
         if (

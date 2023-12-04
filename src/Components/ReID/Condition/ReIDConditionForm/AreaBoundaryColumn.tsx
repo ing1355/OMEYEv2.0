@@ -9,11 +9,14 @@ import IconBtn from "../../../Constants/IconBtn"
 import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
 import checkIcon from '../../../../assets/img/checkIcon.png'
 import emptyCheckIcon from '../../../../assets/img/emptyCheckIcon.png'
+import { useEffect, useRef } from "react"
 
 const AreaBoundaryColumn = () => {
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
     const setAreaIndex = useSetRecoilState(AreaSelectIndex)
     const setAreaVisible = useSetRecoilState(AreaSelectVisible)
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const datasRef = useRef(areaData)
 
     const initAction = () => {
         setAreaData([])
@@ -31,8 +34,18 @@ const AreaBoundaryColumn = () => {
     const allSelectAction = () => {
         setAreaData(areaData.every(_ => _.selected) ? areaData.map(_ => ({ ..._, selected: false })) : areaData.map(_ => ({ ..._, selected: true })))
     }
-    return <Container>
-        <ConditionParamsInputColumnComponent
+
+    useEffect(() => {
+        if(datasRef.current.length < areaData.length) {
+            scrollRef.current?.scrollTo({
+                top: scrollRef.current.clientHeight,
+                behavior:'smooth'
+            })
+        }
+        datasRef.current = areaData
+    },[areaData])
+
+    return <ConditionParamsInputColumnComponent
             title={`CCTV(${areaData.filter(_ => _.selected).length}/${areaData.length})`}
             titleIcon={cctvIcon}
             isDataExist={areaData.length > 0}
@@ -40,6 +53,7 @@ const AreaBoundaryColumn = () => {
             dataAddAction={addAction}
             noDataText="CCTV 추가"
             allSelectAction={allSelectAction}
+            scrollRef={scrollRef}
             allSelected={areaData.every(_ => _.selected)}>
             {
                 areaData.map((_, ind) => <AreaDataItem key={ind} selected={_.selected || false} onClick={() => {
@@ -81,14 +95,9 @@ const AreaBoundaryColumn = () => {
                 </AreaDataItem>)
             }
         </ConditionParamsInputColumnComponent>
-    </Container>
 }
 
 export default AreaBoundaryColumn
-
-const Container = styled.div`
-    ${globalStyles.conditionParamsColumnContainer}
-`
 
 const AreaDataItem = styled.div<{ selected: boolean }>`
     border: 1px solid ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};

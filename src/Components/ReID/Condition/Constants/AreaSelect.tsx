@@ -19,7 +19,6 @@ type AreaSelectProps = {
 
 const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect, lowBlur=false }: AreaSelectProps) => {
     const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
-    const [needInit, setNeedInit] = useState(false)
     const [confirmVisible, setConfirmVisible] = useState(false)
     const message = useMessage()
     
@@ -28,9 +27,6 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
             setSelectedCCTVs(defaultSelected)
         } else if (visible) {
             setSelectedCCTVs([])
-            setNeedInit(false)
-        } else {
-            setNeedInit(true)
         }
     }, [visible])
 

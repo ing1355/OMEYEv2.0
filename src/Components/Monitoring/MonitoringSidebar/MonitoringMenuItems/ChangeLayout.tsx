@@ -5,6 +5,8 @@ import Dropdown from "../../../Layout/Dropdown"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { MonitoringDatas } from "../../../../Model/MonitoringDataModel"
 import useMessage from "../../../../Hooks/useMessage"
+import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
+import { useEffect, useRef } from "react"
 
 const layoutNums = [1,4,9,16,25,36,64]
 
@@ -23,8 +25,8 @@ const ChangeLayout = ({index}: {
         }}>
             view
         </MonitoringSidebarButton>
-        <ListContainer index={index} visible={visible === 'layoutNum'} onClick={(e) => {
-            e.stopPropagation()
+        <ListContainer index={index} visible={visible === 'layoutNum'} setVisible={v => {
+            setVisible(v ? 'layoutNum' : undefined)
         }}>
             <InnerContainer>
                 <Label>
@@ -49,7 +51,7 @@ const ChangeLayout = ({index}: {
 
 export default ChangeLayout
 
-const ListContainer = styled.div<{ visible: boolean, index: number }>`
+const ListContainer = styled(VisibleToggleContainer)<{ visible: boolean, index: number }>`
     position: absolute;
     width: ${({ visible }) => visible ? 212.5 : 0}px;
     height: ${({ visible }) => visible ? 48 : 0}px;

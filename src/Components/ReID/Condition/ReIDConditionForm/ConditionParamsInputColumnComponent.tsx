@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from 'react'
+import { PropsWithChildren, useEffect, useState } from 'react'
 import styled from 'styled-components';
 import { SectionBackgroundColor, globalStyles, ContentsDisableColor } from '../../../../styles/global-styled';
 import Button from '../../../Constants/Button';
@@ -25,6 +25,7 @@ type ConditionParamsInputColumnComponentProps = PropsWithChildren<{
     disableAllSelect?: boolean
     titleIcon?: string
     isTarget?: boolean
+    scrollRef?: React.RefObject<HTMLDivElement>
 }>
 
 const NoDataComponent = ({ txt, hover, isTime }: {
@@ -48,7 +49,7 @@ const NoDataComponent = ({ txt, hover, isTime }: {
     </NoDataContainer>
 }
 
-const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected, disableAllSelect, titleIcon, isTarget }: ConditionParamsInputColumnComponentProps) => {
+const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction, initAction, realtimeBtn, children, noDataText, dataAddDelete, allSelectAction, allSelected, disableAllSelect, titleIcon, scrollRef }: ConditionParamsInputColumnComponentProps) => {
     const [isRealTime, setIsRealTime] = useRecoilState(conditionIsRealTimeData)
     const [clearHover, setClearHover] = useState(false)
     const [isHover, setIsHover] = useState(false)
@@ -57,77 +58,79 @@ const ConditionParamsInputColumnComponent = ({ title, isDataExist, dataAddAction
     const resetIconByHover = clearHover ? resetHoverIcon : resetIcon
 
     return <>
-        <TitleContainer>
-            <TitleInnerContainer>
-                {titleIcon && <TitleIconContainer>
-                    <TitleIcon src={titleIcon} />
-                </TitleIconContainer>}
-                <TitleText>
-                    {title}
-                </TitleText>
-            </TitleInnerContainer>
-            <ButtonsContainer>
-                {realtimeBtn && <OptionButton concept="icon" onClick={() => {
-                    setIsRealTime(!isRealTime)
-                }} icon={liveIcon} isLive={true} liveOn={isRealTime} />}
-                <OptionButton
-                    concept="icon"
-                    disabled={!isDataExist && !(realtimeBtn && isRealTime)}
-                    onClick={() => {
-                        setConfirmVisible(true)
-                    }}
-                    onMouseEnter={() => {
-                        setClearHover(true)
-                    }}
-                    onMouseLeave={() => {
-                        setClearHover(false)
-                    }}
-                    icon={resetIconByHover} />
-            </ButtonsContainer>
-        </TitleContainer>
-        <DataContainer
-            isDataExist={!isDataExist}
-            isRealTime={realtimeBtn && isRealTime}
-            onClick={(e) => {
-                if (realtimeBtn && isRealTime) return
-                if (!isDataExist) {
-                    e.currentTarget.style.cursor = 'default'
-                    dataAddAction()
-                }
-            }}
-            onMouseOver={e => {
-                if (realtimeBtn && isRealTime) return
-                if (!isDataExist) {
-                    e.currentTarget.style.cursor = 'pointer'
-                    setIsHover(true)
-                }
-            }} onMouseLeave={e => {
-                if (realtimeBtn && isRealTime) return
-                if (!isDataExist) {
-                    e.currentTarget.style.cursor = 'default'
-                    setIsHover(false)
-                }
-            }}>
-            {
-                (realtimeBtn && isRealTime) ? <IsRealTimeContainer>
+        <ItemsContainer>
+            <TitleContainer>
+                <TitleInnerContainer>
+                    {titleIcon && <TitleIconContainer>
+                        <TitleIcon src={titleIcon} />
+                    </TitleIconContainer>}
+                    <TitleText>
+                        {title}
+                    </TitleText>
+                </TitleInnerContainer>
+                <ButtonsContainer>
+                    {realtimeBtn && <OptionButton concept="icon" onClick={() => {
+                        setIsRealTime(!isRealTime)
+                    }} icon={liveIcon} isLive={true} liveOn={isRealTime} />}
+                    <OptionButton
+                        concept="icon"
+                        disabled={!isDataExist && !(realtimeBtn && isRealTime)}
+                        onClick={() => {
+                            setConfirmVisible(true)
+                        }}
+                        onMouseEnter={() => {
+                            setClearHover(true)
+                        }}
+                        onMouseLeave={() => {
+                            setClearHover(false)
+                        }}
+                        icon={resetIconByHover} />
+                </ButtonsContainer>
+            </TitleContainer>
+            <DataContainer
+                isDataExist={!isDataExist}
+                isRealTime={realtimeBtn && isRealTime}
+                onClick={(e) => {
+                    if (realtimeBtn && isRealTime) return
+                    if (!isDataExist) {
+                        e.currentTarget.style.cursor = 'default'
+                        dataAddAction()
+                    }
+                }}
+                onMouseOver={e => {
+                    if (realtimeBtn && isRealTime) return
+                    if (!isDataExist) {
+                        e.currentTarget.style.cursor = 'pointer'
+                        setIsHover(true)
+                    }
+                }} onMouseLeave={e => {
+                    if (realtimeBtn && isRealTime) return
+                    if (!isDataExist) {
+                        e.currentTarget.style.cursor = 'default'
+                        setIsHover(false)
+                    }
+                }}>
+                {
+                    (realtimeBtn && isRealTime) ? <IsRealTimeContainer>
 
-                </IsRealTimeContainer> : (
-                    isDataExist ? <>
-                        {!dataAddDelete && <DataExistAndAddComponent onClick={() => {
-                            if (!((realtimeBtn || false) && isRealTime)) dataAddAction()
-                        }} disabled={(realtimeBtn || false) && isRealTime}>
-                            <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
-                        </DataExistAndAddComponent>}
-                        {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
-                            전체 선택 {allSelected && '해제'}
-                        </AllSelectBtn>}
-                        <ItemsScrollContainer>
-                            {children}
-                        </ItemsScrollContainer>
-                    </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />
-                )
-            }
-        </DataContainer>
+                    </IsRealTimeContainer> : (
+                        isDataExist ? <>
+                            {!dataAddDelete && <DataExistAndAddComponent onClick={() => {
+                                if (!((realtimeBtn || false) && isRealTime)) dataAddAction()
+                            }} disabled={(realtimeBtn || false) && isRealTime}>
+                                <NoDataComponent txt={noDataText} hover={false} isTime={realtimeBtn} />
+                            </DataExistAndAddComponent>}
+                            {!disableAllSelect && <AllSelectBtn hover onClick={allSelectAction} activate={allSelected} disabled={isRealTime && realtimeBtn}>
+                                전체 선택 {allSelected && '해제'}
+                            </AllSelectBtn>}
+                            <ItemsScrollContainer ref={scrollRef}>
+                                {children}
+                            </ItemsScrollContainer>
+                        </> : <NoDataComponent txt={noDataText} hover={isHover} isTime={realtimeBtn} />
+                    )
+                }
+            </DataContainer>
+        </ItemsContainer>
         <Modal visible={confirmVisible} close={() => {
             setConfirmVisible(false)
         }} complete={initAction} title="초기화">
@@ -236,6 +239,10 @@ const AllSelectBtn = styled(Button)`
 const IsRealTimeContainer = styled.div`
     ${globalStyles.flex()}
     height: 100%;
+`
+
+const ItemsContainer = styled.div`
+    ${globalStyles.conditionParamsColumnContainer}
 `
 
 const ItemsScrollContainer = styled.div`

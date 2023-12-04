@@ -23,6 +23,7 @@ import { conditionMenu } from "../../Model/ConditionMenuModel"
 import { ReIDMenuKeys } from "../ReID/ConstantsValues"
 import { menuState } from "../../Model/MenuModel"
 import useServerConnection from "../../Hooks/useServerConnection"
+import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
 
 type ReIDProgressProps = {
     visible: boolean
@@ -1123,8 +1124,8 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     return <>
         <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
-        <ProgressContainer visible={visible} onClick={(e) => {
-            e.stopPropagation()
+        <ProgressContainer visible={visible} setVisible={(v) => {
+            if(!v) close()
         }}>
             <Arrow />
             <HeaderContainer>
@@ -1178,7 +1179,7 @@ const progressContainerBackgroundColor = SectionBackgroundColor
 const rowHeight = 72
 const headerHeight = 54
 
-const ProgressContainer = styled.div<{ visible: boolean }>`
+const ProgressContainer = styled(VisibleToggleContainer)<{ visible: boolean }>`
     position: absolute;
     cursor: default;
     top: calc(100% + 14px);

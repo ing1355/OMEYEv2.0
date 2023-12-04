@@ -10,12 +10,15 @@ import IconBtn from "../../../Constants/IconBtn"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import checkIcon from '../../../../assets/img/checkIcon.png'
 import emptyCheckIcon from '../../../../assets/img/emptyCheckIcon.png'
+import { useEffect, useRef } from "react"
 
 const TimeBoundaryColumn = () => {
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
     const [isRealTime, setIsRealTime] = useRecoilState(conditionIsRealTimeData)
     const setTimeModalVisible = useSetRecoilState(TimeSelectVisible)
     const setTimeIndex = useSetRecoilState(TimeSelectIndex)
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const datasRef = useRef(timeData)
 
     const initAction = () => {
         setTimeData([])
@@ -38,9 +41,18 @@ const TimeBoundaryColumn = () => {
     const allSelectAction = () => {
         setTimeData(timeData.every(_ => _.selected) ? timeData.map(_ => ({ ..._, selected: false })) : timeData.map(_ => ({ ..._, selected: true })))
     }
+
+    useEffect(() => {
+        if(datasRef.current.length < timeData.length) {
+            scrollRef.current?.scrollTo({
+                top: scrollRef.current.clientHeight,
+                behavior: 'smooth'
+            })
+        }
+        datasRef.current = timeData
+    },[timeData])
     
     return <>
-        <Container>
             <ConditionParamsInputColumnComponent
                 title={`시간(${isRealTime ? '실시간' : `${timeData.filter(_ => _.selected).length}/${timeData.length}`})`}
                 titleIcon={timeIcon}
@@ -50,6 +62,7 @@ const TimeBoundaryColumn = () => {
                 realtimeBtn={true}
                 noDataText="시간 추가"
                 allSelectAction={allSelectAction}
+                scrollRef={scrollRef}
                 allSelected={timeData.every(_ => _.selected)}>
                 {
                     timeData.map((_, ind) => <TimeDataContainer key={ind} selected={_.selected || false} onClick={() => {
@@ -91,7 +104,6 @@ const TimeBoundaryColumn = () => {
                     </TimeDataContainer>)
                 }
             </ConditionParamsInputColumnComponent>
-        </Container>
     </>
 }
 

@@ -7,7 +7,7 @@ import TreeAndMapComponent from "../../../Constants/TreeAndMapComponent"
 import { CameraDataType, setStateType } from "../../../../Constants/GlobalTypes"
 import useMessage from "../../../../Hooks/useMessage"
 import { useEffect, useRef } from "react"
-import { menuState } from "../../../../Model/MenuModel"
+import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
 
 const SelectMonitoringCCTVs = ({index}: {
     index: number
@@ -32,8 +32,8 @@ const SelectMonitoringCCTVs = ({index}: {
         }}>
             cctv
         </MonitoringSidebarButton>
-        <ListContainer index={index} visible={visible === 'CCTVs'} onClick={(e) => {
-            e.stopPropagation()
+        <ListContainer index={index} visible={visible === 'CCTVs'} setVisible={v => {
+            setVisible(v ? 'CCTVs' : undefined)
         }}>
             <InnerContainer>
                 <TreeAndMapComponent selectedCCTVs={selectedCCTVs as CameraDataType['cameraId'][]} setSelectedCCTVs={(cctvs) => {
@@ -47,7 +47,7 @@ const SelectMonitoringCCTVs = ({index}: {
 
 export default SelectMonitoringCCTVs
 
-const ListContainer = styled.div<{ visible: boolean, index: number }>`
+const ListContainer = styled(VisibleToggleContainer)<{ visible: boolean, index: number }>`
     position: absolute;
     width: ${({ visible }) => visible ? 810 : 0}px;
     height: ${({ visible }) => visible ? 800 : 0}px;

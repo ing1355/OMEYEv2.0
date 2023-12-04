@@ -46,7 +46,7 @@ const videoDownloadByPath = (path: string, fileName: string) => {
 
 const msgByStatus = (status: VideoExportRowDataType['status'], progress?: VideoExportRowDataType['progress']) => {
     switch (status) {
-        case 'canDownload': return '다운로드 가능'
+        case 'canDownload': return <>&nbsp;</>
         case 'complete': return '완료'
         case 'downloading': {
             if (progress) {
