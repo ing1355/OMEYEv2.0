@@ -44,10 +44,17 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     setSearchRoleValue(null)
   }
 
-  const putUsersAccount = async () => {
-    const res = await Axios("PUT", UserAccountApi, {
+  const putUsersAccount = async (isPassword: boolean) => {
+    const res = await Axios("PATCH", UserAccountApi, isPassword ? {
       id: modifySelectMember.id,
       password: modifyAccountPassword,
+      name: modifySelectMember.name,
+      email: modifySelectMember.email,
+      phoneNumber: modifySelectMember.phoneNumber,
+      role: searchRoleValue,
+      organization: modifySelectMember.organization
+    } : {
+      id: modifySelectMember.id,
       name: modifySelectMember.name,
       email: modifySelectMember.email,
       phoneNumber: modifySelectMember.phoneNumber,
@@ -79,16 +86,20 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   }
 
   const modifyAccountFun = async () => {
-    if(!(modifyAccountPassword && modifyAccountPasswordConfirm && modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
-      message.error({ title: '멤버 수정 에러', msg: '모든 항목을 입력해주세요.' })
+    if(!(modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
+      message.error({ title: '멤버 수정 에러', msg: '소속, 이름, 이메일, 전화번호 항목을 모두 입력해주세요.' })
       return true
-    } else if(!passwordRegex.test(modifyAccountPassword)) {
-      message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
-      return true
-    } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-      message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
-      return true
-    } else if(!nameRegex.test(modifySelectMember.name)) {
+    } 
+    
+    // else if(!passwordRegex.test(modifyAccountPassword)) {
+    //   message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
+    //   return true
+    // } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
+    //   message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
+    //   return true
+    // } 
+    
+    else if(!nameRegex.test(modifySelectMember.name)) {
       message.error({ title: '멤버 수정 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
       return true
     } else if(!emailRegex.test(modifySelectMember.email)) {
@@ -98,7 +109,22 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
       message.error({ title: '멤버 수정 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
       return true
     } else {
-      putUsersAccount()
+      if(modifyAccountPassword) {
+        if (!passwordRegex.test(modifyAccountPassword)){
+          message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
+          return true
+        } else if(!modifyAccountPasswordConfirm) {
+          message.error({ title: '멤버 수정 에러', msg: 'PW 확인란에 비밀번호를 입력해주세요' })
+          return true
+        } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
+          message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
+          return true
+        } else {
+          putUsersAccount(true)
+        }
+      } else {
+        putUsersAccount(false)
+      }
     }
   }
 
@@ -111,7 +137,8 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
         setModifyAccountPasswordConfirm('')
       }}
       title="멤버 수정"   
-      complete={modifyAccountFun}  
+      complete={modifyAccountFun} 
+      noComplete={true} 
     >
       <div style={{ display: 'flex', marginBottom: '10px', justifyContent: 'space-between' }}>
         <div style={{ width: '100px' }}>
@@ -132,6 +159,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
             onChange={(e) => {
               setModifyAccountPassword(e)
             }}
+            onEnter={modifyAccountFun}
           />
         </div>
       </div>
@@ -150,7 +178,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
-          조직 :
+          소속 :
         </div>
         <AccountInput 
           value={modifySelectMember.organization}

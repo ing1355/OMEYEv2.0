@@ -200,7 +200,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
-          조직 :
+          소속 :
         </div>
         <div>
           <AccountInput 

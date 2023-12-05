@@ -370,7 +370,7 @@ const ServerMgmtSidebar = () => {
         <div>
           <ServerControlDropdown 
             itemList={ServerControlDropdownList} 
-            bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1}}
+            bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}`}}
             onChange={val => {
               setSelectedService(val.value as string);
             }}
@@ -429,7 +429,7 @@ const ServerMgmtSidebar = () => {
           <div style={{width: '300px'}}>
             <ServerControlDropdown 
               itemList={logFileDownloadList}
-              bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1}}
+              bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}`}}
               onChange={val => {
                 setSelectedLogFile(val.value as logFileType);
               }}

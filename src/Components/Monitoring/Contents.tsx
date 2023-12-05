@@ -55,9 +55,10 @@ const Contents = () => {
     
     const cctvList = useMemo(() => {
         let count = 0
-        let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map(_ => ({
-            cctvId: 0,
-            time: undefined
+        const datas = monitoringCCTVs as MonitoringDataType['cctvs']
+        let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map((_, ind) => ({
+            cctvId: datas[ind] && datas[ind].cctvId,
+            time: datas[ind] && datas[ind].time
         }))
         const _new = (monitoringCCTVs as MonitoringDataType['cctvs'])
         const _old = cctvListTemp.current
