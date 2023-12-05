@@ -16,8 +16,6 @@ import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import { async } from "q"
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
-import edit from "../../../assets/img/edit.png"
-import modalCloseIcon from '../../../assets/img/modalCloseIcon.png'
 
 type ModifyAccountType = {
   visible: boolean
@@ -35,7 +33,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const userInfo = decodedJwtToken(login!)
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues | null>(null)
   const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
-  const [isModifyPassword, setIsModifyPassword] = useState<boolean>(false)
   const message = useMessage()
 
   const modifyInit = () => {
@@ -45,7 +42,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     setModifyAccountPassword('')
     setModifyAccountPasswordConfirm('')
     setSearchRoleValue(null)
-    setIsModifyPassword(false)
   }
 
   const putUsersAccount = async (isPassword: boolean) => {
@@ -139,7 +135,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
         close()
         setModifyAccountPassword('')
         setModifyAccountPasswordConfirm('')
-        setIsModifyPassword(false)
       }}
       title="멤버 수정"   
       complete={modifyAccountFun} 
@@ -152,7 +147,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
         <div style={{ width: '240px', textAlign: 'center' }}>
           {modifySelectMember.username}
         </div>
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px', justifyContent: 'space-between' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -166,18 +160,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
               setModifyAccountPassword(e)
             }}
             onEnter={modifyAccountFun}
-            disabled={!isModifyPassword}
           />
-        </div>
-        <div 
-          style={{position: 'relative', top: '5px', width: '25px', cursor: 'pointer'}}
-          onClick={() => {
-            setIsModifyPassword(!isModifyPassword)
-            setModifyAccountPassword('')
-            setModifyAccountPasswordConfirm('')
-          }}
-        >
-          <img src={isModifyPassword ? modalCloseIcon : edit} width='18px' style={{marginLeft: '10px'}}/>
         </div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
@@ -191,9 +174,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
             setModifyAccountPasswordConfirm(e);
           }}
           onEnter={modifyAccountFun}
-          disabled={!isModifyPassword}
         />
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -209,7 +190,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
           }}
           onEnter={modifyAccountFun}
         />
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -225,7 +205,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
           }}
           onEnter={modifyAccountFun}
         />
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -253,7 +232,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
           }
 
         </div>
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -270,7 +248,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
           }}
           onEnter={modifyAccountFun}
         />
-        <div style={{width: '25px'}}></div>
       </div>
       <div style={{ display: 'flex', marginBottom: '10px' }}>
         <div style={{ width: '100px', lineHeight: '30px' }}>
@@ -288,7 +265,6 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
           }}
           onEnter={modifyAccountFun}
         />
-        <div style={{width: '25px'}}></div>
       </div>
     </Modal>
   )
