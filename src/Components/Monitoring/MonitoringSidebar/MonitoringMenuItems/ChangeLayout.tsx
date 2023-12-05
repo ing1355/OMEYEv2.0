@@ -3,47 +3,48 @@ import { ModalBoxShadow, SectionBackgroundColor, globalStyles } from "../../../.
 import MonitoringSidebarButton from "./MonitoringSidebarButton"
 import Dropdown from "../../../Layout/Dropdown"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { MonitoringDatas } from "../../../../Model/MonitoringDataModel"
+import { MonitoringDataType, MonitoringDatas } from "../../../../Model/MonitoringDataModel"
 import useMessage from "../../../../Hooks/useMessage"
 import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
 import { useEffect, useRef } from "react"
 
-const layoutNums = [1,4,9,16,25,36,64]
+const layoutNums = [1, 4, 9, 16, 25, 36, 64]
 
-const ChangeLayout = ({index}: {
+const ChangeLayout = ({ index }: {
     index: number
 }) => {
     const [visible, setVisible] = useRecoilState(MonitoringDatas('visible'))
     const [monitoringLayoutNums, setMonitoringLayoutNums] = useRecoilState(MonitoringDatas('layoutNum'))
     const cctvNums = useRecoilValue(MonitoringDatas('CCTVs'))
     const message = useMessage()
+    const otherRef = useRef(null)
 
     return <>
         <MonitoringSidebarButton onClick={() => {
-            if(visible === 'layoutNum') setVisible(undefined)
+            if (visible === 'layoutNum') setVisible(undefined)
             else setVisible('layoutNum')
-        }}>
+        }} ref={otherRef}>
             view
         </MonitoringSidebarButton>
         <ListContainer index={index} visible={visible === 'layoutNum'} setVisible={v => {
             setVisible(v ? 'layoutNum' : undefined)
-        }}>
+        }} otherRef={otherRef}>
             <InnerContainer>
                 <Label>
                     화면 분할 :
                 </Label>
-                 <Dropdown<number> defaultValue={monitoringLayoutNums as number} itemList={layoutNums.map(_ => ({
+                <Dropdown<number> defaultValue={monitoringLayoutNums as number} itemList={layoutNums.map(_ => ({
                     key: _,
                     value: _,
                     label: _
-                }))} onChange={({value}) => {
+                }))} onChange={({ value }) => {
                     setMonitoringLayoutNums(value)
                     setVisible(undefined)
-                }} disableFunc={({value}) => {
-                    return (cctvNums as number[]).length > value
+                }} disableFunc={({ value }) => {
+                    return (cctvNums as MonitoringDataType['cctvs']).length > value
                 }} disableCallback={() => {
-                    message.error({title: "입력값 에러", msg: "현재 표출되는 영상보다 작은 화면 분할을 사용할 수 없습니다."})
-                }}/>
+                    message.error({ title: "입력값 에러", msg: "현재 표출되는 영상보다 작은 화면 분할을 사용할 수 없습니다." })
+                }} />
             </InnerContainer>
         </ListContainer>
     </>
@@ -51,13 +52,13 @@ const ChangeLayout = ({index}: {
 
 export default ChangeLayout
 
-const ListContainer = styled(VisibleToggleContainer)<{ visible: boolean, index: number }>`
+const ListContainer = styled(VisibleToggleContainer) <{ visible: boolean, index: number }>`
     position: absolute;
     width: ${({ visible }) => visible ? 212.5 : 0}px;
     height: ${({ visible }) => visible ? 48 : 0}px;
     right: 66px;
-    top: ${({index}) => index * 56 + 4}px;
-    overflow: ${({visible}) => visible ? 'visible' : 'hidden'};
+    top: ${({ index }) => index * 56 + 4}px;
+    overflow: ${({ visible }) => visible ? 'visible' : 'hidden'};
     transition: overflow .3s ease-out .3s;
     z-index: 1004;
 `

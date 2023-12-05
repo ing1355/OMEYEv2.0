@@ -72,7 +72,7 @@ const TargetDescriptionItem = ({ icon, title, children }: PropsWithChildren<Targ
 }
 
 const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
-    const { cctvId, time, accuracy, type, mask, method, description, ocr } = data
+    const { cctvId, time, accuracy, type, mask, method, description, ocr, isAutoCapture } = data
 
     return <>
         {
@@ -93,6 +93,11 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
         {
             cctvId && <TargetDescriptionItem icon={cctvIcon} title="CCTV">
                 <CCTVNameById cctvId={cctvId}/>
+            </TargetDescriptionItem>
+        }
+        {
+            isAutoCapture && <TargetDescriptionItem icon={cctvIcon} title="캡쳐 방법">
+                {isAutoCapture ? '자동 캡쳐' : '사용자 캡쳐'}
             </TargetDescriptionItem>
         }
         {

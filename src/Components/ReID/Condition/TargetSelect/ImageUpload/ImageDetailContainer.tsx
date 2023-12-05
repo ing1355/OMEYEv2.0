@@ -28,7 +28,8 @@ const ImageDetailContainer = ({ images, selected }: ImageDetailContainerProps) =
             ..._,
             selected: false,
             method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['IMAGEUPLOAD']],
-            isCurrent: true
+            isCurrent: true,
+            isAutoCapture: _.isAutoCapture
         }))))
     }
 

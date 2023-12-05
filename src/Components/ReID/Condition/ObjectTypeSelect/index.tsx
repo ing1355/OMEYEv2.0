@@ -28,7 +28,6 @@ const ObjectTypeSelect = () => {
             }
         </Container>
         <PlateModal visible={plateVisible} close={() => {
-            console.debug("close!!")
             setPlateVisible(false)
         }}/>
     </>

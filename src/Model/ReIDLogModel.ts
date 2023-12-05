@@ -1,6 +1,6 @@
 import { atom, useRecoilState, useRecoilValue } from "recoil";
 import { GetReIDLogs } from "../Constants/ApiRoutes";
-import { Axios } from "../Functions/NetworkFunctions";
+import { Axios, ServerObjectDataType } from "../Functions/NetworkFunctions";
 import { BasicLogDataType, CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, TimeDataType } from "../Constants/GlobalTypes";
 import { LoadableDataType } from "../Constants/NetworkTypes";
 import { useEffect, useState } from "react";
@@ -14,12 +14,7 @@ export type ReIDRequestGroupDataType = {
     requestEndTime: string
     requestStartTime: string
     status: 'IN_PROGRESS' | 'SUCCESS' | 'CANCEL' | 'EMPTY'
-    targetObjects: {
-        id: number
-        imgUrl: string
-        type: ReIDObjectTypeKeys
-        ocr: CaptureResultListItemType['ocr']
-    }[]
+    targetObjects: ServerObjectDataType[]
     timeGroups: TimeDataType[]
     cameraGroups: CameraDataType['cameraId'][][]
 }
@@ -31,6 +26,7 @@ export type ReIDLogDataType = {
     closedTime: string
     requestGroups: ReIDRequestGroupDataType[]
     userId: string
+    isLive: boolean
     // status: string
     // object: {
     //     id: number

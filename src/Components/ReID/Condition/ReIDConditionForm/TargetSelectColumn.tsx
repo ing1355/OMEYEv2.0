@@ -40,7 +40,7 @@ const TargetSelectColumn = () => {
     useEffect(() => {
         if(datasRef.current.length < datas.length) {
             scrollRef.current?.scrollTo({
-                top: scrollRef.current.clientHeight,
+                top: scrollRef.current.scrollHeight,
                 behavior: 'smooth'
             })
         }

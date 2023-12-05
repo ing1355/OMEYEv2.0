@@ -45,7 +45,7 @@ const TimeBoundaryColumn = () => {
     useEffect(() => {
         if(datasRef.current.length < timeData.length) {
             scrollRef.current?.scrollTo({
-                top: scrollRef.current.clientHeight,
+                top: scrollRef.current.scrollHeight,
                 behavior: 'smooth'
             })
         }

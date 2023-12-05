@@ -38,7 +38,7 @@ const AreaBoundaryColumn = () => {
     useEffect(() => {
         if(datasRef.current.length < areaData.length) {
             scrollRef.current?.scrollTo({
-                top: scrollRef.current.clientHeight,
+                top: scrollRef.current.scrollHeight,
                 behavior:'smooth'
             })
         }

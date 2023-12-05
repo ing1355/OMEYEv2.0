@@ -7,6 +7,7 @@ import { GetAllSiteCameras, SitesData } from "../../Model/SiteDataModel"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import useThrottle from "../../Hooks/useThrottle"
 import VisibleToggleContainer from "./VisibleToggleContainer"
+import { useInView } from "react-intersection-observer"
 
 type DropdownSearchProps = {
     onChange: (value: CameraDataType) => void
@@ -14,16 +15,29 @@ type DropdownSearchProps = {
 
 const nodeHeight = 30
 
+const SearchAutoCompleteItemWrapper = ({selected, onClick, title} : {
+    selected: boolean
+    onClick: () => void
+    title: string
+}) => {
+    const [ref, inView] = useInView()
+    
+    return <SearchAutoCompleteItem
+        selected={selected}
+        onClick={onClick}
+        ref={ref}>
+        {inView && title}
+    </SearchAutoCompleteItem>
+}
+
 const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     const [searchInputValue, setSearchInputValue] = useState('')
     const [searchInputOpen, setSearchOpen] = useState(false)
     const [selectedIndex, setSelectedIndex] = useState(0)
     const allCameras = useRecoilValue(GetAllSiteCameras)
     const viewList = useMemo(() => {
-        if(searchInputOpen) {
-            console.time("viewList")
+        if (searchInputOpen) {
             const temp = allCameras.filter(_ => searchInputValue ? _.name.includes(searchInputValue) : true)
-            console.timeEnd("viewList")
             return temp
         } else {
             return []
@@ -116,7 +130,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
     }, [searchInputValue])
 
     return <SearchControlContainer visible={searchInputOpen} setVisible={setSearchOpen} callback={() => {
-        if(inputRef.current) inputRef.current.blur()
+        if (inputRef.current) inputRef.current.blur()
     }}>
         <SearchInput
             maxLength={40}
@@ -151,7 +165,8 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
         />
         <SearchAutoCompleteContaier ref={containerRef} opened={searchInputOpen}>
             {
-                searchInputOpen && viewList.map((_, ind) => <SearchAutoCompleteItem
+                searchInputOpen && viewList.map((_, ind) => <SearchAutoCompleteItemWrapper
+                    title={_.name}
                     selected={ind === selectedIndex}
                     key={_.cameraId}
                     onClick={() => {
@@ -159,9 +174,7 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                         setSearchInputValue(_.name)
                         inputRef.current!.value = _.name
                         setSearchOpen(false)
-                    }}>
-                    {_.name}
-                </SearchAutoCompleteItem>)
+                    }}/>)
             }
         </SearchAutoCompleteContaier>
     </SearchControlContainer>

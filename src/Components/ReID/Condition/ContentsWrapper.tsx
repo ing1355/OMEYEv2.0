@@ -54,8 +54,8 @@ const ContentsWrapper = () => {
     const message = useMessage()
     const allSelected = useMemo(() => {
         return isRealTime ? (targets.every(_ => _.selected) && cctv.every(_ => _.selected)) : (time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected))
-    },[_conditionData, isRealTime])
-    
+    }, [_conditionData, isRealTime])
+    console.debug(_conditionData)
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])
@@ -76,7 +76,7 @@ const ContentsWrapper = () => {
     const disableCompleteBtn = (): boolean => {
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if(targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
+                if (targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
                 return false;
             case ReIDConditionTargetSelectCCTVRoute.key:
                 return targetDatasCCTVTemp.filter(_ => _.selected).length === 0
@@ -99,15 +99,15 @@ const ContentsWrapper = () => {
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key: {
                 const filteredTarget = targets.filter(_ => _.selected)
-                if(filteredTarget.length === 0) return message.error({title: "입력값 에러", msg:"대상을 1개 이상 선택해주세요."})
-                if(cctv.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"CCTV 그룹을 1대 이상 선택해주세요."})
-                    if(filteredTarget.some(_ => filteredTarget.find(__ => __.type !== _.type))) return message.error({title: "입력값 에러", msg:`여러 타입의 대상을 선택하셨습니다.\n하나의 타입만 선택해주세요.\n선택된 타입 : ${targets.map(_ => ReIDObjectTypes.find(__ => __.key === _.type)?.title).deduplication().join(',')}`})
+                if (filteredTarget.length === 0) return message.error({ title: "입력값 에러", msg: "대상을 1개 이상 선택해주세요." })
+                if (cctv.filter(_ => _.selected).length === 0) return message.error({ title: "입력값 에러", msg: "CCTV 그룹을 1대 이상 선택해주세요." })
+                if (filteredTarget.some(_ => filteredTarget.find(__ => __.type !== _.type))) return message.error({ title: "입력값 에러", msg: `여러 타입의 대상을 선택하셨습니다.\n하나의 타입만 선택해주세요.\n선택된 타입 : ${targets.map(_ => ReIDObjectTypes.find(__ => __.key === _.type)?.title).deduplication().join(',')}` })
                 if (isRealTime) {
-                    if(rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
+                    if (rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
                     if (filteredTarget.length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
-                    if(filteredTarget[0].type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
+                    if (filteredTarget[0].type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
                         setRealTimeData({
                             type: filteredTarget[0].type,
                             cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
@@ -128,8 +128,8 @@ const ContentsWrapper = () => {
                     setRtStatus(PROGRESS_STATUS['RUNNING'])
                     setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
                 } else {
-                    if(time.filter(_ => _.selected).length === 0) return message.error({title: "입력값 에러", msg:"시간 그룹을 1개 이상 선택해주세요."})
-                    if(progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({title: "입력값 에러", msg:"이미 고속분석 요청이 진행 중입니다."})
+                    if (time.filter(_ => _.selected).length === 0) return message.error({ title: "입력값 에러", msg: "시간 그룹을 1개 이상 선택해주세요." })
+                    if (progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({ title: "입력값 에러", msg: "이미 고속분석 요청이 진행 중입니다." })
                     setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
@@ -156,14 +156,15 @@ const ContentsWrapper = () => {
             }
             case ReIDConditionTargetSelectPersonDescriptionRoute.key:
                 const target = document.getElementById(PersonDescriptionResultImageID) as HTMLDivElement
-                if(!target) return message.error({title: "입력값 에러", msg:"인상착의 이미지를 설정하지 않았습니다."})
+                if (!target) return message.error({ title: "입력값 에러", msg: "인상착의 이미지를 설정하지 않았습니다." })
                 const image = await DivToImg(target)
                 const objectIds4 = (await GetObjectIdByImage([{
                     type: 'ATTRIBUTION',
-                    image,
-                    attribution: personDescriptionData
+                    src: image,
+                    description: personDescriptionData,
+                    method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['DESCRIPTION']]
                 }]))
-                if(objectIds4) {
+                if (objectIds4) {
                     setTargetDatas(targetDatas.concat({
                         type: 'ATTRIBUTION',
                         src: image,
@@ -178,12 +179,8 @@ const ContentsWrapper = () => {
             case ReIDConditionTargetSelectCCTVRoute.key:
                 const targets1 = targetDatasCCTVTemp.filter(_ => _.selected)
                 if (targets1.length > 0) {
-                    const objectIds1 = (await GetObjectIdByImage(targets1.map(_ => ({
-                        type: _.type,
-                        image: _.src,
-                        mask: _.mask
-                    })))).map(_ => _)
-                    if(objectIds1) {
+                    const objectIds1 = await GetObjectIdByImage(targets1)
+                    if (objectIds1) {
                         setTargetDatas(targetDatas.concat(targets1.map((_, ind) => ({
                             ..._,
                             selected: false,
@@ -196,12 +193,8 @@ const ContentsWrapper = () => {
             case ReIDConditionTargetSelectImageRoute.key:
                 const targets2 = targetDatasImageTemp.filter(_ => _.selected)
                 if (targets2.length > 0) {
-                    const objectIds2 = (await GetObjectIdByImage(targets2.map(_ => ({
-                        type: _.type,
-                        image: _.src,
-                        mask: _.mask
-                    })))).map(_ => _)
-                    if(objectIds2) {
+                    const objectIds2 = await GetObjectIdByImage(targets2)
+                    if (objectIds2) {
                         setTargetDatas(targetDatas.concat(targets2.map((_, ind) => ({
                             ..._,
                             selected: false,
@@ -223,12 +216,12 @@ const ContentsWrapper = () => {
                     {routeInfo.length > 1 && <BackButton onClick={() => {
                         routeJump(ReIDConditionFormRoute.key)
                         setHomeHover(false)
-                    }} icon={homeHover ? hoverHomeIcon : homeIcon} 
-                    onMouseOver={() => {
-                        setHomeHover(true)
-                    }} onMouseLeave={() => {
-                        setHomeHover(false)
-                    }}/>}
+                    }} icon={homeHover ? hoverHomeIcon : homeIcon}
+                        onMouseOver={() => {
+                            setHomeHover(true)
+                        }} onMouseLeave={() => {
+                            setHomeHover(false)
+                        }} />}
                     <HeaderHistories>
                         {
                             getAllRoutes().slice(1,).map((_, ind, arr) => <Fragment key={ind}>
@@ -244,12 +237,12 @@ const ContentsWrapper = () => {
                 </HeaderSubContainer>
                 <CompleteButtons>
                     {routeInfo.length === 1 && <CompleteButton hover disabled={isRealTime ? (targets.length === 0 && cctv.length === 0) : (targets.length === 0 && cctv.length === 0 && time.length === 0)} onClick={() => {
-                        if(allSelected) {
+                        if (allSelected) {
                             setTargetDatas(targets.map(_ => ({
                                 ..._,
                                 selected: false
                             })))
-                            if(!isRealTime) {
+                            if (!isRealTime) {
                                 setTimeData(time.map(_ => ({
                                     ..._,
                                     selected: false
@@ -260,15 +253,15 @@ const ContentsWrapper = () => {
                                 selected: false
                             })))
                         } else {
-                            if(isRealTime && targets.length > 1) {
-                                message.error({title: "입력값 에러", msg:"실시간 분석은 하나의 대상만 선택해야 합니다."})
+                            if (isRealTime && targets.length > 1) {
+                                message.error({ title: "입력값 에러", msg: "실시간 분석은 하나의 대상만 선택해야 합니다." })
                             } else {
                                 setTargetDatas(targets.map(_ => ({
                                     ..._,
                                     selected: true
                                 })))
                             }
-                            if(!isRealTime) {
+                            if (!isRealTime) {
                                 setTimeData(time.map(_ => ({
                                     ..._,
                                     selected: true
@@ -293,15 +286,17 @@ const ContentsWrapper = () => {
                 {ConditionRouteInfo[_].Component}
             </ContentsContainer>)}
         </Container>
-        <TimeModal title={`그룹 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`} defaultValue={time[timeIndex] && {
-            startTime: time[timeIndex].time[0],
-            endTime: time[timeIndex].time[1]
-        }} onChange={data => {
-            if (time[timeIndex]) setTimeData(timeData.map((_, ind) => timeIndex === ind ? { time: [data.startTime, data.endTime!], selected: _.selected } : _))
-            else addTimeData({ time: [data.startTime, data.endTime!], selected: false })
-        }} visible={timeVisible} close={() => {
-            setTimeVisible(false)
-        }} lowBlur/>
+        <TimeModal
+            title={`그룹 ${timeIndex === -1 ? (timeData.length && timeData.length + 1) || 1 : (timeIndex + 1)}`}
+            defaultValue={time[timeIndex] && {
+                startTime: time[timeIndex].time[0],
+                endTime: time[timeIndex].time[1]
+            }} onChange={data => {
+                if (time[timeIndex]) setTimeData(timeData.map((_, ind) => timeIndex === ind ? { time: [data.startTime, data.endTime!], selected: _.selected } : _))
+                else addTimeData({ time: [data.startTime, data.endTime!], selected: false })
+            }} visible={timeVisible} close={() => {
+                setTimeVisible(false)
+            }} lowBlur />
         <AreaSelect
             title={`그룹 ${areaIndex === -1 ? ((areaData.length && areaData.length + 1) || 1) : (areaIndex + 1)}`}
             visible={areaVisible}
@@ -321,7 +316,7 @@ const ContentsWrapper = () => {
             }} close={() => {
                 setAreaVisible(false)
                 setAreaIndex(-1)
-            }} lowBlur/>
+            }} lowBlur />
     </>
 }
 
@@ -388,7 +383,7 @@ const ContentsContainer = styled.div<{ index: number, routeInfo: ConditionRouteT
     z-index: ${({ current, routeInfo, index }) => (routeInfo.at(-1) === current || routeInfo.length >= index) ? 2 : 1};
     padding: 12px 24px 0 24px;
     width: 100%;
-    ${globalStyles.slideToLeft({animationDuration: '.5s'})}
+    ${globalStyles.slideToLeft({ animationDuration: '.5s' })}
     background-color: ${GlobalBackgroundColor};
     transition: all .5s;
     height: calc(100% - ${HeaderHeight}px);

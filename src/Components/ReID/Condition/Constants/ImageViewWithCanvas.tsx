@@ -134,7 +134,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureType, userCaptu
                         type: _.type,
                         mask: false,
                         src: getImageByCanvas(_width, _height, imgRef.current!, start_x, start_y),
-                        points: _.points as PointType
+                        points: _.points as PointType,
+                        isAutoCapture: captureType === 'auto'
                     })
                 }
             })
@@ -235,7 +236,8 @@ const ImageViewWithCanvas = ({ src, style, captureResult, captureType, userCaptu
                                 captureCallback([{
                                     type: currentObjectType,
                                     mask: false,
-                                    src: getImageByCanvas(_x, _y, imgRef.current!, mouseX.current > downMouseX.current ? downMouseX.current : mouseX.current, mouseY.current > downMouseY.current ? downMouseY.current : mouseY.current)
+                                    src: getImageByCanvas(_x, _y, imgRef.current!, mouseX.current > downMouseX.current ? downMouseX.current : mouseX.current, mouseY.current > downMouseY.current ? downMouseY.current : mouseY.current),
+                                    isAutoCapture: captureType === 'auto'
                                 }])
                             }
                             div.remove()

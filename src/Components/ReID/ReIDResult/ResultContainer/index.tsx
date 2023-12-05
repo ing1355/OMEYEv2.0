@@ -170,12 +170,17 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                     if (!isMove) {
                         let type = conditionData.resultList.find(r => r.objectId === selectedTarget)?.objectType!
                         type = type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? ReIDObjectTypeKeys[ObjectTypes['PERSON']] : type
+                        const { imgUrl, accuracy, resultId, foundDateTime } = { ...result }
                         const res = await GetObjectIdByImage([{
                             type,
-                            image: result.imgUrl
+                            src: imgUrl,
+                            accuracy,
+                            cctvId,
+                            time: foundDateTime,
+                            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']],
+                            resultId
                         }])
                         if (res) {
-                            const { imgUrl, accuracy } = { ...result }
                             setGlobalTargetDatas([...globalTargetDatas, {
                                 type,
                                 cctvId,
@@ -183,8 +188,8 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                                 src: imgUrl,
                                 objectId: res[0],
                                 accuracy,
-                                time: result.foundDateTime,
-                                resultId: result.resultId,
+                                time: foundDateTime,
+                                resultId,
                                 method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
                             }])
                             message.success({ title: "등록 성공", msg: "현재 결과 이미지를 검색 대상으로 추가하였습니다." })

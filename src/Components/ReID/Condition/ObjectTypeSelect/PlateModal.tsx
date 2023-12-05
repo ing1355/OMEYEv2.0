@@ -42,9 +42,10 @@ const PlateModal = ({ visible, close }: {
         }
         if(isError) return true
         const vrpObjectId = await GetObjectIdByImage([{
-            image: imgRef.current!.src,
+            src: imgRef.current!.src,
             type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
-            ocr: plateInput
+            ocr: plateInput,
+            method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['PLATE']],
         }])
         if (vrpObjectId) {
             setGlobalData(globalData.concat({

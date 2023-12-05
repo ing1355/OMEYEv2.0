@@ -208,6 +208,19 @@ const GlobalStyle = createGlobalStyle`
         box-shadow: none;
       }
    }
+   *[data-title] {
+    color:red;
+    &:hover:after {
+      content: attr(data-title);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      background-color: ${GlobalBackgroundColor};
+      color: white;
+    }
+   }
 `
 
 export default GlobalStyle

@@ -1124,9 +1124,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     return <>
         <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
-        <ProgressContainer visible={visible} setVisible={(v) => {
-            if(!v) close()
-        }}>
+        <ProgressContainer visible={visible}>
             <Arrow />
             <HeaderContainer>
                 <Header>
@@ -1179,7 +1177,7 @@ const progressContainerBackgroundColor = SectionBackgroundColor
 const rowHeight = 72
 const headerHeight = 54
 
-const ProgressContainer = styled(VisibleToggleContainer)<{ visible: boolean }>`
+const ProgressContainer = styled.div<{ visible: boolean }>`
     position: absolute;
     cursor: default;
     top: calc(100% + 14px);

@@ -14,6 +14,7 @@ import Menus from "./Menus"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { AllMenuStateInitEvent } from "../../../Model/GlobalEventModel"
+import VisibleToggleContainer from "../../Constants/VisibleToggleContainer"
 
 const Header = () => {
     const [reIDProgressVisible, setReIDProgressVisible] = useState(false)
@@ -47,8 +48,8 @@ const Header = () => {
         <Menus />
         <ButtonsContainer>
             v{process.env.REACT_APP_VERSION}
-            <ProgressBtn onClick={() => {
-                setReIDProgressVisible(!reIDProgressVisible)
+            <ProgressBtn visible={reIDProgressVisible} setVisible={v => {
+                setReIDProgressVisible(v)
             }}>
                 <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']}/>
                 <ReIDProgress visible={reIDProgressVisible} close={() => {
@@ -98,7 +99,7 @@ const ButtonsContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row' })}
 `
 
-const ProgressBtn = styled.div`
+const ProgressBtn = styled(VisibleToggleContainer)`
     height: 100%;
     position: relative;
     ${globalStyles.flex({ justifyContent: 'space-between' })}

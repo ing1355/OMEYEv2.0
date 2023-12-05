@@ -13,7 +13,7 @@ import useMessage from "../../Hooks/useMessage"
 
 type TreeAndMapComponentProps = {
     selectedCCTVs: CameraDataType['cameraId'][]
-    setSelectedCCTVs: setStateType<CameraDataType['cameraId'][]>
+    setSelectedCCTVs: (cameraIds: CameraDataType['cameraId'][]) => void
     validFunc?: () => boolean
     singleSelect?: boolean
     visible?: boolean

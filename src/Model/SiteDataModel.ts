@@ -30,21 +30,21 @@ export const SitesData = selector({
 export const SitesDataForTreeView = selector({
     key: "SiteData/selector/tree",
     get: ({get}) => {
-        return MakeVMSCameraSitesForTreeView(get(SitesData))
+        return MakeVMSCameraSitesForTreeView(get(_SitesData).data)
     }
 })
 
 export const GetAllSiteCameras = selector({
     key: "SiteData/selector/cameras",
     get: ({get}) => {
-        return get(SitesData).flatMap(_ => _.cameras)
+        return get(_SitesData).data.flatMap(_ => _.cameras)
     }
 })
 
 export const GetCameraById = selectorFamily({
     key: "SiteData/selector/camera/id",
     get: (cctvId: CameraDataType['cameraId']) => ({get}) => {
-        return get(SitesData).flatMap(_ => _.cameras).find(_ => _.cameraId === cctvId)
+        return get(_SitesData).data.flatMap(_ => _.cameras).find(_ => _.cameraId === cctvId)
     }
 })
 

@@ -49,6 +49,7 @@ export type CaptureResultType = {
   type: ReIDObjectTypeKeys
   isSelected?: boolean
   points: PointType | number[]
+  isAutoCapture: boolean
 }
 
 export type ReIDResultDataResultListDataType = {
@@ -105,6 +106,7 @@ export type CaptureResultListItemType = {
   points?: PointType
   isCurrent?: boolean
   resultId?: number
+  isAutoCapture?: boolean
 }
 
 export type BasicLogDataType<T> = {

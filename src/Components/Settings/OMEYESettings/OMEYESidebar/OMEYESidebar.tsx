@@ -16,29 +16,36 @@ const OMEYESidebar = () => {
   const message = useMessage();
 
   const GetOMEYESettingsInfo = async () => {
+    console.time("second")
     const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
+    console.debug("second : " , res)
     if (res) setOmeyeSettingsInfo(res);
+    console.timeEnd("second")
   }
 
   const ChangeFPSTypeFun = async () => {
+    console.time("third")
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', fpsSettingApi, {
       personFrame: omeyeSettingsInfo.personFrame,
       faceFrame: omeyeSettingsInfo.faceFrame,
       carFrame: omeyeSettingsInfo.carFrame,
       attributionFrame: omeyeSettingsInfo.attributionFrame
     })
-    
+    console.debug("third : " , res)
     if(res === undefined) {
       GetOMEYESettingsInfo();
       message.error({title: '', msg: '저장에 실패했습니다'});
     } else {
       ChangeMaxCCTVCountFun();
     }
+    console.timeEnd("third")
   }
 
   const ChangeMaxAnalyzeDurationFun = async (duration: number) => {
+    console.time("first")
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxAnalyzeDurationApi(duration))
-    
+    console.timeEnd("first")
+    console.debug("first : " , res)
     if(res === undefined) {
       GetOMEYESettingsInfo();
       message.error({title: '', msg: '저장에 실패했습니다'});

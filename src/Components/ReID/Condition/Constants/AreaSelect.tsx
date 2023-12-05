@@ -6,6 +6,8 @@ import { globalStyles } from "../../../../styles/global-styled"
 import useMessage from "../../../../Hooks/useMessage"
 import TreeAndMapComponent from "../../../Constants/TreeAndMapComponent"
 import Modal from "../../../Layout/Modal"
+import { useRecoilValue } from "recoil"
+import { GetAllSiteCameras } from "../../../../Model/SiteDataModel"
 
 type AreaSelectProps = {
     defaultSelected?: CameraDataType['cameraId'][]
@@ -20,6 +22,7 @@ type AreaSelectProps = {
 const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect, lowBlur=false }: AreaSelectProps) => {
     const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
     const [confirmVisible, setConfirmVisible] = useState(false)
+    const allCameras = useRecoilValue(GetAllSiteCameras)
     const message = useMessage()
     
     useEffect(() => {
@@ -42,7 +45,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
     
     return <>
     <ModalWrapper visible={visible} title={<>
-        {title}<SelectedText>({selectedCCTVs.length})</SelectedText>
+        {title}<SelectedText>({selectedCCTVs.length}/{allCameras.length})</SelectedText>
     </>} close={() => {
         if(JSON.stringify(defaultSelected) !== JSON.stringify(selectedCCTVs)) setConfirmVisible(true)
         else close()
