@@ -64,12 +64,10 @@ export const SyncVmsApi = '/api/v2/settings/vms/synchronization'
 
 // OMEYE 설정
 export const SettingsInfoApi = '/api/v2/settings'
-export const maxDurationApi = (duration: number) => `/api/v2/settings/storage/max-duration/${duration}`
-export const mapTypeApi = '/api/v2/settings/map/type'
-export const zoomLevelApi = '/api/v2/settings/map/zoom-level'
 export const customMapTileApi = '/api/v2/settings/map/custom-tile'
 export const mapFileUploadApi = '/api/v2/settings/map/file'
 export const CCTVIconUploadApi = '/api/v2/settings/map/file/custom-icon'
+export const MapSettingsApi = '/api/v2/settings/map'
 
 // 서버 관리
 export const serverMgmtInfoApi = '/sse/mgmt/info'

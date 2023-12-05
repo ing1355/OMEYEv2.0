@@ -4,7 +4,7 @@ import { GlobalBackgroundColor } from "../../../styles/global-styled";
 import Input from "../../Constants/Input";
 import Button from "../../Constants/Button";
 import { useEffect, useState } from "react";
-import { CCTVIconUploadApi, SettingsInfoApi, customMapTileApi, mapFileUploadApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
+import { CCTVIconUploadApi, MapSettingsApi, SettingsInfoApi, customMapTileApi, mapFileUploadApi } from "../../../Constants/ApiRoutes";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
 import { useRecoilState } from "recoil";
@@ -31,25 +31,6 @@ const OMEYESettings = () => {
     GetOMEYESettingsInfo();
   },[]);
 
-  const ChangeMaxDurationFun = async (duration: number) => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxDurationApi(duration))
-    
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-    }
-  }
-
-  const ChangeMapTypeFun = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', mapTypeApi, {mapType: omeyeSettingsInfo.mapType})
-    
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-      message.error({title: '지도 설정 에러', msg: '저장에 실패했습니다'});
-    } else {
-      ChangeZoomLevelFun();
-    }
-  }
-
   const ChangeMapCustomTileUrlFun = async () => {
     const res:GetOmeyeSettingsInfoType = await Axios('PUT', customMapTileApi, {
       customMapTile: omeyeSettingsInfo.customMapTile,
@@ -60,31 +41,27 @@ const OMEYESettings = () => {
     }
   }
 
-  const ChangeZoomLevelFun = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', zoomLevelApi, {
+  const PutMapSettingsFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', MapSettingsApi, {
+      mapType: omeyeSettingsInfo.mapType,
       minZoom: omeyeSettingsInfo.minZoom,
       maxZoom: omeyeSettingsInfo.maxZoom
     })
     
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-      message.error({title: '지도 설정 에러', msg: '저장에 실패했습니다'});
-    } else {
-      GetOMEYESettingsInfo();
+    if(res) {
+      setOmeyeSettingsInfo(res)
       message.success({title: '지도 설정', msg: '저장에 성공했습니다'});
+    } else {
+      message.error({title: '지도 설정 에러', msg: '저장에 실패했습니다'});
     }
   }
 
   const SaveDataFun = () => {
-    // ChangeMaxDurationFun(omeyeSettingsInfo.maxResultDuration);
-    ChangeMapTypeFun();
-    // ChangeMapCustomTileUrlFun();
-    // ChangeZoomLevelFun();
-    
-    // setTimeout(()=>{
-    //   message.success({title: '', msg: '저장 완료'});
-    //   GetOMEYESettingsInfo();
-    // },2000)
+    if(omeyeSettingsInfo.minZoom > omeyeSettingsInfo.maxZoom) {
+      message.error({title: '줌 범위 설정 에러', msg: '최대 줌 범위는 최소 줌 범위보다 커야합니다'});
+    } else {
+      PutMapSettingsFun()
+    }
   }
 
   const SelectMapTypeFun = (mapType: string) => {
