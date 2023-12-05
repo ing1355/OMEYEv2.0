@@ -3,7 +3,7 @@ import Input from "../../../Constants/Input"
 import { useRecoilState } from "recoil";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo } from "../../../../Model/OmeyeSettingsDataModel";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { fpsSettingApi, getSettingsInfoApi, maxAnalyzeDurationApi, maxCCTVCountApi } from "../../../../Constants/ApiRoutes";
+import { SettingsInfoApi } from "../../../../Constants/ApiRoutes";
 import { useEffect } from "react";
 import Button from "../../../Constants/Button";
 import useMessage from "../../../../Hooks/useMessage";
@@ -14,53 +14,30 @@ import Slider from "../../../Constants/Slider";
 const OMEYESidebar = () => {
   const [omeyeSettingsInfo, setOmeyeSettingsInfo] = useRecoilState(OmeyeSettingsInfo);
   const message = useMessage();
-
-  const GetOMEYESettingsInfo = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
-    if (res) setOmeyeSettingsInfo(res);
-  }
-
-  const ChangeFPSTypeFun = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', fpsSettingApi, {
-      personFrame: omeyeSettingsInfo.personFrame,
-      faceFrame: omeyeSettingsInfo.faceFrame,
-      carFrame: omeyeSettingsInfo.carFrame,
-      attributionFrame: omeyeSettingsInfo.attributionFrame
-    })
-    
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장에 실패했습니다'});
-    } else {
-      ChangeMaxCCTVCountFun();
-    }
-  }
-
-  const ChangeMaxAnalyzeDurationFun = async (duration: number) => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxAnalyzeDurationApi(duration))
-    
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장에 실패했습니다'});
-    } else {
-      ChangeFPSTypeFun();
-    }
-  }
   
-  const ChangeMaxCCTVCountFun = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('PUT', maxCCTVCountApi, {
+  const PutSettingsInfoFun = async () => {
+    const res:GetOmeyeSettingsInfoType = await Axios('PUT', SettingsInfoApi, {
+      frames: {
+        personFrame: omeyeSettingsInfo.personFrame,
+        faceFrame: omeyeSettingsInfo.faceFrame,
+        carFrame: omeyeSettingsInfo.carFrame,
+        attributionFrame: omeyeSettingsInfo.attributionFrame
+      },
+      analyzeCount: {
+        maxAnalyzeCount: omeyeSettingsInfo.maxAnalyzeCount,
+        maxLiveAnalyzeCount: omeyeSettingsInfo.maxLiveAnalyzeCount
+      },
+      maxAnalyzeDuration: omeyeSettingsInfo.maxAnalyzeDuration,
+
       maxAnalyzeCount: omeyeSettingsInfo.maxAnalyzeCount,
       maxLiveAnalyzeCount: omeyeSettingsInfo.maxLiveAnalyzeCount
     })
     
-    if(res === undefined) {
-      GetOMEYESettingsInfo();
-      message.error({title: '', msg: '저장에 실패했습니다'});
+    if(res) {
+      message.success({title: 'OMEYE 설정', msg: '저장 완료했습니다'});
+      setOmeyeSettingsInfo(res)
     } else {
-      setTimeout(()=>{
-        message.success({title: '', msg: '저장 완료했습니다'});
-        GetOMEYESettingsInfo();
-      },2000)
+      message.error({title: 'OMEYE 설정', msg: '저장에 실패했습니다'});
     }
   } 
 
@@ -68,7 +45,7 @@ const OMEYESidebar = () => {
     if(omeyeSettingsInfo.personFrame < 1 || omeyeSettingsInfo.faceFrame < 1 || omeyeSettingsInfo.carFrame < 1 || omeyeSettingsInfo.attributionFrame < 1) {
       message.error({title: 'FPS 설정 에러', msg: 'FPS의 최소값은 1 입니다'});
     } else {
-      ChangeMaxAnalyzeDurationFun(omeyeSettingsInfo.maxAnalyzeDuration);
+      PutSettingsInfoFun()
     }
   }
 

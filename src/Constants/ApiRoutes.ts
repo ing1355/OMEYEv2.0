@@ -63,14 +63,11 @@ export const VmsExcelUploadApi = '/api/v2/settings/file'
 export const SyncVmsApi = '/api/v2/settings/vms/synchronization'
 
 // OMEYE 설정
-export const getSettingsInfoApi = '/api/v2/settings'
+export const SettingsInfoApi = '/api/v2/settings'
 export const maxDurationApi = (duration: number) => `/api/v2/settings/storage/max-duration/${duration}`
 export const mapTypeApi = '/api/v2/settings/map/type'
 export const zoomLevelApi = '/api/v2/settings/map/zoom-level'
-export const fpsSettingApi = '/api/v2/settings/fps'
 export const customMapTileApi = '/api/v2/settings/map/custom-tile'
-export const maxCCTVCountApi = '/api/v2/settings/analyze/max-count'
-export const maxAnalyzeDurationApi = (duration: number) => `/api/v2/settings/analyze/duration/${duration}`
 export const mapFileUploadApi = '/api/v2/settings/map/file'
 export const CCTVIconUploadApi = '/api/v2/settings/map/file/custom-icon'
 

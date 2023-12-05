@@ -4,7 +4,7 @@ import { GlobalBackgroundColor } from "../../../styles/global-styled";
 import Input from "../../Constants/Input";
 import Button from "../../Constants/Button";
 import { useEffect, useState } from "react";
-import { CCTVIconUploadApi, customMapTileApi, getSettingsInfoApi, mapFileUploadApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
+import { CCTVIconUploadApi, SettingsInfoApi, customMapTileApi, mapFileUploadApi, mapTypeApi, maxDurationApi, zoomLevelApi } from "../../../Constants/ApiRoutes";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import { GetOmeyeSettingsInfoType, OmeyeSettingsInfo, OmeyeSettingsInfoInit } from "../../../Model/OmeyeSettingsDataModel";
 import { useRecoilState } from "recoil";
@@ -23,7 +23,7 @@ const OMEYESettings = () => {
   const message = useMessage();
 
   const GetOMEYESettingsInfo = async () => {
-    const res:GetOmeyeSettingsInfoType = await Axios('GET', getSettingsInfoApi)
+    const res:GetOmeyeSettingsInfoType = await Axios('GET', SettingsInfoApi)
     if (res) setOmeyeSettingsInfo(res);
   }
 
