@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../../../styles/global-styled"
+import { SectionBackgroundColor, globalStyles } from "../../../../../styles/global-styled"
 import { ImageUploadImagesType } from "."
 import CaptureImageContainer from "../../Constants/CaptureImageContainer"
 import Button from "../../../../Constants/Button"
@@ -119,6 +119,8 @@ const SelectedImageDetailContainer = styled.div`
     flex: 0 0 50%;
     padding: 24px 16px;
     overflow: auto;
+    border-radius: 10px;
+    background-color: ${SectionBackgroundColor};
 `
 
 const DetailTitle = styled.div`

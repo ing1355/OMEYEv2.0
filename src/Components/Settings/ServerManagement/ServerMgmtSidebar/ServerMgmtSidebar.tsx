@@ -18,6 +18,7 @@ import moment from 'moment';
 import uploadIcon from "../../../../assets/img/uploadIcon.png"
 import downloadIcon from "../../../../assets/img/downloadIcon.png"
 import Form from "../../../Constants/Form";
+import UploadButton from "../../Constants/UploadButton";
 
 // const ServerControlDropdownList = [
 //   {
@@ -52,17 +53,17 @@ const ServerControlDropdownList = [
     key: 'detect',
     value: 'detect',
     label: 'detect'
-  }, 
+  },
   {
     key: 'main',
     value: 'main',
     label: 'main'
-  },  
+  },
   {
     key: 'rt',
     value: 'rt',
     label: 'rt'
-  },  
+  },
   {
     key: 'back',
     value: 'back',
@@ -80,7 +81,7 @@ const logFileDownloadList = [
     key: 'BE',
     value: 'BE',
     label: '백엔드'
-  }, 
+  },
   {
     key: 'AI',
     value: 'AI',
@@ -131,11 +132,11 @@ const ServerMgmtSidebar = () => {
   const message = useMessage();
 
   const serverRebootFun = async () => {
-    const res = await Axios('POST', serverRebootApi,{
+    const res = await Axios('POST', serverRebootApi, {
       priority: 0,
       schedule: '',
     }, true)
-    if(res !== undefined) {
+    if (res !== undefined) {
       if (res.data.success) {
         message.success({ title: '서버 재부팅', msg: '서버 재부팅에 성공했습니다' })
       } else {
@@ -154,39 +155,39 @@ const ServerMgmtSidebar = () => {
     // } else if(selectedService === 'back' && serviceCommand === 'restart') {
     //   message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 재시작할 수 없습니다' })
     // } else {
-      const res = await Axios('POST', serverControlApi,{
-        serviceCtrl: [{
-          command: serviceCommand,
-          serviceType: selectedService,
-        }]
-      }, true)
-      
-      if(res !== undefined) {
-        if (res.data.success) {
-          message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
-        } else {
-          message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
-        }
+    const res = await Axios('POST', serverControlApi, {
+      serviceCtrl: [{
+        command: serviceCommand,
+        serviceType: selectedService,
+      }]
+    }, true)
+
+    if (res !== undefined) {
+      if (res.data.success) {
+        message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
       } else {
         message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
       }
+    } else {
+      message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
+    }
     // }
   }
 
   function checkValidDate(value: string) {
     let result = true;
     try {
-        let date = value.split("-");
-        let y = parseInt(date[0], 10),
-            m = parseInt(date[1], 10),
-            d = parseInt(date[2], 10);
-        
-        let dateRegex = /^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-.\/])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d(?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$/;
-        result = dateRegex.test(d+'-'+m+'-'+y);
+      let date = value.split("-");
+      let y = parseInt(date[0], 10),
+        m = parseInt(date[1], 10),
+        d = parseInt(date[2], 10);
+
+      let dateRegex = /^(?=\d)(?:(?:31(?!.(?:0?[2469]|11))|(?:30|29)(?!.0?2)|29(?=.0?2.(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00)))(?:\x20|$))|(?:2[0-8]|1\d|0?[1-9]))([-.\/])(?:1[012]|0?[1-9])\1(?:1[6-9]|[2-9]\d)?\d\d(?:(?=\x20\d)\x20|$))?(((0?[1-9]|1[012])(:[0-5]\d){0,2}(\x20[AP]M))|([01]\d|2[0-3])(:[0-5]\d){1,2})?$/;
+      result = dateRegex.test(d + '-' + m + '-' + y);
     } catch (err) {
       result = false;
-    }    
-      return result;
+    }
+    return result;
   }
 
   const isNumeric = (value: string) => {
@@ -196,15 +197,15 @@ const ServerMgmtSidebar = () => {
 
   const logFileDownloadFun = async () => {
     isNumeric(startDate)
-    if(!(isNumeric(startDate) && isNumeric(endDate))) {
+    if (!(isNumeric(startDate) && isNumeric(endDate))) {
       message.error({ title: '로그 파일 날짜 입력 에러', msg: '숫자로 입력해주세요' })
-    } else if(!(startDate.length === 8 && endDate.length === 8)) {
+    } else if (!(startDate.length === 8 && endDate.length === 8)) {
       message.error({ title: '로그 파일 날짜 입력 에러', msg: '8자리로 입력해주세요' })
     } else {
       setStartDate('');
       setEndDate('');
 
-      const res = await Axios('POST', serverLogFilesDownloadApi,{
+      const res = await Axios('POST', serverLogFilesDownloadApi, {
         logData: [{
           logType: selectedLogFile,
           logDate: {
@@ -217,7 +218,7 @@ const ServerMgmtSidebar = () => {
       if (res.status === 204) {
         message.error({ title: '로그 파일 다운로드', msg: '해당 날짜의 로그 파일이 없습니다' })
       } else {
-        const versionName = res.headers['content-disposition'].split(';').filter((str:any) => str.includes('filename'))[0].match(/filename="([^"]+)"/)[1];
+        const versionName = res.headers['content-disposition'].split(';').filter((str: any) => str.includes('filename'))[0].match(/filename="([^"]+)"/)[1];
         const fileDownlaoadUrl = URL.createObjectURL(res.data);
         const downloadLink = document.createElement('a');
         downloadLink.href = fileDownlaoadUrl;
@@ -236,8 +237,8 @@ const ServerMgmtSidebar = () => {
       fileName: fileName
     }, true);
 
-    if(res !== undefined) {
-      if(res.data.success) {
+    if (res !== undefined) {
+      if (res.data.success) {
         message.success({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 성공했습니다' })
         setFileName('');
       } else {
@@ -261,15 +262,15 @@ const ServerMgmtSidebar = () => {
   };
 
   const GetStorageThreshHoldFun = async () => {
-    const res:GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
-    if(res) setStorageThreshHold(res.threshold);
+    const res: GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
+    if (res) setStorageThreshHold(res.threshold);
   }
 
   const SaveStorageThreshHoldFun = async () => {
     const res = await Axios('PUT', StorageThreshHoldApi, {
       threshold: storageThreshHold
     }, true)
-    if(res !== undefined) {
+    if (res !== undefined) {
       if (res.data.success) {
         message.success({ title: '알림 기준 저장공간 사용량 설정', msg: '수정에 성공했습니다' })
         GetStorageThreshHoldFun();
@@ -294,10 +295,10 @@ const ServerMgmtSidebar = () => {
     }
 
     const res = await Axios('DELETE', StorageMgmtApi, (type === 'percent' ? percentPayload : datePayload))
-    if(type === 'percent') setDeleteStoragePercent(0);
-    if(type === 'date') setDeleteStorageDate(dateInit);
+    if (type === 'percent') setDeleteStoragePercent(0);
+    if (type === 'date') setDeleteStorageDate(dateInit);
 
-    if(res) {
+    if (res) {
       message.success({ title: '저장공간 정리', msg: '저장공간을 정리했습니다' })
       GetStorageDataFun();
     } else {
@@ -315,21 +316,21 @@ const ServerMgmtSidebar = () => {
   }
 
   const GetStorageDataFun = async () => {
-    const res:GetStorageDataType = await Axios('GET', StorageMgmtApi)
-    if(res) setStorageData(res);
+    const res: GetStorageDataType = await Axios('GET', StorageMgmtApi)
+    if (res) setStorageData(res);
   }
 
   useEffect(() => {
     GetStorageThreshHoldFun();
     GetStorageDataFun();
-  },[])
+  }, [])
 
   return (
     <div>
-      <div style={{fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px'}}>제어</div>
-      <div style={{display: 'flex', marginBottom: '25px'}}>
-        <div style={{lineHeight: '35px', fontSize: '1.1rem'}}>서버 재부팅</div>
-        <ServerControlButton 
+      <div style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px' }}>제어</div>
+      <div style={{ display: 'flex', marginBottom: '25px' }}>
+        <div style={{ lineHeight: '35px', fontSize: '1.1rem' }}>서버 재부팅</div>
+        <ServerControlButton
           icon={serverRebootIcon}
           onClick={() => {
             setIsOpenRebootModal(true);
@@ -337,9 +338,9 @@ const ServerMgmtSidebar = () => {
         >
         </ServerControlButton>
       </div>
-      <div style={{marginBottom: '35px'}}>
-        <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap'}}>
-          <div style={{lineHeight: '35px', fontSize: '1.1rem'}}>서비스 제어</div>
+      <div style={{ marginBottom: '35px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', flexWrap: 'wrap' }}>
+          <div style={{ lineHeight: '35px', fontSize: '1.1rem' }}>서비스 제어</div>
           <div>
             <ServerControlButton
               onClick={() => {
@@ -368,40 +369,24 @@ const ServerMgmtSidebar = () => {
           </div>
         </div>
         <div>
-          <ServerControlDropdown 
-            itemList={ServerControlDropdownList} 
-            bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}`}}
+          <ServerControlDropdown
+            itemList={ServerControlDropdownList}
+            bodyStyle={{ backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}` }}
             onChange={val => {
               setSelectedService(val.value as string);
             }}
           />
         </div>
       </div>
-      <div style={{marginBottom: '35px', lineHeight: '35px'}}>
-        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>로그 파일 다운로드</div>
-        <div style={{marginBottom: '10px'}}>
-          {/* <DateSearch onClick={() => {
-              setTimeVisible(true)
-          }}>
-              {timeValue ? `${convertFullTimeStringToHumanTimeFormat(timeValue.startTime)} ~ ${convertFullTimeStringToHumanTimeFormat(timeValue.endTime!)}` : '시간을 입력해주세요.'}
-              {timeValue && <ClearBtnContainer onClick={e => {
-                  e.stopPropagation()
-                  setTimeValue(undefined)
-              }}>
-                  <ClearBtn src={clearIcon}/>
-              </ClearBtnContainer>}
-          </DateSearch> */}
-          {/* <RangePicker 
-            value={logFileDate && [moment(logFileDate?.startDate),moment(logFileDate?.endDate)]} 
-            onChange={dateChangeFun} 
-            style={{width: '300px'}}
-          /> */}
-          <div style={{marginBottom: '10px'}}>
-            <span style={{marginRight: '10px'}}>
+      <div style={{ marginBottom: '35px', lineHeight: '35px' }}>
+        <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>로그 파일 다운로드</div>
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <span style={{ marginRight: '10px' }}>
               시작 날짜:
             </span>
-            <DateInput 
-              placeholder="YYYYMMDD" 
+            <DateInput
+              placeholder="YYYYMMDD"
               maxLength={8}
               value={startDate}
               onChange={(e) => {
@@ -411,11 +396,11 @@ const ServerMgmtSidebar = () => {
             />
           </div>
           <div>
-            <span style={{marginRight: '10px'}}>
+            <span style={{ marginRight: '10px' }}>
               종료 날짜:
             </span>
-            <DateInput 
-              placeholder="YYYYMMDD" 
+            <DateInput
+              placeholder="YYYYMMDD"
               maxLength={8}
               value={endDate}
               onChange={(e) => {
@@ -423,13 +408,13 @@ const ServerMgmtSidebar = () => {
                 setEndDate(date);
               }}
             />
-          </div>          
+          </div>
         </div>
-        <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
-          <div style={{width: '300px'}}>
-            <ServerControlDropdown 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ width: '300px' }}>
+            <ServerControlDropdown
               itemList={logFileDownloadList}
-              bodyStyle={{backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}`}}
+              bodyStyle={{ backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}` }}
               onChange={val => {
                 setSelectedLogFile(val.value as logFileType);
               }}
@@ -439,7 +424,7 @@ const ServerMgmtSidebar = () => {
             <UploadDownloadButton
               onClick={logFileDownloadFun}
               icon={downloadIcon}
-              iconStyle={{width: '15px', height: '15px'}}
+              iconStyle={{ width: '15px', height: '15px' }}
             >
               다운로드
             </UploadDownloadButton>
@@ -451,102 +436,58 @@ const ServerMgmtSidebar = () => {
         setTimeVisible(false)
       }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" /> */}
 
-      <div style={{marginBottom: '35px', lineHeight: '35px'}}>
-        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>모델 파일 업로드</div>
+      <div style={{ marginBottom: '35px', lineHeight: '35px' }}>
+        <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>모델 파일 업로드</div>
         <div>
-          <Form
-            id='fileUpload'
-            onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
-              e.preventDefault();
-              const { uploadFile } = (e.currentTarget.elements as any);
-              const file = uploadFile.files[0];
-              const fileExtension = file?.name.split('.').pop();
-              const isFileExtensionPth = fileExtension === 'pth' || fileExtension === 'pt';
-
-              if(!file) return message.error({ title: '모델 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
-              modelUploadFun(file);
-              // if(!isFileExtensionPth) {
-              //   message.error({ title: '모델 파일 업로드 에러', msg: '파일 형식이 올바르지 않습니다' })
-              // }
-              // modelUploadFun(file);
-            }}
-          >
-            <div style={{display: 'flex', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap'}}>
-              <div style={{lineHeight: '35px'}}>
-                <label 
-                  htmlFor='uploadFile'
-                  style={{border: '1px solid #ccc', padding: '10px', borderRadius: '5px'}}
-                >
-                  파일 선택
-                </label>
-                <input
-                  id='uploadFile'
-                  type='file'
-                  accept='.pth, .pt'
-                  hidden
-                  onChange={handleFileChange}
-                />
-              </div>
-              <div>
-                <UploadDownloadButton 
-                  hover
-                  type='submit'
-                  form='fileUpload'
-                  icon={uploadIcon}
-                  iconStyle={{width: '15px', height: '15px'}}
-                >
-                  업로드
-                </UploadDownloadButton>
-              </div>
-            </div>              
-            <div style={{lineHeight: '30px', wordWrap: 'break-word', marginTop: '10px' }}>
-              {fileName}
-            </div>
-          </Form>
+          <UploadButton onSubmit={files => {
+            const file = files[0];
+            if (!file) return message.error({ title: '모델 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
+            modelUploadFun(file);
+          }} />
         </div>
       </div>
-      <div style={{marginBottom: '25px', lineHeight: '30px'}}>
-        <div style={{marginBottom: '10px', fontSize: '1.1rem'}}>저장공간 관리</div>
-        <div style={{border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', marginBottom: '10px', padding: '10px'}}>
+      <div style={{ marginBottom: '25px', lineHeight: '30px' }}>
+        <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>저장공간 관리</div>
+        <div style={{ border: `1px solid ${ButtonBorderColor}`, borderRadius: '5px', marginBottom: '10px', padding: '10px' }}>
           <div>총 저장공간:
-            <span style={{marginLeft: '10px'}}>
-            {storageData?.used &&
-              storageData?.avail &&
-              (
-                parseInt(storageData.used.split(" ")[0]) +
-                parseInt(storageData.avail.split(" ")[0])
-              ).toFixed(2)}{" "}
+            <span style={{ marginLeft: '10px' }}>
+              {storageData?.used &&
+                storageData?.avail &&
+                (
+                  parseInt(storageData.used.split(" ")[0]) +
+                  parseInt(storageData.avail.split(" ")[0])
+                ).toFixed(2)}{" "}
               {storageData && storageData.avail.split(" ")[1]}
             </span>
           </div>
-          <div>잔여 저장공간: 
-            <span style={{marginLeft: '10px'}}>
+          <div>잔여 저장공간:
+            <span style={{ marginLeft: '10px' }}>
               {storageData?.avail &&
                 parseInt(storageData.avail.split(" ")[0]).toFixed(2)}{" "}
               {storageData?.avail && storageData.avail.split(" ")[1]}
             </span>
           </div>
-          <div>사용 저장공간: 
-            <span style={{marginLeft: '10px'}}>
+          <div>사용 저장공간:
+            <span style={{ marginLeft: '10px' }}>
               {storageData?.used &&
                 parseInt(storageData.used.split(" ")[0]).toFixed(2)}{" "}
               {storageData?.used && storageData.used.split(" ")[1]}
             </span>
           </div>
-          <div>저장 공간 사용량: 
-            <span style={{marginLeft: '10px'}}>
+          <div>저장 공간 사용량:
+            <span style={{ marginLeft: '10px' }}>
               {100 - storageData?.availPercent!} %
             </span>
           </div>
         </div>
-        <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
-          <div style={{marginRight: '10px', lineHeight: '35px'}}>
-            알림 기준 저장공간 사용량 설정 (%) 
+        <div style={{ display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div style={{ marginRight: '10px', lineHeight: '35px' }}>
+            알림 기준 저장공간 사용량 설정 (%)
           </div>
           <div>
-            <StorageInput 
+            <StorageInput
               maxLength={3}
-              value={storageThreshHold ? storageThreshHold : 0} 
+              value={storageThreshHold ? storageThreshHold : 0}
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e);
                 setStorageThreshHold(parseInt(num));
@@ -554,9 +495,9 @@ const ServerMgmtSidebar = () => {
             />
             <ServerControlButton
               onClick={() => {
-                if(storageThreshHold > 100) {
+                if (storageThreshHold > 100) {
                   return message.error({ title: '저장공간 사용량 설정 에러', msg: '100 이하로 입력해주세요' })
-                } 
+                }
                 SaveStorageThreshHoldFun()
               }}
             >
@@ -564,12 +505,12 @@ const ServerMgmtSidebar = () => {
             </ServerControlButton>
           </div>
         </div>
-        <div style={{display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between'}}>
-          <div style={{marginRight: '10px', lineHeight: '35px'}}>용량 기준으로 정리하기 (%)</div>
+        <div style={{ display: 'flex', marginBottom: '10px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div style={{ marginRight: '10px', lineHeight: '35px' }}>용량 기준으로 정리하기 (%)</div>
           <div>
-            <StorageInput 
+            <StorageInput
               maxLength={3}
-              value={deleteStoragePercent ? deleteStoragePercent : 0} 
+              value={deleteStoragePercent ? deleteStoragePercent : 0}
               onChange={(e) => {
                 const num = OnlyInputNumberFun(e);
                 setDeleteStoragePercent(parseInt(num));
@@ -577,9 +518,9 @@ const ServerMgmtSidebar = () => {
             />
             <ServerControlButton
               onClick={() => {
-                if(deleteStoragePercent > 100) {
+                if (deleteStoragePercent > 100) {
                   return message.error({ title: '용량 정리하기 에러', msg: '100 이하로 입력해주세요' })
-                } else if(deleteStoragePercent > 100-storageData?.availPercent!) {
+                } else if (deleteStoragePercent > 100 - storageData?.availPercent!) {
                   return message.error({ title: '용량 정리하기 에러', msg: '저장 공간 사용량 이하로 입력해주세요' })
                 }
                 DeleteStorageFun('percent')
@@ -590,8 +531,8 @@ const ServerMgmtSidebar = () => {
           </div>
         </div>
         <div>
-          <div style={{marginBottom: '10px', display: 'flex'}}>
-            <div style={{lineHeight: '35px'}}>날짜 기준으로 정리하기</div>
+          <div style={{ marginBottom: '10px', display: 'flex' }}>
+            <div style={{ lineHeight: '35px' }}>날짜 기준으로 정리하기</div>
             <div>
               <ServerControlButton
                 onClick={() => {
@@ -602,12 +543,12 @@ const ServerMgmtSidebar = () => {
               </ServerControlButton>
             </div>
           </div>
-          <div style={{marginBottom: '10px', marginLeft: '20px'}}>
-            <span style={{marginRight: '10px'}}>
+          <div style={{ marginBottom: '10px', marginLeft: '20px' }}>
+            <span style={{ marginRight: '10px' }}>
               시작 날짜:
             </span>
-            <DateInput 
-              placeholder="YYYYMMDD" 
+            <DateInput
+              placeholder="YYYYMMDD"
               maxLength={8}
               value={deleteStorageDate.startDate}
               onChange={(e) => {
@@ -619,12 +560,12 @@ const ServerMgmtSidebar = () => {
               }}
             />
           </div>
-          <div style={{marginLeft: '20px'}}>
-            <span style={{marginRight: '10px'}}>
+          <div style={{ marginLeft: '20px' }}>
+            <span style={{ marginRight: '10px' }}>
               종료 날짜:
             </span>
-            <DateInput 
-              placeholder="YYYYMMDD" 
+            <DateInput
+              placeholder="YYYYMMDD"
               maxLength={8}
               value={deleteStorageDate.endDate}
               onChange={(e) => {
@@ -635,11 +576,11 @@ const ServerMgmtSidebar = () => {
                 }))
               }}
             />
-          </div> 
+          </div>
         </div>
       </div>
 
-      <Modal 
+      <Modal
         visible={isOpenRebootModal}
         close={() => {
           setIsOpenRebootModal(false);
@@ -647,16 +588,16 @@ const ServerMgmtSidebar = () => {
         title="서버 재부팅"
         noFooter={true}
       >
-        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          <div style={{margin: '30px 0px'}}>서버를 재부팅하시겠습니까?</div>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center' }}>
+          <div style={{ margin: '30px 0px' }}>서버를 재부팅하시겠습니까?</div>
           <div>
-            <ModalButton 
+            <ModalButton
               hover
               onClick={serverRebootFun}
             >
               재부팅
             </ModalButton>
-            <ModalButton 
+            <ModalButton
               hover
               onClick={() => {
                 setIsOpenRebootModal(false);
@@ -667,7 +608,7 @@ const ServerMgmtSidebar = () => {
           </div>
         </div>
       </Modal>
-      <Modal 
+      <Modal
         visible={isOpenCtrlModal}
         close={() => {
           setIsOpenCtrlModal(false);
@@ -675,13 +616,13 @@ const ServerMgmtSidebar = () => {
         title="서비스 제어"
         noFooter={true}
       >
-        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
-          {serviceCommand === 'start' && <div style={{margin: '30px 0px'}}>서비스를 시작하시겠습니까?</div>}
-          {serviceCommand === 'stop' && <div style={{margin: '30px 0px'}}>서비스를 중지하시겠습니까?</div>}
-          {serviceCommand === 'restart' && <div style={{margin: '30px 0px'}}>서비스를 재시작하시겠습니까?</div>}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center' }}>
+          {serviceCommand === 'start' && <div style={{ margin: '30px 0px' }}>서비스를 시작하시겠습니까?</div>}
+          {serviceCommand === 'stop' && <div style={{ margin: '30px 0px' }}>서비스를 중지하시겠습니까?</div>}
+          {serviceCommand === 'restart' && <div style={{ margin: '30px 0px' }}>서비스를 재시작하시겠습니까?</div>}
 
           <div>
-            <ModalButton 
+            <ModalButton
               hover
               onClick={serverCtrlFun}
             >
@@ -689,7 +630,7 @@ const ServerMgmtSidebar = () => {
               {serviceCommand === 'stop' && <>중지</>}
               {serviceCommand === 'restart' && <>재시작</>}
             </ModalButton>
-            <ModalButton 
+            <ModalButton
               hover
               onClick={() => {
                 setIsOpenCtrlModal(false);

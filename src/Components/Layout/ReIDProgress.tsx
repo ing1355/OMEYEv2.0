@@ -11,7 +11,7 @@ import ProgressLocationIcon from '../../assets/img/ProgressLocationIcon.png'
 import ProgressAIIcon from '../../assets/img/ProgressAIIcon.png'
 import Progress from "./Progress"
 import CollapseArrow from "../Constants/CollapseArrow"
-import { Axios, reidCancelFunc } from "../../Functions/NetworkFunctions"
+import { Axios, ReIDStartApi, reidCancelFunc } from "../../Functions/NetworkFunctions"
 import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../Functions/GlobalFunctions"
 import CCTVNameById from "../Constants/CCTVNameById"
 import { CameraDataType } from "../../Constants/GlobalTypes"
@@ -849,18 +849,8 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                     }
                     case 'REID': {
                         const _params = params as ReIDRequestParamsType[]
-                        const res: {
-                            reIdId: number
-                        } = await Axios('POST', StartReIdApi, _params.map(_ => ({
-                            etc: _.etc,
-                            objectIds: _.objects.map(__ => __.id),
-                            timeGroups: _.timeGroups,
-                            cctvIds: _.cctvIds,
-                            title: _.title,
-                            rank: _.rank
-                        })) as ReIDStartRequestParamsType)
+                        const res = await ReIDStartApi(_params)
                         if (res) {
-                            console.log(res)
                             reidResultTempRef.current = [...reidResult, {
                                 reIdId: res.reIdId,
                                 data: _params.map(__ => ({

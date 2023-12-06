@@ -80,7 +80,9 @@ const TargetSelectColumn = () => {
                                     <img src={_.selected ? checkIcon : emptyCheckIcon}/>
                                 </Check>
                             </ItemHeader>
-                            <ImageView src={_.src} />
+                            <ImageView src={_.src} style={{
+                                height: '300px'
+                            }}/>
                         </ItemImage>
                     </ItemImageContainer>
                     <ItemDescription>
@@ -107,6 +109,7 @@ const Container = styled.div`
 
 const ItemContainer = styled.div<{ selected: boolean }>`
     width: 100%;
+    max-height: 340px;
     flex: 0 0 300px;
     ${globalStyles.flex({ gap: '4px' })}
     ${globalStyles.conditionDataItemBox}
@@ -120,7 +123,7 @@ const ItemContainer = styled.div<{ selected: boolean }>`
 const ItemSubContainer = styled.div`
     width: 100%;
     ${globalStyles.flex({ flexDirection: 'row' })}
-    flex: 1;
+    height: 100%;
 `
 
 const ItemImage = styled.div`
@@ -130,6 +133,7 @@ const ItemImage = styled.div`
 const ItemDescription = styled.div`
     flex: 0 0 60%;
     height: 100%;
+    overflow: auto;
     ${globalStyles.flex()}
 `
 
@@ -148,9 +152,11 @@ const ItemSelectBtn = styled(Button)`
 const ItemDescriptionContents = styled.div`
     width: 100%;
     flex: 0 0 calc(100% - 28px);
+    max-height: 362px;
     padding: 0px 6px;
-    ${globalStyles.flex({ gap: '10px' })}
+    ${globalStyles.flex({ gap: '10px', justifyContent:'flex-start' })}
     overflow-wrap: anywhere;
+    overflow: auto;
 `
 
 const ItemImageContainer = styled.div`

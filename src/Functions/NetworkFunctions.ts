@@ -6,6 +6,8 @@ import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 import { convertFromClientToServerFormatObjectData } from "./GlobalFunctions";
+import { ReIDStartRequestParamsType } from "../Constants/NetworkTypes";
+import { ReIDRequestParamsType } from "../Model/ReIdResultModel";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
@@ -124,5 +126,17 @@ export const streamingStopRequest = async (uuids: string[]) => {
 export const GetAllSitesData = async () => {
     const res = (await Axios("GET", GetAllSitesDataApi)) as SiteDataType[] || []
     console.debug('Sites Data Get Success : ', res)
+    return res
+}
+
+export const ReIDStartApi = async (params: ReIDRequestParamsType[]): Promise<{ reIdId: number, storageAlert: boolean }> => {
+    const res = await Axios('POST', StartReIdApi, params.map(_ => ({
+        etc: _.etc,
+        objectIds: _.objects.map(__ => __.id),
+        timeGroups: _.timeGroups,
+        cctvIds: _.cctvIds,
+        title: _.title,
+        rank: _.rank
+    })))
     return res
 }

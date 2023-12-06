@@ -156,6 +156,8 @@ const AddDiv = styled.div`
 const ImagesContainer = styled.div`
     height: 100%;
     flex: 0 0 50%;
+    background-color: ${SectionBackgroundColor};
+    border-radius: 10px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
 `
 
@@ -180,8 +182,7 @@ const AddUploadImageContainer = styled.div<{ dragged: boolean }>`
     position: relative;
     border: 2px dashed ${ContentsBorderColor};
     &:hover {
-        border: none;
-        background-color: ${SectionBackgroundColor};
+        background-color: ${ContentsBorderColor};
     }
     font-size: 1.1rem;
     ${({ dragged }) => draggedStyle(dragged)}

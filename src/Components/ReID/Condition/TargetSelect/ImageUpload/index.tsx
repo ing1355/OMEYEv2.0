@@ -45,7 +45,7 @@ export default ImageUpload
 
 const Container = styled.div<{noData: boolean}>`
     height: 100%;
-    ${globalStyles.flex({ flexDirection: 'row' })}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
     ${({noData}) => ({
         justifyContent: noData ? 'center' : 'space-between'
     })}
@@ -54,7 +54,7 @@ const Container = styled.div<{noData: boolean}>`
 const NoSelectedDetailContainer = styled.div`
     border: 1px solid black;
     height: 100%;
-    flex: 0 0 40%;
+    flex: 0 0 50%;
     ${globalStyles.flex()}
     font-size: 2.5rem;
 `
