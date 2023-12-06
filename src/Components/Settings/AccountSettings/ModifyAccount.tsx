@@ -64,7 +64,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     
     if(res !== undefined) {
       if(res) {
-        setModifiedName(modifySelectMember.name)
+        if(modifySelectMember.id === userInfo.user.id) setModifiedName(modifySelectMember.name)
         message.success({ title: '사용자 정보 수정', msg: '멤버의 정보를 수정했습니다' })
         modifyInit()
       } else {
