@@ -1,11 +1,11 @@
-import React, { CSSProperties, DetailedHTMLProps, useRef } from "react"
+import React, { CSSProperties, DetailedHTMLProps, forwardRef, useRef } from "react"
 import styled from "styled-components"
 import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ButtonDisabledBackgroundColor, ButtonActivateHoverColor, ButtonDefaultHoverColor } from "../../styles/global-styled"
 
 export type ButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>
 type ConcepType = "default" | "activate" | "icon"
 
-const Button = ({ icon, children, iconStyle, activate, concept, onClick, ...props }: ButtonType & {
+const Button = forwardRef(({ icon, children, iconStyle, activate, concept, onClick, otherRef, ...props }: ButtonType & {
     children?: JSX.Element | JSX.Element[] | React.ReactNode | string
     icon?: string
     iconStyle?: CSSProperties
@@ -13,7 +13,8 @@ const Button = ({ icon, children, iconStyle, activate, concept, onClick, ...prop
     concept?: ConcepType
     hover?: boolean
     hoverBorder?: boolean
-}) => {
+    otherRef?: React.RefObject<any>
+}, ref) => {
     const btnRef = useRef(null)
     const clickedRef = useRef(false)
     
@@ -31,7 +32,7 @@ const Button = ({ icon, children, iconStyle, activate, concept, onClick, ...prop
                 }, 300);
             }
         }}
-        ref={btnRef}
+        ref={(ref as any) || btnRef}
         activate={activate || false}
         concept={concept || "default"}
         type={props.type || "button"}
@@ -46,7 +47,7 @@ const Button = ({ icon, children, iconStyle, activate, concept, onClick, ...prop
         {icon && <Icon src={icon} style={iconStyle} />}
         {children}
     </StyledButton>
-}
+})
 
 export default Button
 

@@ -55,7 +55,10 @@ const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerP
                         setLoading(true)
                         const result: CaptureResultType[] = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
                         if (result) {
-                            setCaptureResults(result)
+                            setCaptureResults(result.map(_ => ({
+                                ..._,
+                                isAutoCapture: captureType === 'auto'
+                            })))
                         }
                         setLoading(false)
                     } else {

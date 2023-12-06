@@ -6,10 +6,11 @@ type VisibleToggleContainerProps = PropsWithChildren & {
     setVisible: (visible: boolean) => void
     className?: string
     callback?: () => void
+    otherRef?: React.RefObject<any>
 }
 
 const VisibleToggleContainer = ({
-    visible, setVisible, className, children, callback
+    visible, setVisible, className, children, callback, otherRef
 }: VisibleToggleContainerProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const visibleRef = useRef<(e: MouseEvent) => void>()
@@ -37,29 +38,44 @@ const VisibleToggleContainer = ({
 
     const blurClickCallback = useCallback((e: MouseEvent) => {
         if (
-            containerRef.current &&
-            !containerRef.current.contains(e.target as Node)
+            (otherRef && otherRef.current && !otherRef.current.contains(e.target as Node)) ||
+            containerRef.current && !containerRef.current.contains(e.target as Node)
         ) {
             e.preventDefault()
             e.stopPropagation()
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (otherRef && otherRef.current) {
+                if (otherRef.current && !otherRef.current.contains(e.target as Node)) {
+                    setVisible(false);
+                    if (callback) callback()
+                }
+            } else if (containerRef.current === e.target) {
                 setVisible(false);
-                if(callback) callback()
+                if (callback) callback()
+            } else {
+                if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                    setVisible(false);
+                    if (callback) callback()
+                }
             }
         }
-    }, [visible])
+    }, [visible, otherRef])
 
     useEffect(() => {
         if (visible) {
-            document.addEventListener('mousedown', blurClickCallback)
+            if (visibleRef.current) document.removeEventListener('click', visibleRef.current)
+            document.addEventListener('click', blurClickCallback)
             visibleRef.current = blurClickCallback
         } else {
-            if(visibleRef.current) document.removeEventListener('mousedown', visibleRef.current)
+            if (visibleRef.current) document.removeEventListener('click', visibleRef.current)
             visibleRef.current = undefined
         }
-    }, [visible])
+    }, [visible, otherRef])
 
-    return <Container ref={containerRef} className={className}>
+    return <Container ref={containerRef} className={className} onClick={(e) => {
+        e.stopPropagation()
+        if (e.target === containerRef.current && !visibleRef.current) setVisible(true)
+        else if (e.target === containerRef.current) setVisible(false)
+    }}>
         {children}
     </Container>
 }

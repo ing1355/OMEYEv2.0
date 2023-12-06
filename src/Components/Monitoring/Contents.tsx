@@ -3,7 +3,7 @@ import { ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../..
 import { memo, useEffect, useMemo, useReducer, useRef, useState } from "react"
 import Video from "../Constants/Video"
 import { useRecoilState, useRecoilValue } from "recoil"
-import { MonitoringDatas } from "../../Model/MonitoringDataModel"
+import { MonitoringCCTVDataType, MonitoringDataType, MonitoringDatas } from "../../Model/MonitoringDataModel"
 import { CameraDataType } from "../../Constants/GlobalTypes"
 import CCTVNameById from "../Constants/CCTVNameById"
 import { PROGRESS_STATUS } from "../../Model/ProgressModel"
@@ -15,70 +15,92 @@ import TimeModal, { TimeModalDataType } from "../ReID/Condition/Constants/TimeMo
 // let timerId: NodeJS.Timer
 // let count = 0
 
-const VideoCard = memo(({ cctvId }: {
-    cctvId: CameraDataType['cameraId'] | undefined
+const VideoCard = memo(({ data, timeVisibleChange }: {
+    data: MonitoringCCTVDataType
+    timeVisibleChange: (visible: boolean) => void
 }) => {
     const [cctvs, setCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
     const monitoringStatus = useRecoilValue(MonitoringDatas('status'))
-    const [timeVisible, setTimeVisible] = useState(false)
-    const [timeValue, setTimeValue] = useState<TimeModalDataType | undefined>(undefined)
+    const {cctvId, time} = data || {}
+    console.debug(data)
     return <>
-        <VideoTitle hasIcon={!(!cctvId)}>
+        <VideoTitle hasIcon={!(!cctvId)} data-title={cctvId && <CCTVNameById cctvId={cctvId} />}>
             {cctvId && <VideoTimeIcon onClick={() => {
-                setTimeVisible(true)
+                timeVisibleChange(true)
             }}>
                 <img src={timeIcon} />
             </VideoTimeIcon>}
             {monitoringStatus === PROGRESS_STATUS['RUNNING'] && cctvId ? <CCTVNameById cctvId={cctvId} /> : '정보 없음'}
             {cctvId && <VideoCloseIcon onClick={() => {
-                setCCTVs((cctvs as number[]).filter(_ => _ !== cctvId))
+                setCCTVs((cctvs as MonitoringDataType['cctvs']).filter(_ => _.cctvId !== cctvId))
             }}>
                 <img src={closeIcon} />
             </VideoCloseIcon>}
         </VideoTitle>
         {cctvId && <VideoInner>
-            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={timeValue} />
+            <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={time} />
         </VideoInner>}
-        <TimeModal visible={timeVisible} title="영상 시간 선택" onChange={value => {
-            setTimeValue(value)
-        }} noEndTime close={() => {
-            setTimeVisible(false)
-        }} defaultValue={timeValue} />
+
     </>
-}, (pre, next) => {
-    if (pre.cctvId !== next.cctvId) return false
+}, (prev, next) => {
+    if (JSON.stringify(prev.data) !== JSON.stringify(next.data)) return false
     return true
 })
 
 const Contents = () => {
     const monitoringLayoutNums = useRecoilValue(MonitoringDatas('layoutNum'))
-    const monitoringCCTVs = useRecoilValue(MonitoringDatas('CCTVs'))
-    const cctvListTemp = useRef<(CameraDataType['cameraId'] | undefined)[]>([])
-
+    const [monitoringCCTVs, setMonitoringCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
+    const cctvListTemp = useRef<MonitoringDataType['cctvs']>(monitoringCCTVs as MonitoringDataType['cctvs'])
+    const [timeVisible, setTimeVisible] = useState(-1)
+    
     const cctvList = useMemo(() => {
         let count = 0
-        let temp: (number | undefined)[] = Array.from({ length: monitoringLayoutNums as number })
-        const _new = monitoringCCTVs as CameraDataType['cameraId'][]
-        const _old = cctvListTemp.current as CameraDataType['cameraId'][]
-        const added = _new.filter(_ => !_old.includes(_))
-        const deleted = _old.filter(_ => !_new.includes(_))
+        const datas = monitoringCCTVs as MonitoringDataType['cctvs']
+        let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map((_, ind) => ({
+            cctvId: datas[ind] && datas[ind].cctvId,
+            time: datas[ind] && datas[ind].time
+        }))
+        const _new = (monitoringCCTVs as MonitoringDataType['cctvs'])
+        const _old = cctvListTemp.current
+        console.debug(temp, _new, _old)
+        const added = _new.filter(_ => !_old.find(__ => __ && __.cctvId === _.cctvId))
+        const deleted = _old.filter(_ => !_new.find(__ => _ && __.cctvId === _.cctvId))
+        console.debug(added, deleted)
         temp = temp.map((_, ind) => cctvListTemp.current[ind] ? (deleted.includes(cctvListTemp.current[ind]!) ? added[count++] : cctvListTemp.current[ind]) : added[count++])
-        cctvListTemp.current = [...temp]
+        cctvListTemp.current = [...temp] as MonitoringDataType['cctvs']
         return temp
     }, [monitoringCCTVs, monitoringLayoutNums])
-
-    return <ContentsContainer>
-        <VideosContainer>
-            <NoImage>
-                <img src={noImage} />
-            </NoImage>
-            {
-                cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind}>
-                    <VideoCard cctvId={cctvList[ind]} />
-                </VideoCardContainer>)
-            }
-        </VideosContainer>
-    </ContentsContainer>
+    
+    return <>
+        <ContentsContainer>
+            <VideosContainer>
+                <NoImage>
+                    <img src={noImage} />
+                </NoImage>
+                {
+                    cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind}>
+                        <VideoCard data={_} timeVisibleChange={v => {
+                            if(v) {
+                                setTimeVisible(ind)
+                            }
+                        }}/>
+                    </VideoCardContainer>)
+                }
+            </VideosContainer>
+        </ContentsContainer>
+        <TimeModal visible={timeVisible !== -1} title="영상 시간 선택" onChange={value => {
+            console.debug(value, timeVisible, (monitoringCCTVs as MonitoringDataType['cctvs']).map((_, ind) => ind === timeVisible ? ({
+                ..._,
+                time: value
+            }) : _))
+            setMonitoringCCTVs((monitoringCCTVs as MonitoringDataType['cctvs']).map((_, ind) => ind === timeVisible ? ({
+                ..._,
+                time: value
+            }) : _))
+        }} noEndTime close={() => {
+            setTimeVisible(-1)
+        }} defaultValue={cctvList[timeVisible] && cctvList[timeVisible].time} />
+    </>
 }
 
 export default Contents
@@ -99,6 +121,7 @@ const VideoCardContainer = styled.div<{ layoutNum: number }>`
     height: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
     border: 1px solid ${ContentsBorderColor};
     background-color: transparent;
+    position: relative;
 `
 
 const VideoTitle = styled.div<{ hasIcon: boolean }>`
@@ -111,7 +134,11 @@ const VideoTitle = styled.div<{ hasIcon: boolean }>`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1;
     ${globalStyles.fadeOut()}
 `
 

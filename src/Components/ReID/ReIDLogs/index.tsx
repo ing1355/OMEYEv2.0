@@ -6,7 +6,7 @@ import Dropdown, { DropdownProps } from "../../Layout/Dropdown"
 import { ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Button from "../../Constants/Button"
 import { useEffect, useRef, useState } from "react"
-import { ReIDLogDataSaveToJSON, UploadSingleConditionJsonData, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
+import { ReIDLogDataSaveToJSON, convertFromServerToClientFormatObjectData, convertFullTimeStringToHumanTimeFormat, getTimeDifference } from "../../../Functions/GlobalFunctions"
 import ImageView from "../Condition/Constants/ImageView"
 import { useRecoilState, useSetRecoilState } from "recoil"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
@@ -163,7 +163,7 @@ const ReIDLogs = () => {
                                         }}>
                                             조건 목록에 전부 추가
                                         </ContentsItemTitleBtn> */}
-                                        {_.requestGroups && _.requestGroups.length > 0 && _.requestGroups[0].timeGroups.length > 0 && _.requestGroups[0].timeGroups[0].startTime !== 'live' && <ContentsItemTitleBtn hover onClick={async (e) => {
+                                        {_.requestGroups && _.requestGroups.length > 0 && _.requestGroups[0].timeGroups.length > 0 && !_.isLive && <ContentsItemTitleBtn hover onClick={async (e) => {
                                             e.stopPropagation()
                                             const temp = await GetReIDResultById(_.reidId)
                                             const newData: ReIDResultType = {
@@ -202,41 +202,36 @@ const ReIDLogs = () => {
                                 {
                                     _.requestGroups.map((__, _ind) => <ContentsItemSubContainer opened={true} key={_ind}>
                                         <ContentsItemSubTitleContainer>
-                                            {__.title === 'live' ? '실시간 분석' : __.title}
+                                            {__.title}
                                         </ContentsItemSubTitleContainer>
                                         <ContentsItemInnerContainer>
                                             <ContentsItemInnerBtnsContainer>
                                                 <ContentsItemTitleBtn hover onClick={async () => {
-                                                    const isRealTime = __.timeGroups[0].startTime === 'live'
-                                                    let _: ConditionDataType = {
+                                                    const isRealTime = _.isLive
+                                                    const temp: ConditionDataType = {
                                                         title: isRealTime ? '' : __.title,
                                                         etc: isRealTime ? '' : __.etc,
                                                         rank: isRealTime ? 10 : __.rank,
-                                                        cctv: __.cameraGroups.map(_ => ({
+                                                        cctv: __.cameraGroups.map(___ => ({
                                                             selected: false,
-                                                            cctvList: _
+                                                            cctvList: ___
                                                         })),
-                                                        time: isRealTime ? [] : __.timeGroups.map(_ => ({
+                                                        time: isRealTime ? [] : __.timeGroups.map(___ => ({
                                                             selected: false,
-                                                            time: [_.startTime, _.endTime]
+                                                            time: [___.startTime, ___.endTime]
                                                         })),
-                                                        targets: __.targetObjects.map(_ => ({
-                                                            objectId: _.id,
-                                                            type: _.type,
-                                                            src: _.imgUrl,
-                                                            method: 'JSONUPLOAD',
-                                                            ocr: _.ocr
-                                                        })),
+                                                        targets: __.targetObjects.map(___ => convertFromServerToClientFormatObjectData(___)),
                                                         isRealTime: isRealTime
                                                     }
                                                     setMenu(ReIDMenuKeys['CONDITION'])
                                                     routeJump(ReIDConditionFormRoute.key)
-                                                    setAllDatas(_)
+                                                    console.debug(temp)
+                                                    setAllDatas(temp)
                                                 }}>
                                                     검색 조건으로 가져오기
                                                 </ContentsItemTitleBtn>
                                                 <ContentsItemTitleBtn hover onClick={async () => {
-                                                    ReIDLogDataSaveToJSON(__)
+                                                    ReIDLogDataSaveToJSON(__, _.isLive)
                                                 }}>
                                                     데이터 다운로드
                                                 </ContentsItemTitleBtn>
@@ -254,7 +249,7 @@ const ReIDLogs = () => {
                                                                 __.targetObjects.map((__, ind) => <div key={ind} style={{
                                                                     height: '100%'
                                                                 }}>
-                                                                    <ContentsItemInnerHeadItemImageBox src={__.imgUrl} />
+                                                                    <ContentsItemInnerHeadItemImageBox src={__.image} />
                                                                 </div>)
                                                             }
                                                         </ContentsItemInnerTargetImageBoxContainer>
@@ -295,7 +290,7 @@ const ReIDLogs = () => {
                                                     </ContentsItemInnerColTitle>
                                                     <ContentsItemInnerColContents>
                                                         {
-                                                            __.timeGroups[0].startTime === 'live' ? <ContentsItemInnerColContentWrapper key={ind}>
+                                                            _.isLive ? <ContentsItemInnerColContentWrapper key={ind}>
                                                                 실시간 분석
                                                             </ContentsItemInnerColContentWrapper> : __.timeGroups.map((time, ind) => <ContentsItemInnerColContentWrapper key={ind}>
                                                                 {convertFullTimeStringToHumanTimeFormat(time.startTime)} ~ {convertFullTimeStringToHumanTimeFormat(time.endTime)}
@@ -325,7 +320,7 @@ const ReIDLogs = () => {
                                                         <ContentsItemInnerColContentWrapper style={{
                                                             height: '100%'
                                                         }}>
-                                                            {__.etc === 'live' ? '실시간 분석' : __.etc}
+                                                            {_.isLive ? '실시간 분석' : __.etc}
                                                         </ContentsItemInnerColContentWrapper>
                                                     </ContentsItemInnerColContents>
                                                 </ContentsItemInnerColContainer>
@@ -532,12 +527,13 @@ const ContentsItemInnerBtnsContainer = styled.div`
 
 const ContentsItemInnerRowContainer = styled.div`
     width: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '36px' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start' })}
     margin-bottom: 16px;
 `
 
 const ContentsItemInnerColContainer = styled.div`
-    flex: 1;
+    width: 33%;
+    max-width: 33%;
     height: 120px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
 `
@@ -558,7 +554,7 @@ const ContentsItemInnerColContents = styled.div`
 
 const ContentsItemInnerTargetImageBoxContainer = styled.div`
     height: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '6px' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-start', gap: '6px' })}
     padding: 6px;
     width: 100%;
     background-color: ${GlobalBackgroundColor};

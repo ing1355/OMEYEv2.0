@@ -43,7 +43,8 @@ const SelectedCCTVDetailContainer = ({ selected, setSelected, setTimeModalOpened
             cctvId: selected?.cameraId,
             selected: false,
             time: captureTime,
-            isCurrent: true
+            isCurrent: true,
+            isAutoCapture: _.isAutoCapture
         }))))
     }
 

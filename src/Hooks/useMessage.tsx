@@ -59,7 +59,8 @@ export class Message {
                 {msg}
             </MessageContents>
             <MessageFooter>
-                {callback && <MessageOkBtn concept='activate' onClick={() => {
+                {callback && <MessageOkBtn concept='activate' onClick={(e) => {
+                    e.stopPropagation()
                     callback()
                     this.deleteMessage()
                 }}>

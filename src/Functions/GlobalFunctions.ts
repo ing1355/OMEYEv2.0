@@ -1,9 +1,10 @@
 import CryptoJS from "crypto-js";
-import { SavedJSONType, SiteDataType } from "../Constants/GlobalTypes";
+import { CaptureResultListItemType, SavedJSONType, SiteDataType } from "../Constants/GlobalTypes";
 import { ReIDRequestGroupDataType } from "../Model/ReIDLogModel";
 import { ConditionDataType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
 import { toPng } from "html-to-image";
+import { ServerObjectDataType } from "./NetworkFunctions";
 
 function arrayDistinct(list: any[]):any[] {
     const result = [];
@@ -148,8 +149,44 @@ export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string =>
     return src.substring(src.indexOf(",") + 1)
 }
 
-export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
-    const isRealTime = data.timeGroups[0].startTime === 'live'
+export const convertFromServerToClientFormatObjectData = (a: ServerObjectDataType): CaptureResultListItemType => {
+    const {cctvId, accuracy, id, image, type, attribution, method, detectTime, isMask, ocr, isAutoCapture} = a
+    const temp: CaptureResultListItemType = {
+        cctvId,
+        accuracy,
+        objectId: id,
+        src: image,
+        type,
+        description: attribution,
+        method,
+        time: detectTime,
+        mask: isMask,
+        ocr,
+        isAutoCapture
+    }
+    return temp
+}
+
+export const convertFromClientToServerFormatObjectData = (a: CaptureResultListItemType): ServerObjectDataType => {
+    const {cctvId, objectId, accuracy, src, type, description, method, time, mask, ocr, isAutoCapture} = a
+    const temp: ServerObjectDataType = {
+        cctvId,
+        accuracy,
+        id: objectId,
+        image: src.startsWith('/') ? src : src.split(',')[1],
+        type,
+        attribution: description,
+        method,
+        detectTime: time,
+        isMask: mask,
+        ocr,
+        isAutoCapture
+    }
+    return temp
+}
+
+export const ReIDLogDataSaveToJSON = async (data: ReIDRequestGroupDataType, isLive: boolean) => {
+    const isRealTime = isLive
     let _: ConditionDataType = {
         title: isRealTime ? '' : data.title,
         etc: isRealTime ? '' : data.etc,
@@ -162,16 +199,10 @@ export async function ReIDLogDataSaveToJSON(data: ReIDRequestGroupDataType) {
             selected: false,
             time: [_.startTime, _.endTime]
         })),
-        targets: data.targetObjects.map(_ => ({
-            objectId: _.id,
-            type: _.type,
-            src: _.imgUrl,
-            method: 'JSONUPLOAD',
-            ocr: _.ocr
-        })),
+        targets: data.targetObjects.map(_ => convertFromServerToClientFormatObjectData(_)),
         isRealTime: isRealTime
     }
-    DownloadSingleConditionJsonData(_, isRealTime ? 'RealTime' : data.title)
+    DownloadSingleConditionJsonData(_, isRealTime ? '실시간 분석' : data.title)
 }
 
 export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataType) => void, errCallback?: (error: unknown) => void) {

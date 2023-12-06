@@ -3,15 +3,21 @@ import { CameraDataType } from "../Constants/GlobalTypes";
 import { Axios, streamingAllStopRequest } from "../Functions/NetworkFunctions";
 import { StopAllVMSVideoApi } from "../Constants/ApiRoutes";
 import { PROGRESS_STATUS, ProgressStatusType } from "./ProgressModel";
+import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
 
 type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status" | "layoutNum"
-
-const _MonitoringCCTVsData = atom<{
+export type MonitoringCCTVDataType = {
+    cctvId: CameraDataType['cameraId'],
+    time: TimeModalDataType|undefined
+}
+export type MonitoringDataType = {
     visible: MonitoringCCTVsDataKeyType|undefined
-    cctvs: CameraDataType['cameraId'][]
+    cctvs: MonitoringCCTVDataType[]
     status: ProgressStatusType
     layoutNum: number
-}>({
+}
+
+const _MonitoringCCTVsData = atom<MonitoringDataType>({
     key: "MonitoringCCTVs",
     default: {
         visible: undefined,
@@ -68,7 +74,7 @@ export const MonitoringDatas = selectorFamily({
             else if(key === 'CCTVs') {
                 return set(_MonitoringCCTVsData, {
                     ...oldData,
-                    cctvs: newValue as CameraDataType['cameraId'][]
+                    cctvs: newValue as MonitoringDataType['cctvs']
                 })
             } else if(key === 'layoutNum') {
                 return set(_MonitoringCCTVsData, {

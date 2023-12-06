@@ -13,6 +13,7 @@ import { GetObjectIdByImage } from "../../../../../Functions/NetworkFunctions"
 import { ObjectTypes } from "../../../ConstantsValues"
 import useMessage from "../../../../../Hooks/useMessage"
 import IconBtn from "../../../../Constants/IconBtn"
+import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Constants/Params"
 
 type PlateTargetProps = {
     data?: CaptureResultListItemType
@@ -61,9 +62,10 @@ const PlateTarget = ({ data, status, setStatus }: PlateTargetProps) => {
         }
         if (status === 'add') {
             const vrpObjectId = (await GetObjectIdByImage([{
-                image: imgRef.current!.src,
+                src: imgRef.current!.src,
                 type: ReIDObjectTypeKeys[ObjectTypes['PLATE']],
-                ocr: plateInput
+                ocr: plateInput,
+                method: ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['REIDRESULT']]
             }]))[0]
             setGlobalData(globalData.concat({
                 src: imgRef.current!.src,

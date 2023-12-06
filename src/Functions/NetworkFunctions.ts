@@ -5,6 +5,7 @@ import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidData
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
+import { convertFromClientToServerFormatObjectData } from "./GlobalFunctions";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
@@ -69,32 +70,22 @@ export function StartPersonDescription(param: DescriptionRequestParamsType): Pro
     return Axios('POST', SubmitPersonDescriptionInfoApi, param)
 }
 
-export async function GetObjectIdByImage(targets: {
+export type ServerObjectDataType = {
+    id?: number
     type: CaptureResultListItemType['type']
-    image: CaptureResultListItemType['src']
-    mask?: CaptureResultListItemType['mask']
+    image: string
+    isMask?: CaptureResultListItemType['mask']
     ocr?: CaptureResultListItemType['ocr']
     attribution?: CaptureResultListItemType['description']
-}[]): Promise<number[]> {
-    return await Axios("POST", SubmitTargetInfoApi, targets.map(_ => {
-        let temp: {
-            type: CaptureResultListItemType['type']
-            image: string
-            mask?: CaptureResultListItemType['mask']
-            ocr?: CaptureResultListItemType['ocr']
-            attribution?: CaptureResultListItemType['description']
-        } = {
-            type: _.type,
-            image: _.image.startsWith('/') ? _.image : _.image.split(',')[1],
-            mask: _.mask,
-            ocr: _.ocr,
-            attribution: _.attribution
-        }
-        if (_.type === ReIDObjectTypeKeys[ObjectTypes['FACE']]) {
-            temp['mask'] = _.mask
-        }
-        return temp
-    }))
+    method?: CaptureResultListItemType['method']
+    detectTime?: CaptureResultListItemType['time']
+    accuracy?: CaptureResultListItemType['accuracy']
+    cctvId?: CaptureResultListItemType['cctvId']
+    isAutoCapture?: CaptureResultListItemType['isAutoCapture']
+}
+
+export async function GetObjectIdByImage(targets: CaptureResultListItemType[]): Promise<number[]> {
+    return await Axios("POST", SubmitTargetInfoApi, targets.map(_ => convertFromClientToServerFormatObjectData(_)))
 }
 
 export async function SubmitCarVrp(vrpInfo: {
