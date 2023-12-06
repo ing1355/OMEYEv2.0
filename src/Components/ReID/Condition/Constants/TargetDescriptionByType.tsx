@@ -9,6 +9,7 @@ import { globalStyles } from "../../../../styles/global-styled"
 import targetIcon from '../../../../assets/img/targetIcon.png'
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import cctvIcon from '../../../../assets/img/treeCCTVIcon.png'
+import captureTypeIcon from '../../../../assets/img/captureTypeIcon.png'
 import descriptionIcon from '../../../../assets/img/DescriptionEmptyIcon.png'
 import maskIcon from '../../../../assets/img/maskIcon.png'
 import methodAddIcon from '../../../../assets/img/methodAddIcon.png'
@@ -96,7 +97,7 @@ const TargetDescriptionByType = ({ data }: TargetDescriptionByTypeProps) => {
             </TargetDescriptionItem>
         }
         {
-            isAutoCapture && <TargetDescriptionItem icon={cctvIcon} title="캡쳐 방법">
+            isAutoCapture && <TargetDescriptionItem icon={captureTypeIcon} title="캡쳐 방법">
                 {isAutoCapture ? '자동 캡쳐' : '사용자 캡쳐'}
             </TargetDescriptionItem>
         }
@@ -149,17 +150,17 @@ const ItemDescriptionContentText = styled.div`
 
 const ItemDescriptionContents = styled.div`
     width: 100%;
-    ${globalStyles.flex({justifyContent:'flex-start', gap: '6px'})}
+    ${globalStyles.flex({justifyContent:'flex-start', gap: '2px'})}
 `
 
 const ItemDescriptionHeaderContainer = styled.div`
     width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px', justifyContent: 'flex-start' })}
-    height: 20px;
+    height: 30px;
 `
 
 const ItemDEscriptionHeaderIcon = styled.div`
-    width: 24px;
+    width: 17px;
     height: 100%;
     & > img {
         width: 100%;
@@ -168,7 +169,7 @@ const ItemDEscriptionHeaderIcon = styled.div`
 `
 
 const ItemDescriptionHeaderTitle = styled.div`
-    font-size: 1.1rem;
+    font-size: 1rem;
 `
 
 const ItemDescriptionContentsInnerContainer = styled.div`

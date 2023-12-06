@@ -190,6 +190,7 @@ const TargetImage = styled(ImageView)`
 const TargetDescriptionInnerContainer = styled.div`
     height: 100%;
     overflow: auto;
+    width: 100%;
 `
 
 const ItemDescriptionContentText = styled.div`
@@ -200,7 +201,7 @@ const ItemDescriptionContentText = styled.div`
 
 const CCTVsContainer = styled.div`
     height: 100%;
-    flex: 0 0 10%;
+    flex: 0 0 120px;
 `
 
 const ETCTitle = styled.div`
@@ -236,7 +237,7 @@ const CCTVNum = styled.div`
 
 const TimesContainer = styled.div`
     height: 100%;
-    flex: 0 0 22%;
+    flex: 0 0 200px;
 `
 
 const TimeRow = styled.div`
@@ -251,12 +252,13 @@ const TimeRow = styled.div`
 
 const TimeCol = styled.div`
     ${globalStyles.flex({flexDirection:'row', gap: '8px'})}
-    font-size: 1.1rem;
+    font-size: .9rem;
     height: 22px;
     font-family: NanumGothicLight;
 `
 
 const TimeIcon = styled.div`
+    width: 20px;
     height: 100%;
     & > img {
         width: 100%;
@@ -310,6 +312,6 @@ const LastBtn = styled(Button)`
 `
 
 const DescriptionContainer = styled.div`
-    flex: 0 0 25%;
+    flex: 0 0 28%;
     height: 100%;
 `

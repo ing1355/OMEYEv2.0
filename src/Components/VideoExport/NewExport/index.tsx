@@ -381,57 +381,61 @@ const NewExport = () => {
     }
 
     const sseSetting = async (callback: () => void) => {
-        sseRef.current = await CustomEventSource(SseStartApi)
-        sseRef.current.onopen = async (e) => {
-            console.debug('video export sse open')
-            if (callback) callback()
-        }
-        sseRef.current.onmessage = (res: MessageEvent) => {
-            console.debug('video export sse message : ', JSON.parse(res.data.replace(/\\/gi, '')))
-            const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent, aiPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
-            if (videoUUID) {
-                if (type === 'complete') {
-                    currentData.current.videoUUID = videoUUID
-                    currentData.current.progress = {
-                        encodingPercent,
-                        aiPercent,
-                        deIdentificationPercent,
-                        videoPercent,
-                        status: 'RUNNING'
+        try {
+            sseRef.current = await CustomEventSource(SseStartApi)
+            sseRef.current.onopen = async (e) => {
+                console.debug('video export sse open')
+                if (callback) callback()
+            }
+            sseRef.current.onmessage = (res: MessageEvent) => {
+                console.debug('video export sse message : ', JSON.parse(res.data.replace(/\\/gi, '')))
+                const { type, videoPercent, path, status, videoUUID, deIdentificationPercent, encodingPercent, aiPercent } = JSON.parse(res.data.replace(/\\/gi, '')) as VideoExportSseResponseType
+                if (videoUUID) {
+                    if (type === 'complete') {
+                        currentData.current.videoUUID = videoUUID
+                        currentData.current.progress = {
+                            encodingPercent,
+                            aiPercent,
+                            deIdentificationPercent,
+                            videoPercent,
+                            status: 'RUNNING'
+                        }
+                    } else if (type === 'done') {
+                        currentData.current.status = 'complete'
                     }
-                } else if (type === 'done') {
-                    currentData.current.status = 'complete'
+                    if (path) {
+                        currentData.current.path = path
+                        message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
+                    }
                 }
-                if (path) {
-                    currentData.current.path = path
-                    message.success({ title: "작업 완료", msg: "영상 반출 준비가 완료되었습니다.\n다운로드를 눌러 영상을 다운받아 주세요." })
+                if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                    healthCheckRegisterCallback()
+                } else if (status && SSEResponseErrorMsg.includes(status)) {
+                    currentData.current.progress = {
+                        aiPercent: 0,
+                        videoPercent: 0,
+                        status: 'WAIT'
+                    }
+                    currentData.current.status = 'cancel'
+                } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
+                    healthCheckRegisterCallback()
+                }
+                setDatas(datasRef.current.map(_ => {
+                    return _.videoUUID === currentUUIDRef.current ? ({
+                        ...currentData.current
+                    }) : _
+                }))
+                if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
+                    healthCheckClear()
+                    sseRef.current!.close()
+                    sseRef.current = undefined
                 }
             }
-            if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
-                healthCheckRegisterCallback()
-            } else if (status && SSEResponseErrorMsg.includes(status)) {
-                currentData.current.progress = {
-                    aiPercent: 0,
-                    videoPercent: 0,
-                    status: 'WAIT'
-                }
-                currentData.current.status = 'cancel'
-            } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
-                healthCheckRegisterCallback()
+            sseRef.current.onerror = (e) => {
+                console.debug('video export sse end')
             }
-            setDatas(datasRef.current.map(_ => {
-                return _.videoUUID === currentUUIDRef.current ? ({
-                    ...currentData.current
-                }) : _
-            }))
-            if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
-                healthCheckClear()
-                sseRef.current!.close()
-                sseRef.current = undefined
-            }
-        }
-        sseRef.current.onerror = (e) => {
-            console.debug('video export sse end')
+        } catch(e) {
+            console.debug("test : " , e)
         }
     }
 
@@ -655,13 +659,17 @@ const TagsContainer = styled.div`
 `
 
 const ETCContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+    width: calc(100% - 140px);
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-start', gap: '4px', flexWrap:'wrap' })}
     & > div:first-child {
         flex: 0 0 48px;
         font-size: 1.2rem;
     }
     & > div:last-child {
         font-size: 1.1rem;
+        max-width: 800px;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 `
 

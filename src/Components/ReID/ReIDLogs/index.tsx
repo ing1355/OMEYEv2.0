@@ -554,9 +554,10 @@ const ContentsItemInnerColContents = styled.div`
 
 const ContentsItemInnerTargetImageBoxContainer = styled.div`
     height: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-start', gap: '6px' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-start',  gap: '6px' })}
     padding: 6px;
-    width: 100%;
+    max-width: 100%;
+    overflow: auto;
     background-color: ${GlobalBackgroundColor};
 `
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { CaptureResultListItemType, CaptureResultType, CaptureType, PointType } from "../../../../Constants/GlobalTypes"
 import styled from "styled-components"
-import { SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { GlobalBackgroundColor, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
 import Button from "../../../Constants/Button"
 import CaptureOptionDropdown from "../../../ReID/Condition/TargetSelect/CaptureOptionDropdown"
 import { Axios } from "../../../../Functions/NetworkFunctions"
@@ -28,6 +28,11 @@ const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerP
     const objType = useRecoilValue(conditionSelectedType)
     const message = useMessage()
 
+    useEffect(() => {
+        if (captureType === 'user') setUserCaptureOn(true)
+        else setUserCaptureOn(false)
+    }, [captureType])
+
     return <DetailMiddleContainer>
         <ImageViewWithCanvas
             userCaptureOn={userCaptureOn}
@@ -37,78 +42,53 @@ const CaptureImageContainer = ({ src, captureCallback, type }: CaptureContainerP
             captureResult={captureResults}
             captureCallback={captureCallback}
             containerStyle={{
-                backgroundColor: SectionBackgroundColor,
+                backgroundColor: GlobalBackgroundColor,
+                borderRadius: '6px',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                maxWidth: '50%',
-                height: src ? 'auto' : '300px'
+                height: src ? 'auto' : '300px',
+                overflow: 'hidden'
             }} />
         <DetailMiddleCaptureContainer>
             <DetailMiddleCaptureActionContainer>
-                <CaptureOptionDropdown onChange={(val) => {
-                    setCaptureType(val)
-                }} />
-                <DetailMiddleCaptureActionExecuteButton hover disabled={loading} onClick={async () => {
-                    if (!src) return message.preset('WRONG_PARAMETER', '캡쳐 이미지가 존재하지 않습니다.')
-                    if (captureType === 'auto') {
-                        setLoading(true)
-                        const result: CaptureResultType[] = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
-                        if (result) {
-                            setCaptureResults(result.map(_ => ({
-                                ..._,
-                                isAutoCapture: captureType === 'auto'
-                            })))
-                        }
-                        setLoading(false)
-                    } else {
-                        setUserCaptureOn(true)
-                    }
+                <Button hover activate={captureType === 'auto'} onClick={() => {
+                    setCaptureType('auto')
                 }}>
-                    <img src={searchIcon} style={{ height: '20px' }} />{captureType === 'auto' ? '대상 조회' : '직접 선택'}
-                </DetailMiddleCaptureActionExecuteButton>
+                    자동 탐지
+                </Button>
+                <Button hover activate={captureType === 'user'} onClick={() => {
+                    setCaptureType('user')
+                }}>
+                    사용자 지정
+                </Button>
             </DetailMiddleCaptureActionContainer>
             <DetailMiddleCaptureDescriptionContainer>
-                <DetailMiddleCaptureDescriptionRow>
-                    <DetailMiddleCaptureDescriptionCol>
-                        &#183;
-                    </DetailMiddleCaptureDescriptionCol>
-                    <DetailMiddleCaptureDescriptionCol>
-                        자동탐지 시
-                    </DetailMiddleCaptureDescriptionCol>
-                </DetailMiddleCaptureDescriptionRow>
-                <DetailMiddleCaptureDescriptionRow>
-                    <DetailMiddleCaptureDescriptionCol>
-
-                    </DetailMiddleCaptureDescriptionCol>
-                    <DetailMiddleCaptureDescriptionCol style={{
-                        paddingLeft: '8px',
-                        fontSize: '.9rem',
-                        wordBreak: 'keep-all'
-                    }}>
-                        AI 분석 서버가 이미지를 분석하여 객체를 자동으로 탐지합니다.
-                    </DetailMiddleCaptureDescriptionCol>
-                </DetailMiddleCaptureDescriptionRow>
-                <DetailMiddleCaptureDescriptionRow>
-                    <DetailMiddleCaptureDescriptionCol>
-                        &#183;
-                    </DetailMiddleCaptureDescriptionCol>
-                    <DetailMiddleCaptureDescriptionCol>
-                        사용자 지정 시
-                    </DetailMiddleCaptureDescriptionCol>
-                </DetailMiddleCaptureDescriptionRow>
-                <DetailMiddleCaptureDescriptionRow>
-                    <DetailMiddleCaptureDescriptionCol>
-
-                    </DetailMiddleCaptureDescriptionCol>
-                    <DetailMiddleCaptureDescriptionCol style={{
-                        paddingLeft: '8px',
-                        fontSize: '.9rem',
-                        wordBreak: 'keep-all'
-                    }}>
-                        사용자가 직접 대상을 추측하여 선택합니다.
-                    </DetailMiddleCaptureDescriptionCol>
-                </DetailMiddleCaptureDescriptionRow>
+                {
+                    captureType === 'auto' ? <DetailMiddleCaptureDescriptionInnerContainer>
+                        <DetailMiddleCaptureActionExecuteButton hover disabled={loading} onClick={async () => {
+                            if (!src) return message.preset('WRONG_PARAMETER', '캡쳐 이미지가 존재하지 않습니다.')
+                            setLoading(true)
+                            const result: CaptureResultType[] = await Axios("POST", AutoCaptureApi, { image: ConvertWebImageSrcToServerBase64ImageSrc(src!), type: objType })
+                            if (result) {
+                                setCaptureResults(result.map(_ => ({
+                                    ..._,
+                                    isAutoCapture: captureType === 'auto'
+                                })))
+                            }
+                            setLoading(false)
+                        }}>
+                            <img src={searchIcon} style={{ height: '20px' }} />대상 조회
+                        </DetailMiddleCaptureActionExecuteButton>
+                        <div>
+                            위 버튼을 클릭 후<br />조회할 대상을 선택해주세요.
+                        </div>
+                    </DetailMiddleCaptureDescriptionInnerContainer> : <DetailMiddleCaptureDescriptionInnerContainer>
+                        <div>
+                            좌측 캡쳐 이미지에서 드래그 하여<br />대상을 지정해주세요.
+                        </div>
+                    </DetailMiddleCaptureDescriptionInnerContainer>
+                }
             </DetailMiddleCaptureDescriptionContainer>
         </DetailMiddleCaptureContainer>
     </DetailMiddleContainer>
@@ -118,24 +98,49 @@ export default CaptureImageContainer
 
 const DetailMiddleContainer = styled.div`
     margin-bottom: 16px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' })}
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 8px;
 `
 
 const DetailMiddleCaptureContainer = styled.div`
     flex: 0 0 50%;
     height: 100%;
+    ${globalStyles.flex({ gap: '6px' })}
 `
 
 const DetailMiddleCaptureActionContainer = styled.div`
+    height: 40px;
+    width: 100%;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+    & > button {
+        height: 100%;
+        flex: 1;
+        &:first-child {
+            border-top-right-radius: 0px;
+            border-bottom-right-radius: 0px;
+            border-right: none;
+        }
+        &:last-child {
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+            border-left: none;
+        }
+    }
 `
 
 const DetailMiddleCaptureDescriptionContainer = styled.div`
+    width: 100%;
+    height: calc(100% - 40px);
+    background-color: ${GlobalBackgroundColor};
+    border-radius: 10px;
+    padding: 12px 16px;
 `
 
 const DetailMiddleCaptureActionExecuteButton = styled(Button)`
-    flex: 0 0 50%;
-    height: 40px;
+    flex: 0 0 40px;
     font-size: 1.1rem;
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
 `
@@ -153,5 +158,15 @@ const DetailMiddleCaptureDescriptionCol = styled.div`
     &:last-child {
         font-size: 1.4rem;
         flex: 0 0 90%;
+    }
+`
+
+const DetailMiddleCaptureDescriptionInnerContainer = styled.div`
+    ${globalStyles.flex({ gap: '24px' })}
+    height: 100%;
+    & > div {
+        text-align: center;
+        font-size: 1.2rem;
+        line-height: 28px;
     }
 `

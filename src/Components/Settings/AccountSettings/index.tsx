@@ -157,12 +157,12 @@ const AccountSettings = ({visible}: {
 
     if(res !== undefined) {
       if(res.data.success) {
-        message.success({ title: '멤버 삭제', msg: '멤버를 삭제했습니다' })
+        message.success({ title: '사용자 삭제', msg: '멤버를 삭제했습니다' })
       } else {
-        message.error({ title: '멤버 삭제 에러', msg: '멤버 삭제를 실패했습니다' })
+        message.error({ title: '사용자 삭제 에러', msg: '사용자 삭제를 실패했습니다' })
       }
     } else {
-      message.error({ title: '멤버 삭제 에러', msg: '멤버 삭제를 실패했습니다' })
+      message.error({ title: '사용자 삭제 에러', msg: '사용자 삭제를 실패했습니다' })
     }
   }
 
@@ -272,7 +272,7 @@ const AccountSettings = ({visible}: {
               icon={minusIcon}
               iconStyle={{width: '15px', height: '15px'}}
             >
-              멤버 삭제
+              사용자 삭제
             </TopButton>
             <TopButton 
               hover 
@@ -281,7 +281,7 @@ const AccountSettings = ({visible}: {
               }}
               icon={plusIcon}
               iconStyle={{width: '15px', height: '15px'}}
-            >멤버 추가</TopButton>
+            >사용자 추가</TopButton>
           </div>
         }
       </div>
@@ -405,7 +405,7 @@ const AccountSettings = ({visible}: {
           setIsDeleteMember(false)
           setSearchInputValue('')
         }}
-        title="멤버 삭제"
+        title="사용자 삭제"
         noFooter={true}
       >
         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>

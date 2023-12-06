@@ -222,6 +222,8 @@ const Container = styled.div<{ visible: boolean }>`
     z-index: 1002;
     transition: left .25s ease-out;
     overflow-y: auto;
+    background-color: ${SectionBackgroundColor};
+    border-radius: 10px;
     display: ${({ visible }) => visible ? 'block' : 'none'};
 `
 

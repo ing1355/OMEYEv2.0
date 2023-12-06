@@ -53,6 +53,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
             <img src={pathToggleIcon}/>
         </ToggleBtn>
         <Container visible={visible}>
+            <ScrollContainer>
             <SubContainer>
                 <CCTVsContainer>
                     {datas.map(_ => <CCTVRowContainer key={_.index} selected={selectedView === _.index} onClick={() => {
@@ -79,6 +80,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
                     }
                 </TargetsContainer>
             </SubContainer>
+            </ScrollContainer>
         </Container>
         {/* <Container>
             {
@@ -149,7 +151,12 @@ const Container = styled.div<{visible: boolean}>`
     padding: 12px;
     max-height: 300px;
     width: 400px;
-    display: ${({visible}) => visible ? 'block' : 'none'}
+    display: ${({visible}) => visible ? 'flex' : 'none'};
+`
+
+const ScrollContainer = styled.div`
+    width: 100%;
+    overflow: auto;
 `
 
 const SubContainer = styled.div`

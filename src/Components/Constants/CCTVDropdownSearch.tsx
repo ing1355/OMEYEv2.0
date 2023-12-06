@@ -14,6 +14,7 @@ type DropdownSearchProps = {
 }
 
 const nodeHeight = 30
+const scrollMovedItemNums = 5
 
 const SearchAutoCompleteItemWrapper = ({selected, onClick, title} : {
     selected: boolean
@@ -64,9 +65,9 @@ const CCTVDropdownSearch = ({ onChange }: DropdownSearchProps) => {
                 containerRef.current.scrollTo({
                     top: selectedIndex * nodeHeight
                 })
-            } else if ((selectedIndex - 2) * nodeHeight > containerRef.current.scrollTop) {
+            } else if ((selectedIndex - scrollMovedItemNums) * nodeHeight > containerRef.current.scrollTop) {
                 containerRef.current.scrollTo({
-                    top: (selectedIndex - 2) * nodeHeight
+                    top: (selectedIndex - scrollMovedItemNums) * nodeHeight
                 })
             }
         }
@@ -188,7 +189,7 @@ const SearchControlContainer = styled(VisibleToggleContainer)`
     top: 12px;
     z-index: 1001;
     height: 30px;
-    width: 240px;
+    width: 320px;
     z-index: 1006;
 `
 
@@ -204,8 +205,8 @@ const SearchAutoCompleteContaier = styled.div<{ opened: boolean }>`
     left: 0;
     border-radius: 6px;
     width: 100%;
-    min-height: 30px;
-    max-height: 180px;
+    min-height: ${nodeHeight}px;
+    max-height: ${nodeHeight * 10}px;
     overflow-x: hidden;
     overflow-y: auto;
     display: ${({ opened }) => opened ? 'block' : 'none'};

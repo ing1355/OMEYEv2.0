@@ -1,6 +1,6 @@
 import styled from "styled-components"
 import { ContentsBorderColor, SectionBackgroundColor, globalStyles } from "../../styles/global-styled"
-import { memo, useEffect, useMemo, useReducer, useRef, useState } from "react"
+import { memo, useMemo, useRef, useState } from "react"
 import Video from "../Constants/Video"
 import { useRecoilState, useRecoilValue } from "recoil"
 import { MonitoringCCTVDataType, MonitoringDataType, MonitoringDatas } from "../../Model/MonitoringDataModel"
@@ -11,6 +11,7 @@ import closeIcon from '../../assets/img/closeIcon.png'
 import timeIcon from '../../assets/img/ProgressTimeIcon.png'
 import noImage from '../../assets/img/logo.png'
 import TimeModal, { TimeModalDataType } from "../ReID/Condition/Constants/TimeModal"
+import { GetCameraById } from "../../Model/SiteDataModel"
 
 // let timerId: NodeJS.Timer
 // let count = 0
@@ -22,25 +23,30 @@ const VideoCard = memo(({ data, timeVisibleChange }: {
     const [cctvs, setCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
     const monitoringStatus = useRecoilValue(MonitoringDatas('status'))
     const {cctvId, time} = data || {}
-    console.debug(data)
+    const cameraInfo = useRecoilValue(GetCameraById(cctvId!))
+    
     return <>
-        <VideoTitle hasIcon={!(!cctvId)} data-title={cctvId && <CCTVNameById cctvId={cctvId} />}>
-            {cctvId && <VideoTimeIcon onClick={() => {
+        <VideoTitle hasIcon={!(!cctvId)}>
+            {cctvId ? <VideoTimeIcon onClick={() => {
                 timeVisibleChange(true)
             }}>
                 <img src={timeIcon} />
-            </VideoTimeIcon>}
-            {monitoringStatus === PROGRESS_STATUS['RUNNING'] && cctvId ? <CCTVNameById cctvId={cctvId} /> : '정보 없음'}
-            {cctvId && <VideoCloseIcon onClick={() => {
-                setCCTVs((cctvs as MonitoringDataType['cctvs']).filter(_ => _.cctvId !== cctvId))
+            </VideoTimeIcon> : ''}
+            <VideoTitleText data-title={cctvId ? cameraInfo?.name : ''}>
+                {monitoringStatus === PROGRESS_STATUS['RUNNING'] && cctvId ? <CCTVNameById cctvId={cctvId} /> : '정보 없음'}
+            </VideoTitleText>
+            {cctvId ? <VideoCloseIcon onClick={() => {
+                setCCTVs((cctvs as MonitoringDataType['cctvs']).map(_ => _.cctvId !== cctvId ? _ : {
+                    cctvId: undefined,
+                    time: undefined
+                }))
             }}>
                 <img src={closeIcon} />
-            </VideoCloseIcon>}
+            </VideoCloseIcon> : ''}
         </VideoTitle>
-        {cctvId && <VideoInner>
+        {cctvId ? <VideoInner>
             <Video cctvId={monitoringStatus === PROGRESS_STATUS['RUNNING'] ? cctvId : undefined} timeValue={time} />
-        </VideoInner>}
-
+        </VideoInner> : <></>}
     </>
 }, (prev, next) => {
     if (JSON.stringify(prev.data) !== JSON.stringify(next.data)) return false
@@ -57,16 +63,15 @@ const Contents = () => {
         let count = 0
         const datas = monitoringCCTVs as MonitoringDataType['cctvs']
         let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map((_, ind) => ({
-            cctvId: datas[ind] && datas[ind].cctvId,
-            time: datas[ind] && datas[ind].time
+            cctvId: cctvListTemp.current[ind] && cctvListTemp.current[ind].cctvId,
+            time: cctvListTemp.current[ind] && cctvListTemp.current[ind].time
         }))
-        const _new = (monitoringCCTVs as MonitoringDataType['cctvs'])
         const _old = cctvListTemp.current
-        console.debug(temp, _new, _old)
-        const added = _new.filter(_ => !_old.find(__ => __ && __.cctvId === _.cctvId))
-        const deleted = _old.filter(_ => !_new.find(__ => _ && __.cctvId === _.cctvId))
-        console.debug(added, deleted)
-        temp = temp.map((_, ind) => cctvListTemp.current[ind] ? (deleted.includes(cctvListTemp.current[ind]!) ? added[count++] : cctvListTemp.current[ind]) : added[count++])
+        const added = datas.filter(_ => _ && _.cctvId && !_old.find(__ => __ && __.cctvId === _.cctvId))
+        const deleted = _old.filter(_ => _ && _.cctvId && !datas.find(__ => __ && __.cctvId === _.cctvId))
+        temp = temp.map((_, ind) => {
+            return cctvListTemp.current[ind] ? (deleted.find(__ => __.cctvId === _.cctvId) ? added[count++] : cctvListTemp.current[ind]) : added[count++]
+        })
         cctvListTemp.current = [...temp] as MonitoringDataType['cctvs']
         return temp
     }, [monitoringCCTVs, monitoringLayoutNums])
@@ -89,10 +94,6 @@ const Contents = () => {
             </VideosContainer>
         </ContentsContainer>
         <TimeModal visible={timeVisible !== -1} title="영상 시간 선택" onChange={value => {
-            console.debug(value, timeVisible, (monitoringCCTVs as MonitoringDataType['cctvs']).map((_, ind) => ind === timeVisible ? ({
-                ..._,
-                time: value
-            }) : _))
             setMonitoringCCTVs((monitoringCCTVs as MonitoringDataType['cctvs']).map((_, ind) => ind === timeVisible ? ({
                 ..._,
                 time: value
@@ -122,6 +123,11 @@ const VideoCardContainer = styled.div<{ layoutNum: number }>`
     border: 1px solid ${ContentsBorderColor};
     background-color: transparent;
     position: relative;
+    &:hover {
+        & > div:first-child {
+            display: block;
+        }
+    }
 `
 
 const VideoTitle = styled.div<{ hasIcon: boolean }>`
@@ -131,7 +137,6 @@ const VideoTitle = styled.div<{ hasIcon: boolean }>`
     text-align: center;
     padding: 0 4px;
     padding-right: ${({ hasIcon }) => hasIcon ? 50 : 4}px;
-    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     position: absolute;
@@ -139,7 +144,12 @@ const VideoTitle = styled.div<{ hasIcon: boolean }>`
     left: 0;
     width: 100%;
     z-index: 1;
-    ${globalStyles.fadeOut()}
+    ${globalStyles.fadeOut({animationDuration: '.25s'})}
+    display: none;
+`
+
+const VideoTitleText = styled.div`
+    position: relative;
 `
 
 const VideoCloseIcon = styled.div`
@@ -173,7 +183,7 @@ const VideoTimeIcon = styled.div`
 `
 
 const VideoInner = styled.div`
-    height: calc(100% - 24px);
+    height: 100%;
     ${globalStyles.flex()}
 `
 

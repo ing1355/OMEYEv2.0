@@ -8,6 +8,7 @@ import Input from "../../Constants/Input"
 import InfoIcon from '../../../assets/img/infoIcon.png'
 import leftClickIcon from '../../../assets/img/leftClickIcon.png'
 import rightClickIcon from '../../../assets/img/rightClickIcon.png'
+import loadingIcon from '../../../assets/img/reidLoadingIcon.png'
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { GetThumbnailImageApi } from "../../../Constants/ApiRoutes"
 import { CameraDataType, TimeDataType } from "../../../Constants/GlobalTypes"
@@ -71,27 +72,10 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
     }, [options])
 
     useEffect(() => {
-        if (thumbnailSrc) {
-            imgRef.current!.onload = () => {
-                const { width, height, clientWidth, clientHeight, naturalWidth, naturalHeight } = imgRef.current!
-                console.debug("썸네일 영상 사이즈(width, height): ", naturalWidth, naturalHeight)
-                setThumbnailInfo({
-                    width: naturalWidth,
-                    height: naturalHeight
-                })
-                if (imgRef.current && rectCanvasRef.current) {
-                    rectCanvasRef.current.width = naturalWidth
-                    rectCanvasRef.current.height = naturalHeight
-                }
-            }
-        }
-    }, [thumbnailSrc])
-
-    useEffect(() => {
         console.debug("Option Select Defaultvalue : ", defaultValue)
         if (visible) {
             if (defaultValue) {
-                if(defaultValue.cctvId && defaultValue.time) getThumbnailImage(defaultValue.cctvId!, defaultValue.time!.startTime)
+                if (defaultValue.cctvId && defaultValue.time) getThumbnailImage(defaultValue.cctvId!, defaultValue.time!.startTime)
                 if (defaultValue.options) {
                     setOptions(defaultValue.options)
                     if (defaultValue.options.password) setPasswordSet(true)
@@ -113,10 +97,10 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
 
     useEffect(() => {
         if (rectCanvasRef.current) {
-            const canvas = rectCanvasRef.current
-            const ctx = canvas.getContext('2d')!;
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            if (clickPoints.length > 0) {
+            const canvas = rectCanvasRef.current // canvas 객체 접근
+            const ctx = canvas.getContext('2d')!; // canvas 컨텍스트 획득
+            ctx.clearRect(0, 0, canvas.width, canvas.height) // 이전에 canvas 그렸던 그림들 초기화
+            if (clickPoints.length > 0) { // 좌클릭 개수 체크하여 forEach -> 좌클릭 개수만큼 arc paint
                 ctx.beginPath()
                 ctx.lineWidth = 8;
                 ctx.strokeStyle = "black"
@@ -126,30 +110,30 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                 ctx.stroke()
                 ctx.closePath()
             }
-            if (submitPoints.length > 0) {
+            if (submitPoints.length > 0) { // 우클릭으로 인해 고정된 영역 개수 체크
                 submitPoints.forEach(_ => {
                     ctx.beginPath()
                     ctx.fillStyle = "black"
                     _.forEach((__, ind) => {
                         if (ind === 0) {
-                            ctx.moveTo(__[0], __[1])
+                            ctx.moveTo(__[0], __[1]) // 첫 점으로 컨텍스트 이동
                         } else {
-                            ctx.lineTo(__[0], __[1])
-                            if(ind === _.length - 1) {
-                                ctx.lineTo(_[0][0], _[0][1])
+                            ctx.lineTo(__[0], __[1]) // 첫 점에서부터 중간 인덱스 ---- 현재 인덱스 점까지 선 잇기
+                            if (ind === _.length - 1) {
+                                ctx.lineTo(_[0][0], _[0][1]) // 마지막 점인 경우 첫 점이랑 다시 잇기
                             }
                         }
                     })
                     ctx.closePath()
-                    ctx.fill()
+                    ctx.fill() // 현재 컨텍스트 채우기
                 })
             }
         }
     }, [clickPoints, submitPoints])
-    
+
     return <Modal complete={() => {
-        if(options.masking.includes('area') && submitPoints.length === 0) {
-            message.error({title: "입력값 에러", msg:"비식별화 할 영역이 선택되지 않았습니다.\n영역을 지정하거나 영역 비식별화를 해제해주세요."})
+        if (options.masking.includes('area') && submitPoints.length === 0) {
+            message.error({ title: "입력값 에러", msg: "비식별화 할 영역이 선택되지 않았습니다.\n영역을 지정하거나 영역 비식별화를 해제해주세요." })
             return true
         }
         let temp = { ...options }
@@ -194,22 +178,38 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                 </MaskingBtnContainer>
                 <AreaMaskingImgContainer visible={options?.masking.includes('area') || false}>
                     <ImgContainer>
-                    <RectCanvas ref={rectCanvasRef} onClick={(e) => {
-                        const {left, top, width, height} = e.currentTarget.getBoundingClientRect()
-                        const mouseX = e.clientX - left
-                        const mouseY = e.clientY - top
-                        const resolution_x = rectCanvasRef.current!.width / width
-                        const resolution_y = rectCanvasRef.current!.height / height
-                        setClickPoints(clickPoints.concat([[mouseX * resolution_x, mouseY * resolution_y]]))
-                    }} onContextMenu={e => {
-                        e.preventDefault()
-                        if(clickPoints.length < 3) return message.error({title: "입력값 에러", msg:"3개 이상의 영역 지정이 필요합니다."})
-                        setSubmitPoints(submitPoints.concat([clickPoints]))
-                        setClickPoints([])
-                    }} />
-                    {thumbnailSrc && <img ref={imgRef} src={"data:image/jpeg;base64," + thumbnailSrc} width="100%" height="100%" style={{
-                        aspectRatio: '16/9',
-                    }}/>}
+                        <RectCanvas ref={rectCanvasRef} onClick={(e) => {
+                            if(imgRef.current) {
+                                const { left, top, width, height } = e.currentTarget.getBoundingClientRect()
+                                const mouseX = e.clientX - left
+                                const mouseY = e.clientY - top
+                                const resolution_x = rectCanvasRef.current!.width / width
+                                const resolution_y = rectCanvasRef.current!.height / height
+                                setClickPoints(clickPoints.concat([[mouseX * resolution_x, mouseY * resolution_y]]))
+                            }
+                        }} onContextMenu={e => {
+                            e.preventDefault()
+                            if (clickPoints.length < 3) return message.error({ title: "입력값 에러", msg: "3개 이상의 영역 지정이 필요합니다." })
+                            setSubmitPoints(submitPoints.concat([clickPoints]))
+                            setClickPoints([])
+                        }} />
+                        {thumbnailSrc ? <img ref={imgRef} src={"data:image/jpeg;base64," + thumbnailSrc} width="100%" height="100%" style={{
+                            aspectRatio: '16/9',
+                        }} onLoad={e => {
+                            const { width, height, clientWidth, clientHeight, naturalWidth, naturalHeight } = e.currentTarget!
+                            console.debug("썸네일 영상 사이즈(width, height): ", naturalWidth, naturalHeight)
+                            setThumbnailInfo({
+                                width: naturalWidth,
+                                height: naturalHeight
+                            })
+                            if (rectCanvasRef.current) {
+                                rectCanvasRef.current.width = naturalWidth
+                                rectCanvasRef.current.height = naturalHeight
+                            }
+                        }} /> : <LoadingComponent>
+                            <img src={loadingIcon}/>
+                            이미지 불러오는 중
+                        </LoadingComponent>}
                     </ImgContainer>
                     <AreaMaskingETCContainer>
                         <MouseImgContainer>
@@ -242,7 +242,7 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                     setOptions({ ...options!, password: val })
                 }} type="password" disabled={passwordSet} />
                 <EncryptBtn activate={!passwordSet} onClick={() => {
-                    if(!options.password) return message.error({title: "입력값 에러", msg:"비밀번호를 입력해주세요."})
+                    if (!options.password) return message.error({ title: "입력값 에러", msg: "비밀번호를 입력해주세요." })
                     setPasswordSet(!passwordSet)
                 }}>
                     {passwordSet ? "해제" : "적용"}
@@ -252,14 +252,14 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
                 비고
             </OptionsTitle>
             <DescriptionContainer onClick={() => {
-                if(inputRef.current) inputRef.current.focus()
+                if (inputRef.current) inputRef.current.focus()
             }}>
                 <DescriptionInput value={options.description} maxLength={100} onChange={val => {
                     setOptions({ ...options!, description: val })
                 }} type="textarea" placeholder="설명을 입력해주세요. (100자 이내)" inputRef={inputRef}
-                style={{
-                    pointerEvents: 'all'
-                }}/>
+                    style={{
+                        pointerEvents: 'all'
+                    }} />
             </DescriptionContainer>
         </OptionsModalContainer>
     </Modal>
@@ -314,7 +314,7 @@ const DescriptionContainer = styled.div`
     height: 140px;
     background-color: ${InputBackgroundColor};
     border-radius: 12px;
-    ${globalStyles.flex({flexDirection:'row'})}
+    ${globalStyles.flex({ flexDirection: 'row' })}
     margin-top: 8px;
     cursor: pointer;
 `
@@ -338,6 +338,7 @@ const AreaMaskingImgContainer = styled.div<{ visible: boolean }>`
 `
 
 const ImgContainer = styled.div`
+    width: 100%;
     position: relative;
     height: 330px;
 `
@@ -377,4 +378,14 @@ const MouseImgContainer = styled.div`
 const MouseImgLabel = styled.div`
     flex: 0 0 72px;
     font-size: 0.9rem;
+`
+
+const LoadingComponent = styled.div`
+    width: 100%;
+    height: 100%;
+    background-color: ${InputBackgroundColor};
+    ${globalStyles.flex({gap: '8px'})}
+    & > img {
+        ${globalStyles.rotationInOut({animationTimingFunction: 'ease', animationIterationCount: 'infinite', animationDuration: '1.7s'})}
+    }
 `

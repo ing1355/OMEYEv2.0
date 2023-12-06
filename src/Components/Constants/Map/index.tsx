@@ -154,7 +154,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     useEffect(() => {
         if (forAddtraffic && pathCameras && pathCameras.length > 0) {
             map.current?.clearPathLines()
-            map.current?.createPathLines(pathCameras, TextActivateColor)
+            map.current?.createPathLines(pathCameras)
         } else if (pathCameras && pathCameras.length === 0) {
             map.current?.clearPathLines()
         }

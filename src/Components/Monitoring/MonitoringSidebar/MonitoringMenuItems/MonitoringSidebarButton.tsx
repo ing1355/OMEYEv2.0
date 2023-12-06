@@ -14,6 +14,9 @@ const MonitoringSidebarButton = forwardRef(({ children, ...props }: MonitoringSi
 export default MonitoringSidebarButton
 
 const SidebarButton = styled(Button)`
-    flex: 0 0 48px;
+    flex: 0 0 52px;
+    width: 52px;
     border-radius: 100%;
+    padding: 6px;
+    font-size: .8rem;
 `

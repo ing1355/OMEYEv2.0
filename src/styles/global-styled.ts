@@ -74,6 +74,26 @@ const slideToLeft = keyframes`
   }
 `
 
+const rotate = keyframes`
+  100% {
+    transform: rotate(360deg);
+  }
+`
+
+const rotateAndInOut = keyframes`
+  0% {
+    scale: 0.5;
+  }
+  75% {
+    scale: 1;
+    transform: rotate(180deg);
+  }
+  100% {
+    scale: 0.5;
+    transform: rotate(180deg);
+  }
+`
+
 export const globalStyles = {
   flex: (attr?: CSSProperties) => `
     display: ${attr?.display ?? "flex"};
@@ -94,6 +114,12 @@ export const globalStyles = {
   `,
   flash: (attr?: CSSProperties) => css`
     animation: ${flash} ${attr?.animationDuration ?? '.25s'} ${attr?.animationTimingFunction ?? 'ease-out'} ${attr?.animationDelay ?? '0s'} ${attr?.animationIterationCount ?? ''};
+  `,
+  rotation: (attr?: CSSProperties) => css`
+    animation: ${rotate} ${attr?.animationDuration ?? '.25s'} ${attr?.animationTimingFunction ?? 'ease-out'} ${attr?.animationDelay ?? '0s'} ${attr?.animationIterationCount ?? ''};
+  `,
+  rotationInOut: (attr?: CSSProperties) => css`
+    animation: ${rotateAndInOut} ${attr?.animationDuration ?? '.25s'} ${attr?.animationTimingFunction ?? 'ease-out'} ${attr?.animationDelay ?? '0s'} ${attr?.animationIterationCount ?? ''};
   `,
   displayNoneByState: (state: boolean) => state && `
     display: none;
@@ -185,10 +211,12 @@ const GlobalStyle = createGlobalStyle`
       user-select: none;
       font-size: .9rem;
       font-family: NanumGothic;
+      scrollbar-width: none;
       &::-webkit-scrollbar {
         width: 14px;
         height: 14px;
         overflow: hidden;
+        position: absolute;
       }
       &::-webkit-scrollbar-thumb {
         background-color: ${ScrollBarColor};
@@ -209,16 +237,18 @@ const GlobalStyle = createGlobalStyle`
       }
    }
    *[data-title] {
-    color:red;
     &:hover:after {
       content: attr(data-title);
       position: absolute;
-      top: 100%;
+      top: calc(100% + 4px);
       left: 50%;
       transform: translateX(-50%);
-      z-index: 1;
+      z-index: 9999;
       background-color: ${GlobalBackgroundColor};
       color: white;
+      border-radius: 12px;
+      padding: 2px 6px;
+      font-size: .8rem;
     }
    }
 `

@@ -7,7 +7,7 @@ import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeMo
 
 type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status" | "layoutNum"
 export type MonitoringCCTVDataType = {
-    cctvId: CameraDataType['cameraId'],
+    cctvId: CameraDataType['cameraId']|undefined,
     time: TimeModalDataType|undefined
 }
 export type MonitoringDataType = {

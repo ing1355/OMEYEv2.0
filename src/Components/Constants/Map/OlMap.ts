@@ -51,8 +51,8 @@ function arrowStyle(feature: FeatureLike) {
     let styles = [
         new Style({
             stroke: new Stroke({
-                color: feature.get('color') || ContentsActivateColor,
-                width: 2
+                color: feature.get('color') || '#046DDD',
+                width: 6
             }),
             zIndex: 3
         })

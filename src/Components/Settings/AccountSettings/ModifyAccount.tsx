@@ -65,14 +65,14 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     if(res !== undefined) {
       if(res) {
         setModifiedName(modifySelectMember.name)
-        message.success({ title: '멤버 정보 수정', msg: '멤버의 정보를 수정했습니다' })
+        message.success({ title: '사용자 정보 수정', msg: '멤버의 정보를 수정했습니다' })
         modifyInit()
       } else {
-        message.error({ title: '멤버 정보 수정 에러', msg: '멤버 정보 수정에 실패했습니다' })
+        message.error({ title: '사용자 정보 수정 에러', msg: '사용자 정보 수정에 실패했습니다' })
         modifyInit()
       }
     } else {
-      message.error({ title: '멤버 정보 수정 에러', msg: '멤버 정보 수정에 실패했습니다' })
+      message.error({ title: '사용자 정보 수정 에러', msg: '사용자 정보 수정에 실패했습니다' })
       modifyInit()
     }
   }
@@ -87,37 +87,37 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
 
   const modifyAccountFun = async () => {
     if(!(modifySelectMember.name && modifySelectMember.email &&  modifySelectMember.phoneNumber && modifySelectMember.organization)) {
-      message.error({ title: '멤버 수정 에러', msg: '소속, 이름, 이메일, 전화번호 항목을 모두 입력해주세요.' })
+      message.error({ title: '정보 수정 에러', msg: '소속, 이름, 이메일, 전화번호 항목을 모두 입력해주세요.' })
       return true
     } 
     
     // else if(!passwordRegex.test(modifyAccountPassword)) {
-    //   message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
+    //   message.error({ title: '정보 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
     //   return true
     // } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-    //   message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
+    //   message.error({ title: '정보 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
     //   return true
     // } 
     
     else if(!nameRegex.test(modifySelectMember.name)) {
-      message.error({ title: '멤버 수정 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
+      message.error({ title: '정보 수정 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
       return true
     } else if(!emailRegex.test(modifySelectMember.email)) {
-      message.error({ title: '멤버 수정 에러', msg: '잘못된 이메일 형식 입니다' })
+      message.error({ title: '정보 수정 에러', msg: '잘못된 이메일 형식 입니다' })
       return true
     } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
-      message.error({ title: '멤버 수정 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
+      message.error({ title: '정보 수정 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
       return true
     } else {
       if(modifyAccountPassword) {
         if (!passwordRegex.test(modifyAccountPassword)){
-          message.error({ title: '멤버 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
+          message.error({ title: '정보 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
           return true
         } else if(!modifyAccountPasswordConfirm) {
-          message.error({ title: '멤버 수정 에러', msg: 'PW 확인란에 비밀번호를 입력해주세요' })
+          message.error({ title: '정보 수정 에러', msg: 'PW 확인란에 비밀번호를 입력해주세요' })
           return true
         } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-          message.error({ title: '멤버 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
+          message.error({ title: '정보 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
           return true
         } else {
           putUsersAccount(true)
@@ -136,7 +136,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
         setModifyAccountPassword('')
         setModifyAccountPasswordConfirm('')
       }}
-      title="멤버 수정"   
+      title="정보 수정"   
       complete={modifyAccountFun} 
       noComplete={true} 
     >

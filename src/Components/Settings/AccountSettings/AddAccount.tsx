@@ -68,13 +68,13 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
 
     if(res !== undefined) {
       if(res) {
-        message.success({ title: '멤버 추가', msg: '멤버를 추가했습니다' })
+        message.success({ title: '사용자 추가', msg: '멤버를 추가했습니다' })
         setUpdateMemeberList(!updateMemeberList);
       } else {
-        message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+        message.error({ title: '사용자 추가 에러', msg: '사용자 추가를 실패했습니다' })
       }
     } else {
-      message.error({ title: '멤버 추가 에러', msg: '멤버 추가를 실패했습니다' })
+      message.error({ title: '사용자 추가 에러', msg: '사용자 추가를 실패했습니다' })
     }
   }
 
@@ -94,40 +94,40 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
 
   const addAccountFun = async () => {
     if (!(newAccountUsername && newAccountPassword && newAccountPasswordConfirm && newAccountName && newAccountEmail && newAccountPhoneNumber && newAccountOrg)) {
-      message.error({ title: '멤버 추가 에러', msg: '모든 항목을 입력해주세요.' })
+      message.error({ title: '사용자 추가 에러', msg: '모든 항목을 입력해주세요.' })
       return true
     } else if(isSameId === undefined) {
-      message.error({ title : '멤버 추가 에러', msg: '아이디 중복 검사를 해주세요.' })
+      message.error({ title : '사용자 추가 에러', msg: '아이디 중복 검사를 해주세요.' })
       return true
     } else if(isSameId) {
-      message.error({ title: '멤버 추가 에러', msg: '사용 불가능한 아이디 입니다.' })
+      message.error({ title: '사용자 추가 에러', msg: '사용 불가능한 아이디 입니다.' })
       return true
     } else if(newAccountPassword !== newAccountPasswordConfirm) {
-      message.error({ title: '멤버 추가 에러', msg: '비밀번호가 일치하지 않습니다.' })
+      message.error({ title: '사용자 추가 에러', msg: '비밀번호가 일치하지 않습니다.' })
       return true
     } else if(!idRegex.test(newAccountUsername)) {
-      message.error({ title: '멤버 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
+      message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
       return true
     } else if(!idRegex.test(newAccountUsername)) {
-      message.error({ title: '멤버 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
+      message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
       return true
     } else if(!passwordRegex.test(newAccountPassword)) {
-      message.error({ title: '멤버 추가 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
+      message.error({ title: '사용자 추가 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
       return true
     } else if(newAccountPassword !== newAccountPasswordConfirm) {
-      message.error({ title: '멤버 추가 에러', msg: '비밀번호가 일치하지 않습니다' })
+      message.error({ title: '사용자 추가 에러', msg: '비밀번호가 일치하지 않습니다' })
       return true
     } else if(!nameRegex.test(newAccountName)) {
-      message.error({ title: '멤버 추가 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
+      message.error({ title: '사용자 추가 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
       return true
     } else if(!emailRegex.test(newAccountEmail)) {
-      message.error({ title: '멤버 추가 에러', msg: '잘못된 이메일 형식 입니다' })
+      message.error({ title: '사용자 추가 에러', msg: '잘못된 이메일 형식 입니다' })
       return true
     } else if(!phoneNumberRegex.test(newAccountPhoneNumber)) {
-      message.error({ title: '멤버 추가 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
+      message.error({ title: '사용자 추가 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
       return true
     } else if(isSameId) {
-      message.error({ title: '멤버 추가 에러', msg: '이미 사용중인 아이디입니다' })
+      message.error({ title: '사용자 추가 에러', msg: '이미 사용중인 아이디입니다' })
       return true
     } else {
       newAccountSaveFun()
@@ -141,7 +141,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
         close()
         resetNewAccountFun()
       }}
-      title="멤버 추가"
+      title="사용자 추가"
       isConfirm = {false}
       complete={addAccountFun}
     >

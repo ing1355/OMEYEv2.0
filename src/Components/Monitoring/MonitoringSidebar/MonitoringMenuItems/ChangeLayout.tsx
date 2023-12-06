@@ -24,7 +24,7 @@ const ChangeLayout = ({ index }: {
             if (visible === 'layoutNum') setVisible(undefined)
             else setVisible('layoutNum')
         }} ref={otherRef}>
-            view
+            VIEW
         </MonitoringSidebarButton>
         <ListContainer index={index} visible={visible === 'layoutNum'} setVisible={v => {
             setVisible(v ? 'layoutNum' : undefined)
@@ -56,8 +56,8 @@ const ListContainer = styled(VisibleToggleContainer) <{ visible: boolean, index:
     position: absolute;
     width: ${({ visible }) => visible ? 212.5 : 0}px;
     height: ${({ visible }) => visible ? 48 : 0}px;
-    right: 66px;
-    top: ${({ index }) => index * 56 + 4}px;
+    right: 56px;
+    top: ${({ index }) => index * 56 + 12}px;
     overflow: ${({ visible }) => visible ? 'visible' : 'hidden'};
     transition: overflow .3s ease-out .3s;
     z-index: 1004;

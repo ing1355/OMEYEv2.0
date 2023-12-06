@@ -37,7 +37,7 @@ export const SitesDataForTreeView = selector({
 export const GetAllSiteCameras = selector({
     key: "SiteData/selector/cameras",
     get: ({get}) => {
-        return get(_SitesData).data.flatMap(_ => _.cameras)
+        return get(_SitesData).data.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId)
     }
 })
 

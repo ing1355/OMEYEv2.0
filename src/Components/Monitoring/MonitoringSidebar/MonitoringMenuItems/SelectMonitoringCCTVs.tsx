@@ -4,11 +4,9 @@ import { MonitoringDataType, MonitoringDatas } from "../../../../Model/Monitorin
 import styled from "styled-components"
 import { ModalBoxShadow, SectionBackgroundColor } from "../../../../styles/global-styled"
 import TreeAndMapComponent from "../../../Constants/TreeAndMapComponent"
-import { CameraDataType, setStateType } from "../../../../Constants/GlobalTypes"
 import useMessage from "../../../../Hooks/useMessage"
 import { useEffect, useRef } from "react"
 import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
-import { TimeModalDataType } from "../../../ReID/Condition/Constants/TimeModal"
 
 const SelectMonitoringCCTVs = ({ index }: {
     index: number
@@ -32,19 +30,19 @@ const SelectMonitoringCCTVs = ({ index }: {
             if (visible === 'CCTVs') setVisible(undefined)
             else setVisible('CCTVs')
         }} ref={otherRef}>
-            cctv
+            CCTV
         </MonitoringSidebarButton>
         <ListContainer index={index} visible={visible === 'CCTVs'} setVisible={v => {
             setVisible(v ? 'CCTVs' : undefined)
         }} otherRef={otherRef}>
             <InnerContainer>
-                <TreeAndMapComponent selectedCCTVs={(selectedCCTVs as MonitoringDataType['cctvs']).map(_ => _.cctvId)} setSelectedCCTVs={(cctvs) => {
+                <TreeAndMapComponent selectedCCTVs={(selectedCCTVs as MonitoringDataType['cctvs']).filter(_ => _.cctvId).map(_ => _.cctvId!)} setSelectedCCTVs={(cctvs) => {
                     if ((layoutNumRef.current as number) < cctvs.length) message.error({ title: "입력값 에러", msg: "화면 수보다 많은 수를 선택하였습니다." })
                     else {
                         const datas = selectedCCTVs as MonitoringDataType['cctvs'];
                         const added = cctvs.filter(_ => !datas.find(__ => __.cctvId === _));
-                        const deleted = datas.filter(_ => !cctvs.includes(_.cctvId));
-                        const result = datas.filter(_ => deleted.find(__ => __.cctvId === _.cctvId)).concat(added.map(_ => ({
+                        const deleted = datas.filter(_ => !cctvs.includes(_.cctvId || 0)).map(_ => _.cctvId);
+                        const result = datas.filter(_ => !deleted.includes(_.cctvId)).concat(added.map(_ => ({
                             cctvId: _,
                             time: undefined
                         })));
