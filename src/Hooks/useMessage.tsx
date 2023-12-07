@@ -51,7 +51,10 @@ export class Message {
                     <MessageHeaderIcon src={iconByTheme(theme)} />
                     {title}
                 </MessageTitle>
-                <CloseIconContainer onClick={this.deleteMessage}>
+                <CloseIconContainer onClick={e => {
+                    e.stopPropagation()
+                    this.deleteMessage()
+                }}>
                     <img src={closeIconImg} />
                 </CloseIconContainer>
             </MessageHeader>

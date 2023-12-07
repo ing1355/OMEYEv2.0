@@ -551,7 +551,7 @@ const ServerManagement = ({visible}: {
           <div>
             <div style={{padding: '10px'}}>Uptime: {uptimeDataFun(serverMgmtInfo?.upTime)}</div>
           </div> */}
-          <div style={{marginBottom: '10px'}}>하드웨어 정보</div>
+          <div style={{marginBottom: '10px'}}>서버 사양</div>
           <div>
             <div style={{padding: '10px'}}>CPU: {fixedServerMgmtInfo?.hardwareInfos.cpu}</div>
             <div style={{padding: '10px'}}>CPU sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>

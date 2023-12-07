@@ -23,6 +23,7 @@ type TimeModalProps = {
     close: () => void
     noEndTime?: boolean
     lowBlur?: boolean
+    noTimeLimit?: boolean
 }
 
 type TimeInputProps = {
@@ -50,7 +51,7 @@ export const TimeInput = ({ value, label, onChange, maxLength, inputRef, isHour 
     </TimeInputContainer>
 }
 
-const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, lowBlur=false }: TimeModalProps) => {
+const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, lowBlur=false, noTimeLimit=false }: TimeModalProps) => {
     const [startDate, setStartDate] = useState<Date | null>(null)
     const [endDate, setEndDate] = useState<Date | null>(null)
     const [startHour, setStartHour] = useState('00')
@@ -200,7 +201,7 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, l
                     <InputWrapper>
                         <Calendar value={startDate} onChange={sDate => {
                             setStartDate(sDate)
-                        }} otherDate={endDate} />
+                        }} otherDate={endDate} noTimeLimit={noTimeLimit}/>
                         <TextInputWrapper>
                             <TextInputContainer>
                                 <SingleTimeInput disabled onlyNumber value={startDate ? startDate.getFullYear().toString() : '--'} />년
@@ -230,7 +231,7 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, l
                     <InputWrapper>
                         <Calendar value={endDate} onChange={eDate => {
                             setEndDate(eDate)
-                        }} otherDate={startDate} />
+                        }} otherDate={startDate} noTimeLimit={noTimeLimit}/>
                         <TextInputWrapper>
                             <TextInputContainer>
                                 <SingleTimeInput disabled onlyNumber value={endDate ? endDate.getFullYear().toString() : '--'} />년

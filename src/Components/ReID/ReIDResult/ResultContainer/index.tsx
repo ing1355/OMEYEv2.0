@@ -311,7 +311,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                                 (globalCurrentReIdId === reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) ? <>
                                     현재 분석중입니다.
                                 </> : <>
-                                    데이터가 존재하지 않습니다.
+                                    분석 대상이 발견되지 않았습니다.
                                 </>
                             }
                         </NoDataContainer>}

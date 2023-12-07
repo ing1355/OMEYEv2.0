@@ -157,7 +157,7 @@ const AccountSettings = ({visible}: {
 
     if(res !== undefined) {
       if(res.data.success) {
-        message.success({ title: '사용자 삭제', msg: '멤버를 삭제했습니다' })
+        message.success({ title: '사용자 삭제', msg: '사용자를 삭제했습니다' })
       } else {
         message.error({ title: '사용자 삭제 에러', msg: '사용자 삭제를 실패했습니다' })
       }

@@ -27,6 +27,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
     useEffect(() => {
         if (datas.length > 0) {
             setSelectedCondition(datas.map(_ => _.index))
+            // setSelectedTarget(datas.map(_ => []))
             if(!IS_PRODUCTION) setSelectedTarget(datas.map(_ => _.objectIds))
             else setSelectedTarget(datas.map(_ => []))
         }

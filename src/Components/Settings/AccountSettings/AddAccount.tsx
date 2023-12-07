@@ -68,7 +68,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
 
     if(res !== undefined) {
       if(res) {
-        message.success({ title: '사용자 추가', msg: '멤버를 추가했습니다' })
+        message.success({ title: '사용자 추가', msg: '사용자를 추가했습니다' })
         setUpdateMemeberList(!updateMemeberList);
       } else {
         message.error({ title: '사용자 추가 에러', msg: '사용자 추가를 실패했습니다' })

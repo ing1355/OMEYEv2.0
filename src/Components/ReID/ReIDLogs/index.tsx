@@ -75,7 +75,7 @@ const ReIDLogs = () => {
     return <Container>
         <TimeModal visible={timeVisible} close={() => {
             setTimeVisible(false)
-        }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" />
+        }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" noTimeLimit/>
         <Wrapper>
             <Form onSubmit={() => {
                 let _: ReIDSearchParamsType = {
@@ -225,7 +225,6 @@ const ReIDLogs = () => {
                                                     }
                                                     setMenu(ReIDMenuKeys['CONDITION'])
                                                     routeJump(ReIDConditionFormRoute.key)
-                                                    console.debug(temp)
                                                     setAllDatas(temp)
                                                 }}>
                                                     검색 조건으로 가져오기

@@ -76,7 +76,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         type: ReIDObjectTypeKeys
     }[]>([])
     const [duplicatedCCTVs, setDuplicatedCCTVs] = useState<CameraDataType['cameraId'][]>([])
-    const [collapseOpen, setCollapseOpen] = useState<SiteDataType['fullName'][]>([])
     const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
     const progressStatus = useRecoilValue(ProgressStatus)
     const selectedReIdResultData = useRecoilValue(SingleReIDSelectedData(reIdId!))
@@ -90,8 +89,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     useEffect(() => {
         if (duplicatedCCTVs.length > 0) {
 
-        } else {
-            setCollapseOpen([])
         }
     }, [duplicatedCCTVs])
 
@@ -251,7 +248,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
 
     const duplicatedCCTVSelectView = useMemo(() => {
         return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
-    },[duplicatedCCTVSelect])
+    },[duplicatedCCTVSelect, selectedCCTVs])
 
     return <>
         <MapContainer ref={mapElement} 

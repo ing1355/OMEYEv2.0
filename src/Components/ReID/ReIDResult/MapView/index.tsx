@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 import MapComponent from "../../../Constants/Map"
 import styled from "styled-components";
-import { ContentsActivateColor, ContentsBorderColor, globalStyles } from "../../../../styles/global-styled";
+import { ContentsActivateColor, ContentsBorderColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
 import CCTVIcon from '../../../../assets/img/CCTVSelectedIcon.png'
 import CCTVStartIcon from '../../../../assets/img/CCTVStartIcon.png'
 import CCTVEndIcon from '../../../../assets/img/CCTVEndIcon.png'
@@ -48,8 +48,8 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                     return a.foundDateTime < b.foundDateTime ? -1 : 1
                 }) : [], [selectedData, selectedCondition, selectedTarget])
     const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
-
-    const createResultBox = useCallback((_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox
+                
+    const createResultBox = (_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox
         key={_.resultId + '1'}
         onClick={() => {
             setDetailResult([_])
@@ -57,7 +57,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
         <CCTVImgContainer>
             <CCTVImg src={isStart ? CCTVStartIcon : (isEnd ? CCTVEndIcon : CCTVIcon)} />
         </CCTVImgContainer>
-        <ResultBoxMiddleContainer>
+        <ResultBoxMiddleContainer selected={detailResult ? detailResult[0].resultId === _.resultId : false}>
             <CCTVName>
                 <CCTVNameById cctvId={_.cctvId!} />
             </CCTVName>
@@ -68,7 +68,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                 유사율 : {_.accuracy}%
             </ResultBoxBottomContainer> : <></>}
         </ResultBoxMiddleContainer>
-    </ResultBox>, [])
+    </ResultBox>
 
     const createResultLine = () => <LineContainer>
         <ResultLine />
@@ -185,9 +185,10 @@ const CCTVImg = styled.img`
     height: 100%;
 `
 
-const ResultBoxMiddleContainer = styled.div`
+const ResultBoxMiddleContainer = styled.div<{selected: boolean}>`
     flex: 1 1 60px;
     ${globalStyles.flex({ gap: '8px' })}
+    color: ${({selected}) => selected ? TextActivateColor : 'white'}
 `
 
 const CCTVName = styled.div`

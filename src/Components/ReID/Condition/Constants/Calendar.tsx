@@ -13,13 +13,14 @@ type CalendarProps = {
     value?: Date|null
     onChange?: (date: Date) => void
     otherDate?: Date|null
+    noTimeLimit?: boolean
 }
 
-const Calendar = ({ onChange, otherDate, value }: CalendarProps) => {
+const Calendar = ({ onChange, otherDate, value, noTimeLimit=false }: CalendarProps) => {
     const currentDate = new Date()
     const [date, setDate] = useState(new Date())
     const _maxStoredDay = useRecoilValue(globalSingleSetting('maxStoredDay'))
-    const maxStoredDay = _maxStoredDay as number
+    const maxStoredDay = noTimeLimit ? (365 * 3) : _maxStoredDay as number
     const firstDay = useMemo(() => new Date(date.getFullYear(), date.getMonth(), 1).getDay(), [date])
     const lastDay = useMemo(() => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(), [date])
     

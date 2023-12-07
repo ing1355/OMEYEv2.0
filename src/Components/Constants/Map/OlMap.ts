@@ -145,12 +145,13 @@ function markerStyle(features: FeatureLike) {
             }
 
             return new Style({
-                zIndex: type === 4 ? 3 : (type === 3 ? 2 : 1), // 작동안함ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ
+                zIndex: 2,
                 image: new Icon({
                     crossOrigin: "anonymous",
                     anchor: [0.5, 0.57],
                     src: imgByType,
-                    scale: mode === 1 ? 0.5 : 0.75,
+                    width: mode === 1 ? 35 : 50,
+                    height: mode === 1 ? 49 : 70,
                 }),
                 text: mode === 2 ? new Text({
                     textAlign: "center",
@@ -171,7 +172,7 @@ function markerStyle(features: FeatureLike) {
                     //     miterLimit: 10,
                     // }),
                     padding: cctvName.length > 32 ? [6, 33, 6, 33] : [6, 20, 6, 20],
-                    offsetY: offset + (mode === 2 ? 45 : 30),
+                    offsetY: offset + (mode === 2 ? 40 : 30),
                 }) : undefined,
             });
         }
@@ -402,6 +403,7 @@ export class OlMap extends CustomMap<Map> {
         this.map.on("pointermove", (evt) => {
             if (this.singleCameraId) return;
             if (this.hoverId) {
+                this.VL.setZIndex(10)
                 if (this.pathVS.getFeatureById(this.hoverId)) {
                     this.pathVS.getFeatureById(this.hoverId)?.set('mode', 1)
                 } else if (this.VS.getFeatureById(this.hoverId)) {
@@ -425,6 +427,7 @@ export class OlMap extends CustomMap<Map> {
                     this.map.getTargetElement().style.cursor = "pointer";
                 }
             } else {
+                this.VL.setZIndex(2)
                 this.map.getTargetElement().style.cursor = "";
             }
         });
@@ -440,13 +443,16 @@ export class OlMap extends CustomMap<Map> {
                         this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     } else {
                         this.dispatchDuplicatedMarkerChangeEvent([])
+                        this.map.getView().fit(new VectorSource({ features: features }).getExtent())
                         this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
                         // this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     }
-                } else {
+                } else if(features || feature) {
                     let _feature: Feature<Geometry>
+                    if(feature) console.debug(feature.getId())
                     if(feature && feature.getId()) _feature = feature
-                    else _feature = features[0]
+                    else if(features && features.length > 0) _feature = features[0]
+                    else return;
                     this.clickId = _feature.getId()
                     switch (this.map.get(mapStateKey)) {
                         case mapState['NORMAL']:
@@ -469,6 +475,8 @@ export class OlMap extends CustomMap<Map> {
                             this.circleFeature.setGeometry(geom)
                             break;
                     }
+                } else {
+                    this.closeOverlayView()
                 }
             } else {
                 this.closeOverlayView()
@@ -597,12 +605,16 @@ export class OlMap extends CustomMap<Map> {
             const startFeature = this.VS.getFeatureById(cctvIds[0])
             const endFeature = this.VS.getFeatureById(cctvIds[cctvIds.length - 1])
             if (endFeature) {
-                this.pathVS.addFeature(endFeature)
-                this.pathVS.getFeatureById(endFeature.getId()!)?.set("type", 4)
+                const newFeature = endFeature.clone()
+                newFeature.setId(endFeature.getId() + "end")
+                this.pathVS.addFeature(newFeature)
+                this.pathVS.getFeatureById(newFeature.getId()!)?.set("type", 4)
             }
             if (cctvIds.length > 1 && startFeature) {
-                this.pathVS.addFeature(startFeature!)
-                this.pathVS.getFeatureById(startFeature.getId()!)?.set("type", 3)
+                const newFeature = startFeature.clone()
+                newFeature.setId(startFeature.getId() + "start")
+                this.pathVS.addFeature(newFeature)
+                this.pathVS.getFeatureById(newFeature.getId()!)?.set("type", 3)
             }
         }
         this.map.set(mapStateKey, mapState['COMPLETE'])
@@ -746,13 +758,36 @@ export class OlMap extends CustomMap<Map> {
     }
 
     changeViewForPathCamera = (camera: CameraDataType['cameraId']) => {
+        const pathFeatures = this.pathVS.getFeatures()
+        if(pathFeatures.length > 2) {
+            this.pathVS.removeFeature(pathFeatures[2])
+        } else {
+
+        }
         const feature = this.VS.getFeatureById(camera)
+        if (this.hoverId) {
+            const target = this.VS.getFeatureById(this.hoverId)
+            const _target = this.pathVS.getFeatureById(this.hoverId)
+            if(target) target.set('mode', 1)
+            if(_target) _target.set('mode', 1)
+        }
+        if(feature) {
+            const temp = this.pathVS.getFeatures().map(_ => typeof _.getId() === 'string' ? Number((_.getId() as string).replace(/[start|end]/g,"")) : Number(_.getId()))
+            if(!temp.includes(Number(camera))) { // 중간 CCTV
+                const newFeature = feature.clone()
+                newFeature.setId(feature.getId() + "middle")
+                this.pathVS.addFeature(newFeature)
+                newFeature?.set('mode', 2)
+            } else { // 출발, 도착
+                const target = this.pathVS.getFeatures().find(_ => (_.getId() as string).includes(camera.toString()))
+                target?.set('mode', 2)
+                this.hoverId = target?.getId()
+                this.VL.setZIndex(2)
+            }
+        }
         if (this.arrowVS.getFeatures().length > 0) this.fitWithPaddingByExtent(this.arrowVS.getExtent())
         else this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
         // this.map.getView().setCenter((feature?.getGeometry() as Point).getCoordinates())
-        if (this.hoverId) this.VS.getFeatureById(this.hoverId)?.set('mode', 1)
-        this.hoverId = feature?.getId()
-        feature?.set('mode', 2)
     }
 
     dispatchDuplicatedMarkerChangeEvent = (data: (CameraDataType['cameraId'])[]) => {

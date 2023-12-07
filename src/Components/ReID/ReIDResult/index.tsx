@@ -22,6 +22,7 @@ const ReIDResult = () => {
     const [isMapView, setIsMapView] = useState(false)
     const [modalVisible, setModalVisible] = useState<number | null>(null)
     const [selectedView, setSelectedView] = useRecoilState(ReIDResultSelectedView)
+    const [reidResults, setReidResults] = useRecoilState(AllReIDSelectedResultData)
     const reidSelectedDatas = useRecoilValue(AllReIDSelectedResultData)
     const progressStatus = useRecoilValue(ProgressStatus)
     const [reidSelectedCondition, setReidSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
@@ -40,22 +41,32 @@ const ReIDResult = () => {
 
     const test = async () => {
         // setResultDatas(ReIDResultTestData)
-        const testReid = 914
-        const temp = await GetReIDResultById(testReid)
+        const temp = await GetReIDResultById(1043)
         const newData: ReIDResultType = {
             ...temp, data: temp.data.map(d => ({
                 ...d,
                 resultList: d.resultList.map(r => ({
                     ...r,
                     timeAndCctvGroup: r.timeAndCctvGroup.map(t => {
+                        const _ = new Map()
+                        Object.keys(t.results).forEach(__ => {
+                            _.set(__, (t.results as any)[Number(__)])
+                        })
                         return {
                             ...t,
-                            results: Object.entries(t.results) as any
+                            results: _
                         }
                     })
                 }))
             }))
         }
+        if (reidResults.some(r => r.reIdId === 1043)) {
+            setReidResults(reidResults.map(r => r.reIdId === 1043 ? newData : r))
+        } else {
+            setReidResults(reidResults.concat(newData))
+        }
+        setReidSelectedCondition(0)
+        setReIDResultSelectedView([1043])
         // setReidSelectedCondition(0)
         // setReIDResultSelectedView([testReid])
         if (newData) setResultDatas([newData])
