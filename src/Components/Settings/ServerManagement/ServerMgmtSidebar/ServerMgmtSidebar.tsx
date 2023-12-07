@@ -2,22 +2,16 @@ import styled from "styled-components"
 import Button from "../../../Constants/Button"
 import Dropdown from "../../../Layout/Dropdown"
 import serverRebootIcon from "../../../../assets/img/serverRebootIcon.png"
-import { ButtonBorderColor, GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
+import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { StorageMgmtApi, StorageThreshHoldApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi, serverRebootApi } from "../../../../Constants/ApiRoutes";
+import { ModelFileUploadApi, ServerControlApi, ServerLogFilesDownloadApi, ServerRebootApi, StorageMgmtApi, StorageThreshHoldApi } from "../../../../Constants/ApiRoutes";
 import Input from "../../../Constants/Input";
-import clearIcon from '../../../../assets/img/rankUpIcon.png'
-import { OnlyInputNumberFun, convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions";
+import { OnlyInputNumberFun } from "../../../../Functions/GlobalFunctions";
 import { useEffect, useState } from "react";
-import TimeModal, { TimeModalDataType } from "../../../ReID/Condition/Constants/TimeModal";
+import { TimeModalDataType } from "../../../ReID/Condition/Constants/TimeModal";
 import Modal from "../../../Layout/Modal";
 import useMessage from "../../../../Hooks/useMessage";
-import { DatePicker } from "antd";
-import { RangePickerProps } from "antd/es/date-picker";
-import moment from 'moment';
-import uploadIcon from "../../../../assets/img/uploadIcon.png"
 import downloadIcon from "../../../../assets/img/downloadIcon.png"
-import Form from "../../../Constants/Form";
 import UploadButton from "../../Constants/UploadButton";
 
 // const ServerControlDropdownList = [
@@ -90,6 +84,8 @@ const logFileDownloadList = [
 ];
 
 type commandType = 'start' | 'stop' | 'restart';
+type ServiceType = 'main' | 'detect' | 'rt' | 'back' | 'mediaserver'
+type ServiceInputType = ServiceType | 'AI'
 type logFileType = 'BE' | 'AI';
 type dateType = {
   startDate: string,
@@ -116,10 +112,9 @@ const ServerMgmtSidebar = () => {
   const [timeVisible, setTimeVisible] = useState(false);
   const [isOpenRebootModal, setIsOpenRebootModal] = useState<boolean>(false);
   const [isOpenCtrlModal, setIsOpenCtrlModal] = useState<boolean>(false);
-  const [selectedService, setSelectedService] = useState<string>('detect2');
+  const [selectedService, setSelectedService] = useState<ServiceType[]>([]);
   const [isServiceControlling, setIsServiceControlling] = useState<boolean>(false);
   const [serviceCommand, setServiceCommand] = useState<commandType | undefined>(undefined);
-  const [selectedLogFile, setSelectedLogFile] = useState<logFileType>('BE');
   const [logFileDate, setLogFileDate] = useState<dateType | null>(null);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -128,20 +123,17 @@ const ServerMgmtSidebar = () => {
   const [deleteStoragePercent, setDeleteStoragePercent] = useState<number>(0);
   const [deleteStorageDate, setDeleteStorageDate] = useState<dateType>(dateInit);
   const [storageData, setStorageData] = useState<GetStorageDataType | undefined>(undefined);
+  const [modelHash, setModelHash] = useState('')
 
   const message = useMessage();
 
   const serverRebootFun = async () => {
-    const res = await Axios('POST', serverRebootApi, {
+    const res = await Axios('POST', ServerRebootApi, {
       priority: 0,
       schedule: '',
-    }, true)
-    if (res !== undefined) {
-      if (res.data.success) {
-        message.success({ title: '서버 재부팅', msg: '서버 재부팅에 성공했습니다' })
-      } else {
-        message.error({ title: '서버 재부팅 에러', msg: '서버 재부팅에 실패했습니다' })
-      }
+    })
+    if (res) {
+      message.success({ title: '서버 재부팅', msg: '서버 재부팅에 성공했습니다' })
     } else {
       message.error({ title: '서버 재부팅 에러', msg: '서버 재부팅에 실패했습니다' })
     }
@@ -150,24 +142,12 @@ const ServerMgmtSidebar = () => {
   const serverCtrlFun = async () => {
     setIsOpenCtrlModal(false);
 
-    // if(selectedService === 'back' && serviceCommand === 'stop') {
-    //   message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 중지할 수 없습니다' })
-    // } else if(selectedService === 'back' && serviceCommand === 'restart') {
-    //   message.error({ title: '서비스 제어 에러', msg: 'back 서비스는 재시작할 수 없습니다' })
-    // } else {
-    const res = await Axios('POST', serverControlApi, {
-      serviceCtrl: [{
-        command: serviceCommand,
-        serviceType: selectedService,
-      }]
-    }, true)
-
-    if (res !== undefined) {
-      if (res.data.success) {
-        message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
-      } else {
-        message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
-      }
+    const res = await Axios('POST', ServerControlApi, {
+      command: serviceCommand,
+      serviceType: selectedService,
+    })
+    if (res) {
+      message.success({ title: '서비스 제어', msg: '서비스 제어에 성공했습니다' })
     } else {
       message.error({ title: '서비스 제어', msg: '서비스 제어에 실패했습니다' })
     }
@@ -205,19 +185,15 @@ const ServerMgmtSidebar = () => {
       setStartDate('');
       setEndDate('');
 
-      const res = await Axios('POST', serverLogFilesDownloadApi, {
-        logData: [{
-          logType: selectedLogFile,
-          logDate: {
-            startDate: startDate,
-            endDate: endDate
-          }
-        }]
+      const res = await Axios('POST', ServerLogFilesDownloadApi, {
+        logType: ['BE', 'AI'],
+        startDate: startDate,
+        endDate: endDate
       }, true)
-
-      if (res.status === 204) {
+      
+      if (res && res.status === 204) {
         message.error({ title: '로그 파일 다운로드', msg: '해당 날짜의 로그 파일이 없습니다' })
-      } else {
+      } else if(res) {
         const versionName = res.headers['content-disposition'].split(';').filter((str: any) => str.includes('filename'))[0].match(/filename="([^"]+)"/)[1];
         const fileDownlaoadUrl = URL.createObjectURL(res.data);
         const downloadLink = document.createElement('a');
@@ -232,34 +208,19 @@ const ServerMgmtSidebar = () => {
   }
 
   const modelUploadFun = async (file: any) => {
-    const res = await Axios('POST', modelFileUploadApi, {
-      modelFile: file,
-      fileName: fileName
-    }, true);
+    const res = await Axios('POST', ModelFileUploadApi, {
+      file: file,
+      hash: modelHash
+    });
 
-    if (res !== undefined) {
-      if (res.data.success) {
-        message.success({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 성공했습니다' })
-        setFileName('');
-      } else {
-        message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
-        setFileName('');
-      }
-    } else {
-      message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
-      setFileName('');
+    if (res) {
+      message.success({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 성공했습니다' })
     }
-
+    // else {
+    //   message.error({ title: '모델 파일 업로드', msg: '모델 파일 업로드에 실패했습니다' })
+    //   setFileName('');
+    // }
   }
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFileName('');
-    const fileInput = event.target;
-    if (fileInput.files && fileInput.files[0]) {
-      const name = fileInput.files[0].name;
-      setFileName(name);
-    }
-  };
 
   const GetStorageThreshHoldFun = async () => {
     const res: GetStorageThreshHoldType = await Axios('GET', StorageThreshHoldApi)
@@ -325,12 +286,26 @@ const ServerMgmtSidebar = () => {
     GetStorageDataFun();
   }, [])
 
+  const serviceCheckBoxInput = (type: ServiceInputType, title: string) => {
+    const convertedType: ServiceType[] = type === 'AI' ? ['main', 'detect', 'rt'] : [type]
+    return <label>
+      <input type="checkbox" checked={convertedType.every(_ => selectedService.includes(_))} onChange={e => {
+        if (e.currentTarget.checked) {
+          setSelectedService(selectedService.concat(convertedType))
+        } else {
+          setSelectedService(selectedService.filter(_ => !convertedType.includes(_)))
+        }
+      }} /><span>{title}</span>
+    </label>
+  }
+
   return (
     <div>
       <div style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '20px' }}>제어</div>
       <div style={{ display: 'flex', marginBottom: '25px' }}>
         <div style={{ lineHeight: '35px', fontSize: '1.1rem' }}>서버 재부팅</div>
         <ServerControlButton
+          hover
           icon={serverRebootIcon}
           onClick={() => {
             setIsOpenRebootModal(true);
@@ -343,6 +318,7 @@ const ServerMgmtSidebar = () => {
           <div style={{ lineHeight: '35px', fontSize: '1.1rem' }}>서비스 제어</div>
           <div>
             <ServerControlButton
+              hover
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('start');
@@ -351,6 +327,7 @@ const ServerMgmtSidebar = () => {
               시작
             </ServerControlButton>
             <ServerControlButton
+              hover
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('stop');
@@ -359,6 +336,7 @@ const ServerMgmtSidebar = () => {
               종료
             </ServerControlButton>
             <ServerControlButton
+              hover
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('restart');
@@ -368,15 +346,18 @@ const ServerMgmtSidebar = () => {
             </ServerControlButton>
           </div>
         </div>
-        <div>
-          <ServerControlDropdown
+        <ServiceControllerInputContainer>
+          {serviceCheckBoxInput('AI', 'AI')}
+          {serviceCheckBoxInput('back', '백엔드')}
+          {serviceCheckBoxInput('mediaserver', '미디어 서버')}
+          {/* <ServerControlDropdown
             itemList={ServerControlDropdownList}
             bodyStyle={{ backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}` }}
             onChange={val => {
               setSelectedService(val.value as string);
             }}
-          />
-        </div>
+          /> */}
+        </ServiceControllerInputContainer>
       </div>
       <div style={{ marginBottom: '35px', lineHeight: '35px' }}>
         <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>로그 파일 다운로드</div>
@@ -411,17 +392,9 @@ const ServerMgmtSidebar = () => {
           </div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ width: '300px' }}>
-            <ServerControlDropdown
-              itemList={logFileDownloadList}
-              bodyStyle={{ backgroundColor: `${InputBackgroundColor}`, zIndex: 1, border: `1px solid ${ButtonBorderColor}` }}
-              onChange={val => {
-                setSelectedLogFile(val.value as logFileType);
-              }}
-            />
-          </div>
           <div>
             <UploadDownloadButton
+              hover
               onClick={logFileDownloadFun}
               icon={downloadIcon}
               iconStyle={{ width: '15px', height: '15px' }}
@@ -437,13 +410,27 @@ const ServerMgmtSidebar = () => {
       }} defaultValue={timeValue} onChange={setTimeValue} title="검색 시간" /> */}
 
       <div style={{ marginBottom: '35px', lineHeight: '35px' }}>
-        <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>모델 파일 업로드</div>
+        <div style={{ marginBottom: '10px', fontSize: '1.1rem' }}>패치 파일 업로드</div>
+        <div style={{ marginBottom: '10px', marginLeft: '20px' }}>
+            <span style={{ marginRight: '10px' }}>
+              해시 값:
+            </span>
+            <DateInput
+              placeholder="Hash Code"
+              style={{
+                width: '80%'
+              }}
+              maxLength={100}
+              value={modelHash}
+              onChange={(value) => {
+                setModelHash(value)
+              }}
+            />
+          </div>
         <div>
           <UploadButton onSubmit={files => {
-            const file = files[0];
-            if (!file) return message.error({ title: '모델 파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
-            modelUploadFun(file);
-          }} />
+            modelUploadFun(files[0]);
+          }} accept="*"/>
         </div>
       </div>
       <div style={{ marginBottom: '25px', lineHeight: '30px' }}>
@@ -494,6 +481,7 @@ const ServerMgmtSidebar = () => {
               }}
             />
             <ServerControlButton
+              hover
               onClick={() => {
                 if (storageThreshHold > 100) {
                   return message.error({ title: '저장공간 사용량 설정 에러', msg: '100 이하로 입력해주세요' })
@@ -517,6 +505,7 @@ const ServerMgmtSidebar = () => {
               }}
             />
             <ServerControlButton
+              hover
               onClick={() => {
                 if (deleteStoragePercent > 100) {
                   return message.error({ title: '용량 정리하기 에러', msg: '100 이하로 입력해주세요' })
@@ -535,6 +524,7 @@ const ServerMgmtSidebar = () => {
             <div style={{ lineHeight: '35px' }}>날짜 기준으로 정리하기</div>
             <div>
               <ServerControlButton
+                hover
                 onClick={() => {
                   DeleteStorageFun('date')
                 }}
@@ -719,4 +709,58 @@ const StorageInput = styled(Input)`
   text-align: center;
   color: white;
   width: 60px;
+`
+
+const ServiceControllerInputContainer = styled.div`
+    height: 32px;
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-end', gap: '12px' })}
+    & > label {
+      cursor: pointer;
+      position: relative;
+      padding: 4px 2em;
+      padding-left: 3em;
+      line-height: 2;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: space-between;
+      &:before {
+        padding: 4px 8px;
+        box-sizing: border-box;
+        content: " ";
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 0;
+        display: block;
+        width: 1.4em;
+        height: 1.4em;
+        border: 2px solid #9098A9;
+        border-radius: 6px;
+      }
+      & > input {
+        display:none;
+        visibility: hidden;
+        &:checked {
+          padding-left: 1em;
+          color: #0f5229;
+        }
+      }
+      &:has(input:checked):before {
+        content: '✔';
+        width: 100%;
+        height: 100%;
+        background: ${InputBackgroundColor};
+        border-color: ${ButtonBorderColor};
+        z-index: 1;
+      }
+      &,&:before {
+        transition: 0.25s all ease;
+      }
+      & > span {
+        z-index: 2;
+      }
+      &:hover > span {
+        color: ${TextActivateColor};
+      }
+    }
 `

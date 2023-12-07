@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, RefreshApi, ReidCancelApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi, modelFileUploadApi, serverControlApi, serverLogFilesDownloadApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, ModelFileUploadApi, RefreshApi, ReidCancelApi, ServerControlApi, ServerLogFilesDownloadApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -32,10 +32,10 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
     const options: AxiosRequestConfig<any> = {
         method,
         url,
-        responseType: ([serverLogFilesDownloadApi].includes(url!)) ? 'blob' : 'json',
-        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, serverControlApi, modelFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
+        responseType: ([ServerLogFilesDownloadApi].includes(url!)) ? 'blob' : 'json',
+        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, ServerControlApi, ModelFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
-            "Content-Type": ([VmsExcelUploadApi, modelFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
+            "Content-Type": ([VmsExcelUploadApi, ModelFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
             'Authorization': GetAuthorizationToken()
         }
     }
@@ -47,7 +47,8 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
     return axios(options).then(res => {
         if (res) {
             if (isFullResponse) return res
-            return res.data.rows
+            if(res.data.rows) return res.data.rows
+            else return res.data
         }
     }).catch(err => {
         console.error(err)

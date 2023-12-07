@@ -2,8 +2,8 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 module.exports = function (app) {
   app.use(
-    createProxyMiddleware('/test', {
-      target: 'https://localhost:8080',
+    createProxyMiddleware('/monitoring', {
+      target: 'https://192.168.182.54:8082',
       changeOrigin: true,
       secure: false
     }),

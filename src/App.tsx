@@ -60,6 +60,8 @@ const App = () => {
       if (err.response) {
         const { status, data } = err.response
         const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
+        console.debug(err, err.response)
+        console.debug("test : " ,data)
         if(!success) {
           _message.error({
             title: serverErrorTitleByStatusCode(status),
@@ -67,7 +69,7 @@ const App = () => {
           })
         }
         if (code === 401 || status === 502) {
-          setLoginState(null)
+          // setLoginState(null)
         }
       }
       return Promise.reject(err)

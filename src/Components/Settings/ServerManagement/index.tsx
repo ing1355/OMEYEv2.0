@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ButtonBackgroundColor, ButtonBorderColor, InputBackgroundColor } from "../../../styles/global-styled";
-import { GetServerInfoApi, serverMgmtInfoApi } from "../../../Constants/ApiRoutes";
+import { GetServerInfoApi, ServerMgmtInfoApi } from "../../../Constants/ApiRoutes";
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues";
 import { Progress } from "antd";
 import { LineChart } from "@mui/x-charts";
@@ -355,9 +355,10 @@ const ServerManagement = ({visible}: {
   async function sseSetting() {
     if(sseRef.current) {
       sseRef.current.close();
+      sseRef.current = undefined
     }
 
-    sseRef.current = await CustomEventSource(serverMgmtInfoApi);
+    sseRef.current = await CustomEventSource(ServerMgmtInfoApi);
 
     sseRef.current.onopen = () => {
       console.log('server mgmt sse open');
@@ -488,7 +489,10 @@ const ServerManagement = ({visible}: {
         </div>
         <div 
           style={{cursor: 'pointer', marginLeft: '10px'}}
-          onClick={sseSetting}
+          onClick={() => {
+            GetServerInfo()
+            sseSetting()
+          }}
         >
           <img 
             src={resetIcon} 

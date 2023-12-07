@@ -19,6 +19,7 @@ const UploadButton = ({ onSubmit, accept, fileChangeCallback, children }: Upload
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const fileInput = event.target;
         if (fileInput.files && fileInput.files[0]) {
+            if (!fileInput.files[0]) return message.error({ title: '파일 업로드 에러', msg: '파일을 다시 업로드해주세요' })
             const name = fileInput.files[0].name;
             setFileName(name);
         }
