@@ -74,7 +74,6 @@ export const ServerMgmtInfoApi = '/monitoring/mgmt/info'
 export const ServerRebootApi = '/monitoring/mgmt/reboot'
 export const ServerControlApi = '/monitoring/mgmt/servicectrl'
 export const ServerLogFilesDownloadApi = '/monitoring/mgmt/log/download'
-export const ModelFileUploadApi = '/monitoring/mgmt/upload/model'
 export const PatchFileUploadApi = '/monitoring/mgmt/upload/patch'
 export const GetServerInfoApi = '/monitoring/mgmt/server-info'
 

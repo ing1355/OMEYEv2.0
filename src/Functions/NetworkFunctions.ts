@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, ModelFileUploadApi, RefreshApi, ReidCancelApi, ServerControlApi, ServerLogFilesDownloadApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, PatchFileUploadApi, RefreshApi, ReidCancelApi, ServerControlApi, ServerLogFilesDownloadApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { ObjectTypes } from "../Components/ReID/ConstantsValues";
@@ -33,9 +33,9 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         method,
         url,
         responseType: ([ServerLogFilesDownloadApi].includes(url!)) ? 'blob' : 'json',
-        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, ServerControlApi, ModelFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
+        timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, ServerControlApi, PatchFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
-            "Content-Type": ([VmsExcelUploadApi, ModelFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
+            "Content-Type": ([VmsExcelUploadApi, PatchFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
             'Authorization': GetAuthorizationToken()
         }
     }
