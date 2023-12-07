@@ -55,21 +55,33 @@ const App = () => {
     })
     axios.interceptors.response.use(res => {
       return res;
-    }, err => {
-      console.error('Axios error : ' ,err)
+    }, async err => {
+      console.error('Axios error : ', err)
       if (err.response) {
         const { status, data } = err.response
-        const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
-        console.debug(err, err.response)
-        console.debug("test : " ,data)
-        if(!success) {
-          _message.error({
-            title: serverErrorTitleByStatusCode(status),
-            msg: msgByStatusCode(status, (errorCode || message))
-          })
-        }
-        if (code === 401 || status === 502) {
-          // setLoginState(null)
+        console.debug(data)
+        if (data instanceof Blob) {
+          try {
+            const pyResponse = JSON.parse(await data.text())
+            const { code, errorCode, extraData, message, success } = pyResponse as ServerErrorDataType
+            _message.error({
+              title: serverErrorTitleByStatusCode(status),
+              msg: msgByStatusCode(status, (errorCode || message))
+            })
+          } catch (e) {
+            console.debug(e)
+          }
+        } else {
+          const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
+          if (!success) {
+            _message.error({
+              title: serverErrorTitleByStatusCode(status),
+              msg: msgByStatusCode(status, (errorCode || message))
+            })
+          }
+          if (code === 401 || status === 502) {
+            // setLoginState(null)
+          }
         }
       }
       return Promise.reject(err)
