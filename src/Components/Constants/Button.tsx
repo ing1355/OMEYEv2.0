@@ -5,9 +5,10 @@ import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, 
 export type ButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>
 type ConcepType = "default" | "activate" | "icon"
 
-const Button = forwardRef(({ icon, children, iconStyle, activate, concept, onClick, otherRef, ...props }: ButtonType & {
-    children?: JSX.Element | JSX.Element[] | React.ReactNode | string
+const Button = forwardRef(({ icon, children, iconStyle, activate, concept, onClick, otherRef, subIcon, ...props }: ButtonType & {
+    children?: React.ReactNode
     icon?: string
+    subIcon?: React.ReactNode
     iconStyle?: CSSProperties
     activate?: boolean
     concept?: ConcepType
@@ -44,7 +45,8 @@ const Button = forwardRef(({ icon, children, iconStyle, activate, concept, onCli
             gap: '8px'
         } : {}}
     >
-        {icon && <Icon src={icon} style={iconStyle} />}
+        {subIcon}
+        {icon ? <Icon src={icon} style={iconStyle} /> : <></>}
         {children}
     </StyledButton>
 })

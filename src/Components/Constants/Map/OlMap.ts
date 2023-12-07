@@ -4,7 +4,7 @@ import { CustomMap } from "./CustomMap";
 import Tile from 'ol/layer/Tile';
 import Map from 'ol/Map';
 import View from 'ol/View';
-import { CameraDataType, SelectedMarkersType, SiteDataType } from '../../../Constants/GlobalTypes';
+import { CameraDataType, ReIDResultDataResultListDataType, SelectedMarkersType, SiteDataType } from '../../../Constants/GlobalTypes';
 import Feature, { FeatureLike } from "ol/Feature";
 import Point from "ol/geom/Point";
 import { Coordinate } from "ol/coordinate";
@@ -269,6 +269,11 @@ export class OlMap extends CustomMap<Map> {
     hoverId: string | number | undefined
 
     /**
+     * @field {string | number | undefined} 동선 강조된 마커 ID
+     */
+    pathHoverId: string | number | undefined
+
+    /**
      * @field {string | number | undefined} 마우스 클릭된 마커 ID
      */
     clickId: string | number | undefined
@@ -447,11 +452,10 @@ export class OlMap extends CustomMap<Map> {
                         this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
                         // this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     }
-                } else if(features || feature) {
+                } else if (features || feature) {
                     let _feature: Feature<Geometry>
-                    if(feature) console.debug(feature.getId())
-                    if(feature && feature.getId()) _feature = feature
-                    else if(features && features.length > 0) _feature = features[0]
+                    if (feature && feature.getId()) _feature = feature
+                    else if (features && features.length > 0) _feature = features[0]
                     else return;
                     this.clickId = _feature.getId()
                     switch (this.map.get(mapStateKey)) {
@@ -579,14 +583,15 @@ export class OlMap extends CustomMap<Map> {
         this.map.set(selectedMarkerDataKey, currentSelectedMarkers)
     }
 
-    createPathLines(cctvIds: CameraDataType['cameraId'][], color?: CSSProperties['color']): void {
+    createPathLines(results: ReIDResultDataResultListDataType[], color?: CSSProperties['color']): void {
         this.trafficInputOverlay?.setPosition(undefined)
-        if (cctvIds.length >= 2) {
+        const cctvIds = results.map(_ => _.cctvId!)
+        if (results.length >= 2) {
             this.pathMarkers = [...cctvIds]
-            cctvIds.forEach((_, ind, arr) => {
+            results.forEach((_, ind, arr) => {
                 if (ind !== arr.length - 1) {
-                    const targetFeature = this.VS.getFeatureById(_)
-                    const nextTargetFeature = this.VS.getFeatureById(arr[ind + 1])
+                    const targetFeature = this.VS.getFeatureById(_.cctvId!)
+                    const nextTargetFeature = this.VS.getFeatureById(arr[ind + 1].cctvId!)
                     const resultFeature = new Feature({
                         geometry: new LineString([
                             (targetFeature?.getGeometry() as Point).getCoordinates(),
@@ -595,7 +600,7 @@ export class OlMap extends CustomMap<Map> {
                         color
                     });
                     targetFeature?.set('type', 2)
-                    resultFeature.setId(_ + "_" + arr[ind + 1])
+                    resultFeature.setId(_.resultId + "_" + arr[ind + 1].resultId)
                     this.arrowVS.addFeature(resultFeature)
                 }
             })
@@ -619,14 +624,21 @@ export class OlMap extends CustomMap<Map> {
         }
         this.map.set(mapStateKey, mapState['COMPLETE'])
         this.map.removeInteraction(this.dragBox)
+        // this.pathVL.setOpacity(1)
     }
 
     clearPathLines(): void {
+        const temp = new VectorSource({ features: [] })
+        temp.addFeatures(this.pathVS.getFeatures().map(_ => _.clone()))
         if (this.pathVS) {
+            this.pathHoverId = undefined
             this.pathVS.forEachFeature(_ => {
                 _.set("type", 1)
             })
             this.pathVS.clear()
+            const temp2 = new VectorSource({ features: [] })
+            temp2.addFeatures(this.pathVS.getFeatures().map(_ => _.clone()))
+            // this.pathVL.setOpacity(0)
         }
         if (this.arrowVS) {
             this.arrowVS.clear()
@@ -759,29 +771,28 @@ export class OlMap extends CustomMap<Map> {
 
     changeViewForPathCamera = (camera: CameraDataType['cameraId']) => {
         const pathFeatures = this.pathVS.getFeatures()
-        if(pathFeatures.length > 2) {
+        if (pathFeatures.length > 2) {
             this.pathVS.removeFeature(pathFeatures[2])
-        } else {
-
         }
         const feature = this.VS.getFeatureById(camera)
-        if (this.hoverId) {
-            const target = this.VS.getFeatureById(this.hoverId)
-            const _target = this.pathVS.getFeatureById(this.hoverId)
-            if(target) target.set('mode', 1)
-            if(_target) _target.set('mode', 1)
+        if (this.pathHoverId) {
+            const target = this.VS.getFeatureById(this.pathHoverId)
+            const _target = this.pathVS.getFeatureById(this.pathHoverId)
+            if (target) target.set('mode', 1)
+            if (_target) _target.set('mode', 1)
         }
-        if(feature) {
-            const temp = this.pathVS.getFeatures().map(_ => typeof _.getId() === 'string' ? Number((_.getId() as string).replace(/[start|end]/g,"")) : Number(_.getId()))
-            if(!temp.includes(Number(camera))) { // 중간 CCTV
+        if (feature) {
+            const temp = this.pathVS.getFeatures().map(_ => typeof _.getId() === 'string' ? Number((_.getId() as string).replace(/[start|end]/g, "")) : Number(_.getId()))
+            if (temp.length > 0 && !temp.includes(Number(camera))) { // 중간 CCTV
                 const newFeature = feature.clone()
                 newFeature.setId(feature.getId() + "middle")
                 this.pathVS.addFeature(newFeature)
                 newFeature?.set('mode', 2)
+                this.pathHoverId = newFeature.getId()
             } else { // 출발, 도착
                 const target = this.pathVS.getFeatures().find(_ => (_.getId() as string).includes(camera.toString()))
                 target?.set('mode', 2)
-                this.hoverId = target?.getId()
+                this.pathHoverId = target?.getId()
                 this.VL.setZIndex(2)
             }
         }
@@ -806,5 +817,19 @@ export class OlMap extends CustomMap<Map> {
         this.clickId = cctvId;
         this.trafficInputOverlay?.setPosition((geom as Point).getCoordinates())
         this.circleFeature.setGeometry(geom)
+    }
+
+    clearHoverMarker = () => {
+        const temp = new VectorSource({ features: [] })
+        temp.addFeatures(this.pathVS.getFeatures().map(_ => _.clone()))
+        
+        if (this.hoverId) {
+            const temp1 = this.VS.getFeatureById(this.hoverId)
+            if (temp1) temp1.set('mode', 1)
+        }
+        if (this.pathHoverId) {
+            const temp2 = this.pathVS.getFeatureById(this.pathHoverId)
+            if (temp2) temp2.set('mode', 1)
+        }
     }
 }

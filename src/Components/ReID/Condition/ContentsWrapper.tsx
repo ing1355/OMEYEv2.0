@@ -275,9 +275,13 @@ const ContentsWrapper = () => {
                     }}>
                         전체 선택{allSelected && ' 해제'}
                     </CompleteButton>}
-                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && (routeInfo.length === 2 || routeInfo.length === 3)) && <CompleteButton concept="activate" disabled={disableCompleteBtn()} onClick={() => {
+                    {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && (routeInfo.length === 2 || routeInfo.length === 3)) && <CompleteButton 
+                    concept="activate" 
+                    disabled={disableCompleteBtn()} 
+                    onClick={() => {
                         completeCallback()
-                    }} icon={routeInfo.length === 2 ? reidReqIcon : ''}>
+                    }} 
+                    icon={routeInfo.length === 2 ? reidReqIcon : ''}>
                         {getCompleteButtonTextByRoute()}
                     </CompleteButton>}
                 </CompleteButtons>

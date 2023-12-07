@@ -31,24 +31,33 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
     const resultData = useRecoilValue(ReIDResultData(reIdId))
     const selectedData = useRecoilValue(SingleReIDSelectedData(reIdId))
 
-    const filteredViewData = useMemo(() => resultData?.data.map((_, index) => ({
+    const filteredViewData = useMemo(() => resultData ? resultData.data.map((_, index) => ({
         title: _.title,
         index,
         objectIds: _.resultList.map(__ => __.objectId)
-    })), [resultData])
+    })) : [], [resultData])
 
     useEffect(() => {
-        console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
+        // console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
     }, [selectedData, selectedCondition, selectedTarget])
 
-    const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ =>{
+    const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ => {
         return (selectedData[_] ? Object.keys(selectedData[_]) : []).filter(__ => {
             return selectedTarget[_].includes(Number(__))
-            }).flatMap(__ => selectedData[_][Number(__)])}).flat().sort((a, b) => {
-                    return a.foundDateTime < b.foundDateTime ? -1 : 1
-                }) : [], [selectedData, selectedCondition, selectedTarget])
-    const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData.map(_ => _.cctvId!) : [], [filteredSelectedData])
-                
+        }).flatMap(__ => selectedData[_][Number(__)])
+    }).flat().sort((a, b) => {
+        return a.foundDateTime < b.foundDateTime ? -1 : 1
+    }) : [], [selectedData, selectedCondition, selectedTarget])
+
+    const filteredPathCameras = useMemo(() => filteredSelectedData.length > 0 ? filteredSelectedData : [], [filteredSelectedData])
+
+    useEffect(() => {
+        if (filteredPathCameras) {
+            if(filteredPathCameras.length === 0) setDetailResult(null)
+            else if(detailResult && detailResult.length > 0 && filteredPathCameras.every(_ => _.resultId !== detailResult[0].resultId)) setDetailResult(null)
+        }
+    }, [filteredPathCameras])
+
     const createResultBox = (_: ReIDResultDataResultListDataType, isStart: boolean, isEnd: boolean) => <ResultBox
         key={_.resultId + '1'}
         onClick={() => {
@@ -92,7 +101,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
                     visible={opened}
                     onlyMap>
                 </MapComponent>
-                <ViewTargetSelect datas={filteredViewData || []} conditionChange={conditions => {
+                <ViewTargetSelect datas={filteredViewData} conditionChange={conditions => {
                     setSelectedCondition(conditions)
                 }} targetChange={targets => {
                     setSelectedTarget(targets)
@@ -130,7 +139,7 @@ export default MapView
 
 const Container = styled.div<{ opened: boolean }>`
     height: 100%;
-    ${globalStyles.flex({gap: '12px'})}
+    ${globalStyles.flex({ gap: '12px' })}
     visibility: ${({ opened }) => opened ? 'visible' : `hidden`};
     ${globalStyles.fadeOut()}
 `
@@ -185,10 +194,10 @@ const CCTVImg = styled.img`
     height: 100%;
 `
 
-const ResultBoxMiddleContainer = styled.div<{selected: boolean}>`
+const ResultBoxMiddleContainer = styled.div<{ selected: boolean }>`
     flex: 1 1 60px;
     ${globalStyles.flex({ gap: '8px' })}
-    color: ${({selected}) => selected ? TextActivateColor : 'white'}
+    color: ${({ selected }) => selected ? TextActivateColor : 'white'}
 `
 
 const CCTVName = styled.div`

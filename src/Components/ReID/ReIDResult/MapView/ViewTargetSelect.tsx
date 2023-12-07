@@ -23,14 +23,20 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
     const [visible, setVisible] = useState(false)
     const conditionRef = useRef(selectedCondition)
     const targetRef = useRef(selectedTarget)
-    
+    const datasRef = useRef(datas)
+
     useEffect(() => {
         if (datas.length > 0) {
             setSelectedCondition(datas.map(_ => _.index))
-            // setSelectedTarget(datas.map(_ => []))
-            if(!IS_PRODUCTION) setSelectedTarget(datas.map(_ => _.objectIds))
-            else setSelectedTarget(datas.map(_ => []))
+            // if(!IS_PRODUCTION) setSelectedTarget(datas.map(_ => _.objectIds))
+            // else setSelectedTarget(datas.map((_, ind) => selectedTarget[ind] || []))
         }
+        if(datasRef.current.length === 0 && datas.length > 0) {
+            setSelectedTarget(datas.map((_,ind) => ind === 0 ? [datas[0].objectIds[0]] : []))
+        } else {
+            setSelectedTarget(datas.map((_, ind) => selectedTarget[ind] || []))
+        }
+        datasRef.current = datas
     }, [datas])
 
     useEffect(() => {

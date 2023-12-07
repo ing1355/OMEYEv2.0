@@ -5,7 +5,7 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { useEffect } from 'react';
 import { SitesData, SitesDataForTreeView } from '../../../Model/SiteDataModel';
 import { OlMap } from './OlMap';
-import { CameraDataType, ReIDObjectTypeKeys, SiteDataType } from '../../../Constants/GlobalTypes';
+import { CameraDataType, ReIDObjectTypeKeys, ReIDResultDataResultListDataType, SiteDataType } from '../../../Constants/GlobalTypes';
 import { CustomMap } from './CustomMap';
 import Input from "../../Constants/Input"
 import { ButtonDefaultHoverColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, InputBackgroundColor, InputTextColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled";
@@ -28,7 +28,7 @@ type MapComponentProps = PropsWithChildren & {
     cameras?: CameraDataType[]
     singleCamera?: CameraDataType['cameraId']
     forSingleCamera?: boolean
-    pathCameras?: CameraDataType['cameraId'][]
+    pathCameras?: ReIDResultDataResultListDataType[]
     idForViewChange?: CameraDataType['cameraId']
     forAddtraffic?: boolean
     reIdId?: number
@@ -174,9 +174,11 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     useEffect(() => {
         if (viewChangeForPath && viewChangeForPath.length > 0) {
             map.current?.changeViewForPathCamera(viewChangeForPath[0])
+        } else {
+            map.current?.clearHoverMarker()
         }
     }, [viewChangeForPath])
-
+    
     useEffect(() => {
         if (!trafficOverlayView || !circleSelectOverlayView) {
             valueInit()
@@ -275,7 +277,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 <SelectedViewBtn hover onClick={() => {
                     if (map.current) {
                         if (forAddtraffic) {
-                            map.current?.changeViewToSelectedCCTVs(pathCameras)
+                            map.current?.changeViewToSelectedCCTVs(pathCameras?.map(_ => _.cctvId!))
                         }
                         else map.current?.changeViewToSelectedCCTVs()
                     }

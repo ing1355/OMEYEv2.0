@@ -11,10 +11,12 @@ import LazyVideo from "../LazyVideo"
 import { CameraDataType, ReIDObjectTypeKeys, ReIDResultConditionDataType, ReIDResultDataResultListDataType } from "../../../../Constants/GlobalTypes"
 import ForLog from "../../../Constants/ForLog"
 import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataType, ProgressRequestParams, ProgressStatus } from "../../../../Model/ProgressModel"
-import { ObjectTypes } from "../../ConstantsValues"
+import { ObjectTypes, ReIDObjectTypeEmptyIcons } from "../../ConstantsValues"
 import timeIcon from '../../../../assets/img/ProgressTimeIcon.png'
 import similarityIcon from '../../../../assets/img/similarityIcon.png'
 import checkIcon from '../../../../assets/img/emptyCheckIcon.png'
+import reidLoadingIcon from '../../../../assets/img/reidLoadingIcon.png'
+import reidCompleteIcon from '../../../../assets/img/reidCompleteIcon.png'
 import Progress from "../../../Layout/Progress"
 import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
@@ -261,7 +263,16 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
 
     return data ? <Container visible={visible}>
         <ConditionsContainer>
-            {data.data.map((_, ind) => <ConditionItem hover key={ind} activate={selectedCondition === ind} onClick={() => {
+            {data.data.map((_, ind) => <ConditionItem 
+                subIcon={<ReIdStatusIcon 
+                isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? data.data.length - 1 : ind].times)) !== 0}>
+                    <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon}/>
+                </ReIdStatusIcon>}
+            icon={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.resultList[0].objectType)]} 
+            hover 
+            key={ind} 
+            activate={selectedCondition === ind} 
+            onClick={() => {
                 setSelectedCondition(ind)
             }}>
                 {_.title}
@@ -350,7 +361,7 @@ const ConditionsContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '8px' })}
     max-width: 100%;
     overflow: auto;
-    height: 24px;
+    height: 36px;
 `
 
 const ConditionItem = styled(Button)`
@@ -559,4 +570,14 @@ const CheckIconContainer = styled.div<{ checked: boolean }>`
         height: 100%;
         opacity: ${({ checked }) => checked ? 1 : 0.5};
     }
+`
+
+const ReIdStatusIcon = styled.div<{isLoading: boolean}>`
+    height: 100%;
+    & > img {
+        width: 100%;
+        height: 100%;
+        ${({isLoading}) => isLoading && globalStyles.rotation({animationDuration: '1.5s', animationIterationCount: 'infinite'})}
+    }
+    padding: 2px;
 `

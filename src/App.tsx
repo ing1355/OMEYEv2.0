@@ -59,7 +59,6 @@ const App = () => {
       console.error('Axios error : ', err)
       if (err.response) {
         const { status, data } = err.response
-        console.debug(data)
         if (data instanceof Blob) {
           try {
             const pyResponse = JSON.parse(await data.text())

@@ -2,7 +2,7 @@ import styled from "styled-components"
 import { ContentsActivateColor, SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { AllReIDSelectedResultData, ReIDAllResultData, ReIDResultDataKeys, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../Model/ReIdResultModel"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
 import ResultContainer from "./ResultContainer"
 import mapIcon from '../../../assets/img/mapEmptyIcon.png'
@@ -30,6 +30,7 @@ const ReIDResult = () => {
     const reIDResultKeys = useRecoilValue(ReIDResultDataKeys)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
     const setReIDResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
+    const resultDatasRef = useRef(resultDatas)
 
     const mapViewToggle = () => {
         setIsMapView(!isMapView)
@@ -37,7 +38,12 @@ const ReIDResult = () => {
 
     useEffect(() => {
         setIsMapView(false)
-    }, [selectedView, reidSelectedCondition])
+    }, [reidSelectedCondition])
+
+    useEffect(() => {
+        if(resultDatasRef.current.length !== resultDatas.length) setIsMapView(false)
+        resultDatasRef.current = resultDatas
+    },[resultDatas])
 
     const test = async () => {
         // setResultDatas(ReIDResultTestData)
@@ -73,7 +79,7 @@ const ReIDResult = () => {
     }
 
     useEffect(() => {
-        // if (!IS_PRODUCTION) test()
+        if (!IS_PRODUCTION) test()
     }, [])
 
     return <>
@@ -89,8 +95,8 @@ const ReIDResult = () => {
                             setSelectedView([_.reIdId])
                             setReidSelectedCondition(0)
                         }}>
-                            <img src={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.data[0].resultList[0].objectType)]} style={{
-                                height: '80%',
+                            <img src={resultIcon} style={{
+                                height: '65%',
                                 width: '30px'
                             }} />
                             {ind + 1}
@@ -163,10 +169,10 @@ const TitleContainer = styled.div`
 
 const Title = styled.div<{ isSelected: boolean }>`
     color: white;
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
-    height: 30px;
-    padding: 0;
+    height: 36px;
+    padding: 4px 6px;
     z-index: ${({ isSelected }) => isSelected ? 10 : 9};
     border-radius: 6px;
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
@@ -210,13 +216,13 @@ const EmptyText = styled.div`
 
 const DeleteIconContainer = styled.div`
     height: 100%;
-    width: 26px;
+    width: 24px;
     cursor: pointer;
     ${globalStyles.flex()}
 `
 
 const DeleteIcon = styled.img`
-    height: 25%;
+    height: 55%;
 `
 
 const ModalContainer = styled.div`

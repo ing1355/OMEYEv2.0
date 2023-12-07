@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { CameraDataType, SelectedMarkersType, SiteDataType } from "../../../Constants/GlobalTypes";
+import { CameraDataType, ReIDResultDataResultListDataType, SelectedMarkersType, SiteDataType } from "../../../Constants/GlobalTypes";
 
 /**
  * @param   {MapType} MapType 맵 타입 제네릭 요구(ol, 카카오 등)
@@ -70,7 +70,7 @@ export abstract class CustomMap<MapType> {
     /**
      * @param CamerasIds 동선을 표현할 마커들의 ID(순서 보장)
      */
-    public abstract createPathLines(cctvIds: CameraDataType['cameraId'][], color?: CSSProperties['color']): void;
+    public abstract createPathLines(cctvIds: ReIDResultDataResultListDataType[], color?: CSSProperties['color']): void;
 
     /**
      * 동선 마커들 삭제
@@ -123,6 +123,11 @@ export abstract class CustomMap<MapType> {
      * 동선 구축 시 전체 동선이 보이며 해당 마커만 강조되게 뷰 전환 메소드
      */
     public abstract changeViewForPathCamera(camera: CameraDataType['cameraId']): void;
+
+    /**
+     * 강제로 현재 강조된 마커 강조 해제 메소드
+     */
+    public abstract clearHoverMarker(): void;
 
     /**
      * 겹친 CCTV 클릭 시 콜백 등록 메소드
