@@ -2,9 +2,9 @@ import styled from "styled-components"
 import Button from "../../../Constants/Button"
 import Dropdown from "../../../Layout/Dropdown"
 import serverRebootIcon from "../../../../assets/img/serverRebootIcon.png"
-import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
+import { ButtonBorderColor, GlobalBackgroundColor, InputBackgroundColor, TextActivateColor, globalStyles } from "../../../../styles/global-styled";
 import { Axios } from "../../../../Functions/NetworkFunctions";
-import { ModelFileUploadApi, ServerControlApi, ServerLogFilesDownloadApi, ServerRebootApi, StorageMgmtApi, StorageThreshHoldApi } from "../../../../Constants/ApiRoutes";
+import { PatchFileUploadApi, ServerControlApi, ServerLogFilesDownloadApi, ServerRebootApi, StorageMgmtApi, StorageThreshHoldApi } from "../../../../Constants/ApiRoutes";
 import Input from "../../../Constants/Input";
 import { OnlyInputNumberFun } from "../../../../Functions/GlobalFunctions";
 import { useEffect, useState } from "react";
@@ -208,7 +208,7 @@ const ServerMgmtSidebar = () => {
   }
 
   const modelUploadFun = async (file: any) => {
-    const res = await Axios('POST', ModelFileUploadApi, {
+    const res = await Axios('POST', PatchFileUploadApi, {
       file: file,
       hash: modelHash
     });
