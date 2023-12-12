@@ -7,12 +7,13 @@ import { useRecoilState } from 'recoil';
 import { isLogin } from '../../Model/LoginModel';
 import Logo from '../Constants/Logo';
 import axios from 'axios';
-import { LoginApi, PasscodeValidationApi, duplicateLoginApi } from '../../Constants/ApiRoutes';
+import { LoginApi, PasscodeValidationApi, UserAccountApi, duplicateLoginApi } from '../../Constants/ApiRoutes';
 import { Axios } from '../../Functions/NetworkFunctions';
 import loginSideBackgroundImg from '../../assets/img/loginSideBackgroundImg.jpg'
 import logoTextImg from '../../assets/img/logoText.png'
 import { useEffect, useRef, useState } from 'react';
 import Modal from '../Layout/Modal';
+import useMessage from '../../Hooks/useMessage';
 
 const copyRightText = 'OMEYE v2.0 © 2023. OneMoreSecurity Inc. All Rights Reserved'
 
@@ -21,21 +22,55 @@ const Login = () => {
     const [initOpen, setInitOpen] = useState(false)
     const [initUserId, setInitUserId] = useState('')
     const [initPassword, setInitPassword] = useState('')
+    const [initToken, setInitToken] = useState('')
+    const [passwordInput, setPasswordInput] = useState('')
+    const [passwodConfirm, setPasswordConfirm] = useState('')
     const userIdRef = useRef<HTMLInputElement>(null)
+    const passwordRef = useRef<HTMLInputElement>(null)
+    const message = useMessage()
 
     useEffect(() => {
-        setInitUserId('')
-        setInitPassword('')
-        userIdRef.current?.focus()
+        if (initOpen) {
+            setInitUserId('')
+            setInitPassword('')
+            userIdRef.current?.focus()
+        }
     }, [initOpen])
 
-    const initPasswordFunc = async () => {
+    useEffect(() => {
+        if (initToken) {
+            setPasswordInput('')
+            setPasswordConfirm('')
+            passwordRef.current?.focus()
+        }
+    }, [initToken])
+
+    const PasscodeValidateFunc = async () => {
         const res = await Axios('POST', PasscodeValidationApi, {
             username: initUserId,
             initCode: initPassword
-        })
+        }, true)
 
-        console.debug("Test : " , res)
+        if (res) {
+            message.success({ title: "패스코드 인증 성공", msg: "새로운 비밀번호를 지정해주세요." })
+            setInitOpen(false)
+            setInitToken(res.headers.authorization)
+        }
+    }
+
+    const initPasswordFunc = async () => {
+        if(passwodConfirm !== passwordInput) {
+            passwordRef.current?.focus()
+            return message.error({title: "비밀번호 입력 에러", msg : "입력하신 비밀번호가 일치하지 않습니다."})
+        }
+        const res = await Axios('PATCH', UserAccountApi, {
+            password: passwordInput
+        }, false, initToken)
+        
+        if(res) {
+            message.success({title: "비밀번호 초기화 성공", msg: "새로운 비밀번호로 로그인 하실 수 있습니다."})
+            setInitToken('')
+        }
     }
 
     return <>
@@ -94,16 +129,16 @@ const Login = () => {
                 </VersionText>
             </WithLogoContainer>
             <InnerImageContainer>
-                <InnerImg alt="test" src={loginSideBackgroundImg} />
+                <InnerImg src={loginSideBackgroundImg} />
             </InnerImageContainer>
         </LoginContainer>
         <CopyRight>
             {copyRightText}
         </CopyRight>
-        <Modal visible={initOpen} close={() => {
+        <Modal visible={initOpen && !initToken} close={() => {
             setInitOpen(false)
-        }} title="비밀번호 초기화" noFooter>
-            <Form onSubmit={initPasswordFunc}>
+        }} title="패스코드 입력" noFooter>
+            <Form onSubmit={PasscodeValidateFunc}>
                 <PasswordInitRow>
                     <PasswordInitRowTitle>
                         <div>
@@ -124,6 +159,42 @@ const Login = () => {
                         }} type="password" maxLength={6} onlyNumber />
                     </PasswordInitRowTitle>
                 </PasswordInitRow>
+                <InitButtonsContainer>
+                    <InitButton hover type='submit'>
+                        확인
+                    </InitButton>
+                    <InitButton hover onClick={() => {
+                        setInitOpen(false)
+                    }} type='button'>
+                        닫기
+                    </InitButton>
+                </InitButtonsContainer>
+            </Form>
+        </Modal>
+        <Modal visible={initToken !== ''} close={() => {
+            setInitToken('')
+        }} title="비밀번호 초기화" noFooter>
+            <Form onSubmit={initPasswordFunc}>
+                <PasswordConfirmRow>
+                    <PasswordConfirmTitle>
+                        <div>
+                            새로운 패스워드 :
+                        </div>
+                        <Input value={passwordInput} inputRef={passwordRef} onChange={value => {
+                            setPasswordInput(value)
+                        }} type="password"/>
+                    </PasswordConfirmTitle>
+                </PasswordConfirmRow>
+                <PasswordConfirmRow>
+                    <PasswordConfirmTitle>
+                        <div>
+                            패스워드 확인 :
+                        </div>
+                        <Input value={passwodConfirm} onChange={value => {
+                            setPasswordConfirm(value)
+                        }} type="password" />
+                    </PasswordConfirmTitle>
+                </PasswordConfirmRow>
                 <InitButtonsContainer>
                     <InitButton hover type='submit'>
                         초기화
@@ -253,7 +324,7 @@ const PasswordInitRow = styled.div`
 
 const PasswordInitRowTitle = styled.label`
     height: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
     & > div {
         flex: 0 0 60px;
         text-align: right;
@@ -270,4 +341,23 @@ const InitButtonsContainer = styled.div`
 `
 
 const InitButton = styled(Button)`
+`
+
+const PasswordConfirmRow = styled.div`
+    height: 32px;
+    padding: 4px 0;
+    width: 400px;
+`
+
+const PasswordConfirmTitle = styled.div`
+    height: 100%;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
+    & > div {
+        flex: 0 0 120px;
+        text-align: right;
+    }
+    & > input {
+        height: 100%;
+        flex: 1;
+    }
 `

@@ -1,12 +1,10 @@
-import axios, { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
-import { AuthorizationKey, GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
+import axios, { AxiosHeaderValue, AxiosHeaders, AxiosRequestConfig, CreateAxiosDefaults } from "axios";
+import { GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
 import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, PatchFileUploadApi, RefreshApi, ReidCancelApi, ServerControlApi, ServerLogFilesDownloadApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
-import { ObjectTypes } from "../Components/ReID/ConstantsValues";
 import { convertFromClientToServerFormatObjectData } from "./GlobalFunctions";
-import { ReIDStartRequestParamsType } from "../Constants/NetworkTypes";
 import { ReIDRequestParamsType } from "../Model/ReIdResultModel";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
@@ -28,7 +26,7 @@ export const getLocalIp = async (url: string) => {
     })
 }
 
-export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['url'], bodyOrParams?: CreateAxiosDefaults['data'] | CreateAxiosDefaults['params'], isFullResponse?: boolean): Promise<any> {
+export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['url'], bodyOrParams?: CreateAxiosDefaults['data'] | CreateAxiosDefaults['params'], isFullResponse?: boolean, Authorization?: AxiosHeaderValue): Promise<any> {
     const options: AxiosRequestConfig<any> = {
         method,
         url,
@@ -36,8 +34,11 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
         timeout: ([StartReIdApi, SubmitPersonDescriptionInfoApi, ServerControlApi, PatchFileUploadApi, StorageMgmtApi].includes(url!) || url?.startsWith("/test")) ? 999999999 : 5000,
         headers: {
             "Content-Type": ([VmsExcelUploadApi, PatchFileUploadApi, mapFileUploadApi, CCTVIconUploadApi].includes(url!)) ? 'multipart/form-data' : "application/json",
-            'Authorization': GetAuthorizationToken()
+            'Authorization': GetAuthorizationToken(),
         }
+    }
+    if(Authorization) {
+        options.headers!.Authorization = Authorization
     }
     if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
         options.data = bodyOrParams

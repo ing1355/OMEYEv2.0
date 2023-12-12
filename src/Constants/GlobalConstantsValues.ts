@@ -24,6 +24,7 @@ export const SettingsMenuKey: SettingsMenuKeyType = 'SETTINGSMENU'
 export const HealthCheckTimerDuration = 10000
 
 export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
+export const GetCurrentLocale = () => document.head.lang || localStorage.getItem('locale')
 
 export const CustomEventSource = async (url: string) => new EventSource(url, {
     headers: {

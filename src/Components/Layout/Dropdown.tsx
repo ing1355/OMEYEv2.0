@@ -4,6 +4,7 @@ import Button from "../Constants/Button"
 import downArrowIcon from "../../assets/img/downArrowIcon.png"
 import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../styles/global-styled"
 import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
+import ForLog from "../Constants/ForLog"
 
 export type DropdownItemType<T> = {
     key: T
@@ -19,23 +20,31 @@ export type DropdownProps<T> = {
     disableFunc?: (val: DropdownItemType<T>) => boolean
     disableCallback?: () => void
     bodyStyle?: React.CSSProperties
+    value?: T
     valueIndex?: number
+    debug?: boolean
 }
 
-const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle, valueIndex }: DropdownProps<T>) => {
+const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFunc, disableCallback, bodyStyle, valueIndex, value, debug }: DropdownProps<T>) => {
     const [opened, setOpened] = useState(false)
-    const [value, setValue] = useState<DropdownItemType<T>>(valueIndex ? itemList[valueIndex] : itemList[0])
+    const [_value, setValue] = useState<DropdownItemType<T>>(valueIndex ? itemList[valueIndex] : itemList[0])
 
     useEffect(() => {
-        if (onChange) onChange(value)
-    }, [value])
+        if (onChange) onChange(_value)
+    }, [_value])
+
+    useEffect(() => {
+        if(value) {
+            setValue(itemList.find(_ => _.value === value)!)
+        }
+    },[value])
 
     return <DropdownContainer visible={opened} setVisible={setOpened}>
         <DropdownButton className={className} onClick={(e) => {
             setOpened(!opened)
         }} type="button">
             <>
-                {value.label}
+                {_value.label}
                 <img src={downArrowIcon} style={{
                     height: '80%'
                 }}/>

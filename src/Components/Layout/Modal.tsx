@@ -133,10 +133,10 @@ const ContentsContainer = styled.div`
 
 const Header = styled.div`
     ${globalStyles.flex({alignItems:'flex-start'})}
-    height: 48px;
-    padding: 8px 16px;
-    font-size: 1.1rem;
-    border-bottom: 1px solid ${ContentsBorderColor};
+    height: 56px;
+    padding: 12px 16px;
+    font-size: 1.3rem;
+    font-weight: bold;
     position: relative;
 `
 
@@ -148,7 +148,7 @@ const CompleteBtn = styled(Button)`
 
 const CloseIcon = styled.img`
     height: 100%;
-    padding: 10px;
+    padding: 12px;
     cursor: pointer;
     position: absolute;
     right: 0;
@@ -156,9 +156,8 @@ const CloseIcon = styled.img`
 `
 
 const Contents = styled.div<{noFooter: boolean}>`
-    padding: 12px;
+    padding: 12px 16px 24px 16px;
     ${globalStyles.flex()}
-    min-height: calc(100% - ${({noFooter}) => noFooter ? 40 : 88}px);
 `
 
 const Footer = styled.div`

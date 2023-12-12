@@ -21,6 +21,7 @@ import { message } from "antd"
 import useMessage from "../../../Hooks/useMessage"
 import plusIcon from "../../../assets/img/plusIcon.png"
 import minusIcon from "../../../assets/img/minusIcon.png"
+import passcodeIcon from "../../../assets/img/passcodeIcon.png"
 import PasswordManagement from "./PasswordManagement"
 
 const AccountSearchDropdownList = [
@@ -379,8 +380,8 @@ const AccountSettings = ({visible}: {
                       {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
                       <div style={{cursor: 'pointer'}} onClick={(e) => {
                         e.stopPropagation()
-                        setPasscodeTarget(data.username)
-                      }}><img src={edit} style={{height: '15px'}}/></div>:<div/>}
+                        setPasscodeTarget(data.id)
+                      }}><img src={passcodeIcon} style={{height: '15px'}}/></div>:<div/>}
                     </AccountRow>
                   )
                 })}
@@ -438,7 +439,7 @@ const AccountSettings = ({visible}: {
           </div>
         </ModalInnerContainer>
       </Modal>
-      <PasswordManagement visible={passcodeTarget} setVisible={setPasscodeTarget} targetId={usersAccountRows.totalCount > 0 ? usersAccountRows.results.find(_ => _.username === passcodeTarget)?.id! : ''}/>
+      <PasswordManagement visible={passcodeTarget} setVisible={setPasscodeTarget}/>
     </div>
   )
 }
@@ -494,15 +495,16 @@ const DeleteModalButton = styled(Button)`
 const AccountRow = styled.div<{isSelected?: boolean}>`
   ${globalStyles.flex({flexDirection:'row'})}
   background-color: ${({isSelected}) => isSelected === undefined ? ButtonBackgroundColor : (isSelected ? ButtonInActiveBackgroundColor : 'transparent')};
-  padding: 10px 0;
+  height: 44px;
   border-bottom: 1px solid ${ButtonBorderColor};
   & > div {
-    line-height: 20px;
+    height: 100%;
+    line-height: 44px;
     &:first-child {
       width: 3%;
     }
     &:nth-child(2) {
-      width: 13%;
+      width: 15%;
     }
     &:nth-child(3) {
       width: 10%;
@@ -511,7 +513,7 @@ const AccountRow = styled.div<{isSelected?: boolean}>`
       width: 15%;
     }
     &:nth-child(5) {
-      width: 10%;
+      width: 11%;
     }
     &:nth-child(6) {
       width: 17%;
@@ -523,7 +525,7 @@ const AccountRow = styled.div<{isSelected?: boolean}>`
       width: 5%;
     }
     &:nth-child(9) {
-      width: 10%;
+      width: 7%;
     }
   }
 `

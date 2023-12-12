@@ -3,22 +3,17 @@ import Login from './Components/Login';
 import Main from './Components/Main';
 import styled from 'styled-components';
 import { globalStyles } from './styles/global-styled';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import { isLogin } from './Model/LoginModel';
 import Layout from './Components/Layout';
 import ErrorHandleComponent from './ErrorHandleComponent';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import useMessage from './Hooks/useMessage';
 import axios, { HttpStatusCode } from 'axios';
 import { getLocalIp } from './Functions/NetworkFunctions';
-
-type ServerErrorDataType = {
-  code: number
-  errorCode: string
-  extraData: any
-  message: string
-  success: boolean
-}
+import { GetCurrentLocale } from './Constants/GlobalConstantsValues';
+import { CurrentLang } from './Model/LanguageModel';
+import AxiosController from './AxiosContoller';
 
 const serverErrorTitleByStatusCode = (code: HttpStatusCode) => {
   switch (code) {
@@ -46,49 +41,18 @@ const msgByStatusCode = (code: number, msg?: string) => {
 const App = () => {
   const [loginState, setLoginState] = useRecoilState(isLogin)
   const [handlerComplete, setHandlerComplete] = useState(false)
-  const _message = useMessage()
 
+  useEffect(() => {
+
+  },[])
+  
   useLayoutEffect(() => {
-    axios.interceptors.request.use(async req => {
-      req.headers['X-Forwarded-For'] = await getLocalIp(req.url!)
-      return req
-    })
-    axios.interceptors.response.use(res => {
-      return res;
-    }, async err => {
-      console.error('Axios error : ', err)
-      if (err.response) {
-        const { status, data } = err.response
-        if (data instanceof Blob) {
-          try {
-            const pyResponse = JSON.parse(await data.text())
-            const { code, errorCode, extraData, message, success } = pyResponse as ServerErrorDataType
-            _message.error({
-              title: serverErrorTitleByStatusCode(status),
-              msg: msgByStatusCode(status, (errorCode || message))
-            })
-          } catch (e) {
-            console.debug(e)
-          }
-        } else {
-          const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
-          if (!success) {
-            _message.error({
-              title: serverErrorTitleByStatusCode(status),
-              msg: msgByStatusCode(status, (errorCode || message))
-            })
-          }
-          if (code === 401 || status === 502) {
-            // setLoginState(null)
-          }
-        }
-      }
-      return Promise.reject(err)
-    })
+    
     setHandlerComplete(true)
   }, [])
 
   return handlerComplete ? <ErrorHandleComponent>
+    <AxiosController/>
     <MainContainer>
       {
         loginState ? <Layout>
