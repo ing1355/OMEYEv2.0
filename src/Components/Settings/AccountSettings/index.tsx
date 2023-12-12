@@ -21,6 +21,7 @@ import { message } from "antd"
 import useMessage from "../../../Hooks/useMessage"
 import plusIcon from "../../../assets/img/plusIcon.png"
 import minusIcon from "../../../assets/img/minusIcon.png"
+import PasswordManagement from "./PasswordManagement"
 
 const AccountSearchDropdownList = [
   {
@@ -122,6 +123,7 @@ const AccountSettings = ({visible}: {
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER')
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
   const [login, setIsLogin] = useRecoilState(isLogin)
+  const [passcodeTarget, setPasscodeTarget] = useState('')
   const userInfo = decodedJwtToken(login!)
   const message = useMessage()
 
@@ -287,10 +289,9 @@ const AccountSettings = ({visible}: {
       </div>
       {/* content */}
       <div style={{width: '100%', textAlign: 'center', marginTop: '15px'}}>
-        <div style={{display: 'flex', backgroundColor: `${ButtonBackgroundColor}`, padding: '10px 0'}}>
+        <AccountRow>
           {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
-            <div style={{width: '2%'}}
-              onClick={() => {
+            <div onClick={() => {
                 let userUuidAllTemp:string[] = []
                 let filtedTemp = usersAccountRows.results.filter((_) =>!(_.username === 'omeye' || _.username === 'admin'))
   
@@ -302,28 +303,32 @@ const AccountSettings = ({visible}: {
                 setSelectUsers(userUuidAllTemp)
               }}
             >
-              <input type="checkbox" checked={allCheckFun()}/>
+              <input type="checkbox" checked={allCheckFun()} onChange={() => {
+
+              }}/>
             </div>
           :
-            <div style={{width: '2%'}}></div>
+            <div/>
           }
-          <div style={{width: '15%', lineHeight: '20px'}}>아이디</div>
-          <div style={{width: '15%', lineHeight: '20px'}}>등급</div>
-          <div style={{width: '13%', lineHeight: '20px'}}>소속</div>
-          <div style={{width: '12%', lineHeight: '20px'}}>이름</div>
-          <div style={{width: '20%', lineHeight: '20px'}}>이메일</div>
-          <div style={{width: '18%', lineHeight: '20px'}}>전화번호</div>
-          <div style={{width: '5%', lineHeight: '20px'}}>수정</div>
-        </div>
+          <div>아이디</div>
+          <div>등급</div>
+          <div>소속</div>
+          <div>이름</div>
+          <div>이메일</div>
+          <div>전화번호</div>
+          <div>수정</div>
+          <div>패스코드</div>
+        </AccountRow>
         <div>
           {usersAccountRows && usersAccountRows.results.length > 0 ?
             <>
               <div style={{display: 'flex', flexDirection: 'column', marginBottom: '15px'}}>
                 {usersAccountRows.results.map((data:usersType, index) => {
                   return (
-                    <div 
+                    <AccountRow 
+                      isSelected={selectUsers.some((_) => _ === data.id)}
                       key={'usersAccountRows' + index}
-                      style={{display: 'flex', flexDirection: 'row', borderBottom: `1px solid ${ButtonBorderColor}`, padding: '10px 0', cursor: data.username === 'admin' || data.username === 'omeye' || userInfo.user.role === 'USER' ? 'default' : 'pointer', backgroundColor: selectUsers.find((_) => _ === data.id) ? `${ButtonInActiveBackgroundColor}` : ''}}
+                      style={{cursor: data.username === 'admin' || data.username === 'omeye' || userInfo.user.role === 'USER' ? 'default' : 'pointer'}}
                       onClick={() => {
                         if(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) {
                           if(!(data.username === 'admin' || data.username === 'omeye')) {
@@ -340,23 +345,26 @@ const AccountSettings = ({visible}: {
                         }
                       }}
                     >
-                      <div style={{width: '2%'}}>
+                      <div>
                         {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) ?
                             !(data.username === 'admin' || data.username === 'omeye') ?
-                              <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false}/>
+                              <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false} onChange={() => {
+                                
+                              }}/>
                             : <></>
                         :
                           <></>
                         }
                       </div>
-                      <div style={{width: '15%', lineHeight: '20px'}}>{data.username}</div>
-                      <div style={{width: '15%', lineHeight: '20px'}}>{data.role}</div>
-                      <div style={{width: '13%', lineHeight: '20px'}}>{data.organization}</div>
-                      <div style={{width: '12%', lineHeight: '20px'}}>{data.name}</div>
-                      <div style={{width: '20%', lineHeight: '20px'}}>{data.email}</div>
-                      <div style={{width: '18%', lineHeight: '20px'}}>{data.phoneNumber}</div>
+                      <div>{data.username}</div>
+                      <div>{data.role}</div>
+                      <div>{data.organization}</div>
+                      <div>{data.name}</div>
+                      <div>{data.email}</div>
+                      <div>{data.phoneNumber}</div>
                       {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
-                      <div style={{width: '5%', lineHeight: '20px', cursor: 'pointer'}} onClick={() => {
+                      <div style={{cursor: 'pointer'}} onClick={(e) => {
+                        e.stopPropagation()
                         setIsModifyMember(true);
                         setModifySelectMember({
                           id: data.id,
@@ -367,11 +375,13 @@ const AccountSettings = ({visible}: {
                           phoneNumber: data.phoneNumber,
                           organization: data.organization
                         })
-                      }}><img src={edit} style={{height: '15px'}}/></div>
-                      :
-                      <div style={{width: '5%'}}></div>
-                      }
-                    </div>
+                      }}><img src={edit} style={{height: '15px'}}/></div>:<div/>}
+                      {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
+                      <div style={{cursor: 'pointer'}} onClick={(e) => {
+                        e.stopPropagation()
+                        setPasscodeTarget(data.username)
+                      }}><img src={edit} style={{height: '15px'}}/></div>:<div/>}
+                    </AccountRow>
                   )
                 })}
               </div>
@@ -408,7 +418,7 @@ const AccountSettings = ({visible}: {
         title="사용자 삭제"
         noFooter={true}
       >
-        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', height: '100%', textAlign: 'center'}}>
+        <ModalInnerContainer>
           <div style={{margin: '30px 0px'}}>삭제하시겠습니까?</div>
           <div>
             <DeleteModalButton 
@@ -426,8 +436,9 @@ const AccountSettings = ({visible}: {
               취소
             </DeleteModalButton>
           </div>
-        </div>
+        </ModalInnerContainer>
       </Modal>
+      <PasswordManagement visible={passcodeTarget} setVisible={setPasscodeTarget} targetId={usersAccountRows.totalCount > 0 ? usersAccountRows.results.find(_ => _.username === passcodeTarget)?.id! : ''}/>
     </div>
   )
 }
@@ -478,4 +489,47 @@ const NoDataContentsContainer = styled.div`
 const DeleteModalButton = styled(Button)`
   height: 30px;
   margin: 0 4px;
+`
+
+const AccountRow = styled.div<{isSelected?: boolean}>`
+  ${globalStyles.flex({flexDirection:'row'})}
+  background-color: ${({isSelected}) => isSelected === undefined ? ButtonBackgroundColor : (isSelected ? ButtonInActiveBackgroundColor : 'transparent')};
+  padding: 10px 0;
+  border-bottom: 1px solid ${ButtonBorderColor};
+  & > div {
+    line-height: 20px;
+    &:first-child {
+      width: 3%;
+    }
+    &:nth-child(2) {
+      width: 13%;
+    }
+    &:nth-child(3) {
+      width: 10%;
+    }
+    &:nth-child(4) {
+      width: 15%;
+    }
+    &:nth-child(5) {
+      width: 10%;
+    }
+    &:nth-child(6) {
+      width: 17%;
+    }
+    &:nth-child(7) {
+      width: 17%;
+    }
+    &:nth-child(8) {
+      width: 5%;
+    }
+    &:nth-child(9) {
+      width: 10%;
+    }
+  }
+`
+
+const ModalInnerContainer = styled.div`
+  ${globalStyles.flex({justifyContent: 'space-evenly'})}
+  height: 100%;
+  text-align: center;
 `

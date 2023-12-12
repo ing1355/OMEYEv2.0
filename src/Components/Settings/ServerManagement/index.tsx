@@ -9,21 +9,21 @@ import { isLogin } from "../../../Model/LoginModel";
 import { decodedJwtToken } from "../../Layout/Header/UserMenu";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import resetIcon from "../../../assets/img/resetIcon.png"
+import { convertFullTimeString, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
 
 // type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
 type serviceType = 'detect' | 'main' | 'back' | 'rt' | 'mediaserver' | '';
 
 type SSEServerMgmtInfoType = {
-  monitorVersion: string,
-  upTime: string,
-  serviceStatus: serviceStatusType[],
-  omeyeVersion: omeyeVersionType,
-  cpu: string,
-  gpu: GPUType[],
-  memory: memoryType,
-  disk: string,
-  networkBandwidth: networkBandwidthType,
-  time: string,
+  monitorVersion: string
+  upTime: string
+  serviceStatus: serviceStatusType[]
+  cpu: string
+  gpu: GPUType[]
+  memory: memoryType
+  disk: string
+  networkBandwidth: networkBandwidthType
+  time: string
 }
 
 type GetSSEServerMgmtInfoType = {
@@ -92,6 +92,7 @@ type GetServerInfoType = {
   monitorVersion: string,
   hardwareInfos: hardwareInfosType,
   networkInfo: networkInfoType
+  omeyeVersion: omeyeVersionType
 }
 
 type hardwareInfosType = {
@@ -214,16 +215,21 @@ const ServerManagement = ({visible}: {
   }
 
   function uptimeDataFun(uptime: string | undefined) {
-    let [days, time] = ['', ''];
-
+    let result = ''
+    
     if(uptime) {
-      [days, time] = uptime.split('-');
+      const [days, _time] = uptime.split('-');
+      if(Number(days)) result += `${days} 일 `
+      const time = _time.split(':')
+      if(Number(time[0]) || Number(time[1])) {
+        result += `${time[0]} 시간 ${time[1]} 분`
+      }
     }
 
     return (
       <>
         <span>
-          {days} days {time}
+          {result}
         </span>
       </>
     )
@@ -367,10 +373,13 @@ const ServerManagement = ({visible}: {
     sseRef.current.onmessage = (res: MessageEvent) => {
       const response = JSON.parse(res.data);
       console.log('server Management Message : ', response);
-      const { monitorVersion, serviceStatus, omeyeVersion, cpu, gpu, memory, disk, networkBandwidth, time } = response as SSEServerMgmtInfoType;
+      const { monitorVersion, serviceStatus, cpu, gpu, memory, disk, networkBandwidth } = response as SSEServerMgmtInfoType;
       // console.log('serviceStatus', serviceStatus)
-      setSeverMgmtInfo(response);
-
+      const time = convertFullTimeStringToHumanTimeFormat(convertFullTimeString(new Date()), '', true)
+      setSeverMgmtInfo({
+        ...response,
+        time
+      });
       setXLabels(prevLabels => {
         const newXLabels = [...prevLabels];
         const newTime = time;
@@ -576,8 +585,8 @@ const ServerManagement = ({visible}: {
           <div style={{marginBottom: '10px'}}>버전 정보</div>
           <div style={{marginBottom: '20px'}}>
             <div style={{padding: '10px'}}>프론트엔드: {process.env.REACT_APP_VERSION}</div>
-            <div style={{padding: '10px'}}>백엔드: {serverMgmtInfo?.omeyeVersion.BE}</div>
-            <div style={{padding: '10px'}}>AI: {serverMgmtInfo?.omeyeVersion.AI}</div>
+            <div style={{padding: '10px'}}>백엔드: {fixedServerMgmtInfo?.omeyeVersion.BE}</div>
+            <div style={{padding: '10px'}}>AI: {fixedServerMgmtInfo?.omeyeVersion.AI}</div>
           </div>
 
           <div style={{marginBottom: '10px'}}>기타 정보</div>

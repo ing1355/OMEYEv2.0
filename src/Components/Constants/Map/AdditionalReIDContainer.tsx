@@ -1,5 +1,5 @@
 import styled from "styled-components"
-import { globalStyles } from "../../../styles/global-styled"
+import { SectionBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Button from "../Button"
 import ImageView from "../../ReID/Condition/Constants/ImageView"
 import { useMemo, useState } from "react"
@@ -47,20 +47,12 @@ const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContai
     }, [targetDatas, listDatas, reidResults])
 
     return <AddReIDObjectContainer>
+        <Title>
+            대상 선택
+        </Title>
         <AddReIDObjectSubContainer>
             <ImageView src={targetImages[selectedView] && targetImages[selectedView].src} />
         </AddReIDObjectSubContainer>
-        <AddReIDObjectSelectedContainer>
-            <AddReIDObjectSelectedBtn activate={!value.find(_ => targetImages[selectedView].id === _.id)} onClick={() => {
-                if (value.find(_ => targetImages[selectedView].id === _.id)) {
-                    onChange(value.filter(_ => _.id !== targetImages[selectedView].id))
-                } else {
-                    onChange(value.concat(targetImages[selectedView]))
-                }
-            }}>
-                {value.find(_ => targetImages[selectedView].id === _.id) ? '해제' : '선택'}
-            </AddReIDObjectSelectedBtn>
-        </AddReIDObjectSelectedContainer>
         <ObjectChangeContainer>
             <LeftArrow onClick={() => {
                 setSelectedView(selectedView - 1)
@@ -70,20 +62,47 @@ const AdditionalReIDContainer = ({ type, onChange, value }: AdditionalReIDContai
                 setSelectedView(selectedView + 1)
             }} disabled={selectedView === targetImages.length - 1} />
         </ObjectChangeContainer>
+        <AddReIDObjectSelectedContainer>
+            <AddReIDObjectSelectedBtn hover activate={!value.find(_ => targetImages[selectedView].id === _.id)} onClick={() => {
+                if (value.find(_ => targetImages[selectedView].id === _.id)) {
+                    onChange(value.filter(_ => _.id !== targetImages[selectedView].id))
+                } else {
+                    onChange(value.concat(targetImages[selectedView]))
+                }
+            }}>
+                {value.find(_ => targetImages[selectedView].id === _.id) ? '해제' : '선택'}
+            </AddReIDObjectSelectedBtn>
+        </AddReIDObjectSelectedContainer>
     </AddReIDObjectContainer>
 }
 
 export default AdditionalReIDContainer
 
+const AddReIDObjectContainer = styled.div`
+    width: 100%;
+    padding: 12px 4px;
+    height: 260px;
+    background-color: ${SectionBackgroundColor};
+    border-radius: 10px;
+    ${globalStyles.flex({ gap: '4px' })}
+`
+
+const Title = styled.div`
+    height: 28px;
+    font-size: 1.2rem;
+    width: 100%;
+    text-align: start;
+    padding: 4px 8px;
+`
+
 const AddReIDObjectSubContainer = styled.div`
     ${globalStyles.flex()}
-    height: 250px;
+    height: calc(100% - 76px);
     width: 100%;
-    padding: 8px 0;
 `
 
 const AddReIDObjectSelectedContainer = styled.div`
-    height: 30px;
+    height: 24px;
     width: 100%;
 `
 
@@ -91,14 +110,7 @@ const AddReIDObjectSelectedBtn = styled(Button)`
     width: 100%;
 `
 
-const AddReIDObjectContainer = styled.div`
-    width: 190px;
-    padding: 0 4px;
-    height: 300px;
-    ${globalStyles.flex({ justifyContent: 'space-between' })}
-`
-
 const ObjectChangeContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
-    height: 20px;
+    height: 24px;
 `

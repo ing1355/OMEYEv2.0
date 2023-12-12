@@ -35,7 +35,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
   const [newAccountPhoneNumber, setNewAccountPhoneNumber] = useState<string>('');
   const [newAccountOrg, setNewAccountOrg] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
-  const [isSameId, setIsSameId] = useState<boolean | undefined>(undefined);
+  const [needCheck, setNeedCheck] = useState(true)
   const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin);
@@ -83,11 +83,11 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
       message.error({ title: '아이디 중복 확인', msg: '아이디를 입력해주세요.' })
     } else {
       const res = await Axios("GET", IdCheckApi(newAccountUsername))
-      setIsSameId(res);
       if(res) {
         message.error({ title: '아이디 중복 확인', msg: '사용 불가능한 아이디 입니다.' })
       } else {
         message.success({ title: '아이디 중복 확인', msg: '사용 가능한 아이디 입니다.' })
+        setNeedCheck(false)
       }
     }
   }
@@ -96,11 +96,8 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
     if (!(newAccountUsername && newAccountPassword && newAccountPasswordConfirm && newAccountName && newAccountEmail && newAccountPhoneNumber && newAccountOrg)) {
       message.error({ title: '사용자 추가 에러', msg: '모든 항목을 입력해주세요.' })
       return true
-    } else if(isSameId === undefined) {
+    } else if(needCheck) {
       message.error({ title : '사용자 추가 에러', msg: '아이디 중복 검사를 해주세요.' })
-      return true
-    } else if(isSameId) {
-      message.error({ title: '사용자 추가 에러', msg: '사용 불가능한 아이디 입니다.' })
       return true
     } else if(newAccountPassword !== newAccountPasswordConfirm) {
       message.error({ title: '사용자 추가 에러', msg: '비밀번호가 일치하지 않습니다.' })
@@ -125,9 +122,6 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
       return true
     } else if(!phoneNumberRegex.test(newAccountPhoneNumber)) {
       message.error({ title: '사용자 추가 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
-      return true
-    } else if(isSameId) {
-      message.error({ title: '사용자 추가 에러', msg: '이미 사용중인 아이디입니다' })
       return true
     } else {
       newAccountSaveFun()
@@ -154,7 +148,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
             value={newAccountUsername} 
             onChange={(e) => {
               setNewAccountUsername(e)
-              setIsSameId(undefined)
+              setNeedCheck(true)
             }} 
             onEnter={addAccountFun}
           />
@@ -162,6 +156,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
         <div>
           <AccountButton
             hover
+            disabled={!needCheck}
             onClick={checkIdFun}
           >
             중복 확인

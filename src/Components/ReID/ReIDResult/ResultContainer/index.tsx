@@ -121,8 +121,8 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
 
     const moveCallback = useCallback((e: MouseEvent) => {
         if (isDownRef.current && containerRef.current) {
-            const distance = Math.sqrt((e.screenX - isDownPoint.current.x)**2 + (e.screenY - isDownPoint.current.y)**2)
-            if(distance > 10) {
+            const distance = Math.sqrt((e.screenX - isDownPoint.current.x) ** 2 + (e.screenY - isDownPoint.current.y) ** 2)
+            if (distance > 10) {
                 setIsMove(true)
             }
             containerRef.current.scrollBy({
@@ -224,12 +224,12 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
                     }}>
                     <SelectBtnInnerIconContainer>
                         <SelectBtnInnerIcon src={timeIcon} />
-                    </SelectBtnInnerIconContainer> 
+                    </SelectBtnInnerIconContainer>
                     {convertFullTimeStringToHumanTimeFormat(result.foundDateTime)}
                     &nbsp;&nbsp;
                     {conditionData.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && <SelectBtnInnerIconContainer>
                         <SelectBtnInnerIcon src={similarityIcon} />
-                    </SelectBtnInnerIconContainer>} 
+                    </SelectBtnInnerIconContainer>}
                     {conditionData.resultList[0].objectType !== ReIDObjectTypeKeys[ObjectTypes['PLATE']] && `${result.accuracy}%`}
                     <CheckIconContainer checked={selectedData && selectedData[selectedCondition] && selectedData[selectedCondition][selectedTarget] && selectedData[selectedCondition][selectedTarget].some(target => target.resultId === result.resultId) || false}>
                         <img src={checkIcon} />
@@ -260,23 +260,28 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
             setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
         }
     }, [selectedView, selectedCondition])
-
+    console.debug('params ?? : ', requestParams, data, progressData)
     return data ? <Container visible={visible}>
         <ConditionsContainer>
-            {data.data.map((_, ind) => <ConditionItem 
-                subIcon={<ReIdStatusIcon 
-                isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? data.data.length - 1 : ind].times)) !== 0}>
-                    <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (data.data.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon}/>
-                </ReIdStatusIcon>}
-            icon={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.resultList[0].objectType)]} 
-            hover 
-            key={ind} 
-            activate={selectedCondition === ind} 
-            onClick={() => {
-                setSelectedCondition(ind)
-            }}>
-                {_.title}
-            </ConditionItem>)}
+            <ConditionsInnerContainer>
+                {data.data.map((_, ind, arr) => <ConditionItem
+                    subIcon={<ReIdStatusIcon
+                        isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : ind].times)) !== 0}>
+                        <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon} />
+                    </ReIdStatusIcon>}
+                    icon={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.resultList[0].objectType)]}
+                    iconStyle={{
+                        width: '34px'
+                    }}
+                    hover
+                    key={ind}
+                    activate={selectedCondition === ind}
+                    onClick={() => {
+                        setSelectedCondition(ind)
+                    }}>
+                    {_.title}
+                </ConditionItem>)}
+            </ConditionsInnerContainer>
         </ConditionsContainer>
         {data.data.map((_, ind) => <ResultListContainer key={ind} visible={selectedCondition === ind}>
             <TargetsContainer>
@@ -358,15 +363,21 @@ const Container = styled.div<{ visible: boolean }>`
 `
 
 const ConditionsContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '8px' })}
     max-width: 100%;
-    overflow: auto;
-    height: 36px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 52px;
+`
+    
+const ConditionsInnerContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '8px' })}
+    white-space: nowrap;
+    height: 100%;
 `
 
 const ConditionItem = styled(Button)`
     word-break: keep-all;
-    height: 100%;
+    height: 34px;
 `
 
 const ResultListContainer = styled.div<{ visible: boolean }>`
@@ -439,8 +450,8 @@ const ResultListItemsContainer = styled.div<{ isProgress: boolean }>`
     padding: 6px 12px;
 `
 
-const TimeGroupContainer = styled.div<{rowNums: number}>`
-    height: ${({rowNums}) => rowNums * 248 + 48}px;
+const TimeGroupContainer = styled.div<{ rowNums: number }>`
+    height: ${({ rowNums }) => rowNums * 248 + 48}px;
     &:not(:first-child) {
         margin-top: 8px;
     }
@@ -572,12 +583,13 @@ const CheckIconContainer = styled.div<{ checked: boolean }>`
     }
 `
 
-const ReIdStatusIcon = styled.div<{isLoading: boolean}>`
-    height: 100%;
+const ReIdStatusIcon = styled.div<{ isLoading: boolean }>`
+    height: 26px;
+    width: 26px;
     & > img {
         width: 100%;
         height: 100%;
-        ${({isLoading}) => isLoading && globalStyles.rotation({animationDuration: '1.5s', animationIterationCount: 'infinite'})}
+        ${({ isLoading }) => isLoading && globalStyles.rotation({ animationDuration: '1.5s', animationIterationCount: 'infinite' })}
     }
     padding: 2px;
 `

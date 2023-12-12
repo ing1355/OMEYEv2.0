@@ -7,22 +7,44 @@ import { useRecoilState } from 'recoil';
 import { isLogin } from '../../Model/LoginModel';
 import Logo from '../Constants/Logo';
 import axios from 'axios';
-import { LoginApi, duplicateLoginApi } from '../../Constants/ApiRoutes';
+import { LoginApi, PasscodeValidationApi, duplicateLoginApi } from '../../Constants/ApiRoutes';
 import { Axios } from '../../Functions/NetworkFunctions';
 import loginSideBackgroundImg from '../../assets/img/loginSideBackgroundImg.jpg'
 import logoTextImg from '../../assets/img/logoText.png'
+import { useEffect, useRef, useState } from 'react';
+import Modal from '../Layout/Modal';
 
 const copyRightText = 'OMEYE v2.0 © 2023. OneMoreSecurity Inc. All Rights Reserved'
 
 const Login = () => {
     const [_, setIsLogin] = useRecoilState(isLogin)
+    const [initOpen, setInitOpen] = useState(false)
+    const [initUserId, setInitUserId] = useState('')
+    const [initPassword, setInitPassword] = useState('')
+    const userIdRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        setInitUserId('')
+        setInitPassword('')
+        userIdRef.current?.focus()
+    }, [initOpen])
+
+    const initPasswordFunc = async () => {
+        const res = await Axios('POST', PasscodeValidationApi, {
+            username: initUserId,
+            initCode: initPassword
+        })
+
+        console.debug("Test : " , res)
+    }
+
     return <>
         <LoginContainer>
             <WithLogoContainer>
                 <LogoContainer>
                     <LogoImg />
                     <LogoTextImgContainer>
-                    <img src={logoTextImg}/>
+                        <img src={logoTextImg} />
                     </LogoTextImgContainer>
                 </LogoContainer>
                 <LoginForm onSubmit={async e => {
@@ -31,13 +53,13 @@ const Login = () => {
                         username: userId.value,
                         password: password.value,
                     }, true)
-                    if(res) {
+                    if (res) {
                         const { isDuplicatedLogin, action, tempAccessToken } = res.data.rows
-                        if(isDuplicatedLogin && action === 'nothing') {
+                        if (isDuplicatedLogin && action === 'nothing') {
                             const _res = await axios.post(duplicateLoginApi, tempAccessToken)
                             setIsLogin(_res.headers.authorization)
-                        } else if(isDuplicatedLogin) {
-        
+                        } else if (isDuplicatedLogin) {
+
                         } else {
                             setIsLogin(res.headers.authorization)
                         }
@@ -50,13 +72,18 @@ const Login = () => {
                         <LoginLabelText>
                             아이디
                         </LoginLabelText>
-                        <LoginInput id="userId" />
+                        <LoginInput id="userId" autoFocus />
                     </LoginLabel>
                     <LoginLabel>
                         <LoginLabelText>
                             비밀번호
                         </LoginLabelText>
                         <LoginInput id="password" type='password' />
+                        <PasswordInitLabel onClick={() => {
+                            setInitOpen(true)
+                        }}>
+                            비밀번호 초기화
+                        </PasswordInitLabel>
                     </LoginLabel>
                     <LoginCompleteButton type='submit' hover>
                         로그인
@@ -73,6 +100,42 @@ const Login = () => {
         <CopyRight>
             {copyRightText}
         </CopyRight>
+        <Modal visible={initOpen} close={() => {
+            setInitOpen(false)
+        }} title="비밀번호 초기화" noFooter>
+            <Form onSubmit={initPasswordFunc}>
+                <PasswordInitRow>
+                    <PasswordInitRowTitle>
+                        <div>
+                            아이디 :
+                        </div>
+                        <Input value={initUserId} inputRef={userIdRef} onChange={value => {
+                            setInitUserId(value)
+                        }} />
+                    </PasswordInitRowTitle>
+                </PasswordInitRow>
+                <PasswordInitRow>
+                    <PasswordInitRowTitle>
+                        <div>
+                            패스코드 :
+                        </div>
+                        <Input value={initPassword} onChange={value => {
+                            setInitPassword(value)
+                        }} type="password" maxLength={6} onlyNumber />
+                    </PasswordInitRowTitle>
+                </PasswordInitRow>
+                <InitButtonsContainer>
+                    <InitButton hover type='submit'>
+                        초기화
+                    </InitButton>
+                    <InitButton hover onClick={() => {
+                        setInitOpen(false)
+                    }} type='button'>
+                        닫기
+                    </InitButton>
+                </InitButtonsContainer>
+            </Form>
+        </Modal>
     </>
 }
 
@@ -124,7 +187,7 @@ const LogoTextImgContainer = styled.div`
 `
 
 const LoginForm = styled(Form)`
-    ${globalStyles.flex({alignItems:'flex-start', gap: '30px'})}
+    ${globalStyles.flex({ alignItems: 'flex-start', gap: '30px' })}
     padding: 36px 64px;
     width: 100%;
 `
@@ -134,7 +197,7 @@ const LoginTitle = styled.div`
     color: white;
 `
 
-const LoginLabel = styled.label`
+const LoginLabel = styled.div`
     width: 100%;
 `
 
@@ -168,4 +231,43 @@ const VersionText = styled.div`
     position: absolute;
     right: 8px;
     bottom: 8px;
+`
+
+const BottomContainer = styled.div`
+    width: 100%;
+`
+
+const PasswordInitLabel = styled.div`
+    text-align: right;
+    cursor: pointer;
+    &:hover {
+        text-decoration: underline;
+    }
+    margin-top: 12px;
+`
+
+const PasswordInitRow = styled.div`
+    height: 32px;
+    padding: 4px 0;
+`
+
+const PasswordInitRowTitle = styled.label`
+    height: 100%;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
+    & > div {
+        flex: 0 0 60px;
+        text-align: right;
+    }
+    & > input {
+        height: 100%;
+        flex: 1;
+    }
+`
+
+const InitButtonsContainer = styled.div`
+    margin-top: 24px;
+    ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
+`
+
+const InitButton = styled(Button)`
 `

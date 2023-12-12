@@ -141,7 +141,7 @@ const ServerMgmtSidebar = () => {
 
   const serverCtrlFun = async () => {
     setIsOpenCtrlModal(false);
-
+    setSelectedService([])
     const res = await Axios('POST', ServerControlApi, {
       command: serviceCommand,
       serviceType: selectedService,
@@ -319,6 +319,7 @@ const ServerMgmtSidebar = () => {
           <div>
             <ServerControlButton
               hover
+              disabled={selectedService.length === 0}
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('start');
@@ -328,6 +329,7 @@ const ServerMgmtSidebar = () => {
             </ServerControlButton>
             <ServerControlButton
               hover
+              disabled={selectedService.length === 0}
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('stop');
@@ -337,6 +339,7 @@ const ServerMgmtSidebar = () => {
             </ServerControlButton>
             <ServerControlButton
               hover
+              disabled={selectedService.length === 0}
               onClick={() => {
                 setIsOpenCtrlModal(true);
                 setServiceCommand('restart');

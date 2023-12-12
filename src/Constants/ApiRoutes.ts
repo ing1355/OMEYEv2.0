@@ -79,3 +79,9 @@ export const GetServerInfoApi = '/monitoring/mgmt/server-info'
 
 export const StorageThreshHoldApi = '/api/v2/settings/storage/thresh-hold'
 export const StorageMgmtApi = '/api/v2/settings/storage'
+
+// 패스코드
+export const PasscodeValidationApi = '/api/v2/init-code-validation'
+export const AddPasscodeApi = '/api/v2/passcode'
+export const GetPasscodesApi = '/api/v2/passcode'
+export const DeletePasscordApi = (id: number) => `/api/v2/passcode/${id}`

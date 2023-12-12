@@ -20,7 +20,11 @@ import { menuState } from "../../../Model/MenuModel";
 import { conditionMenu } from "../../../Model/ConditionMenuModel";
 import CCTVDropdownSearch from "../CCTVDropdownSearch";
 import selectedMarkerLocationIcon from '../../../assets/img/selectedMarkerLocationIcon.png'
+import cctvIcon from '../../../assets/img/treeCCTVIcon.png'
+import rankIcon from '../../../assets/img/rankIcon.png'
+import timeIcon from '../../../assets/img/ProgressTimeIcon.png'
 import CollapseArrow from "../CollapseArrow";
+import AreaSelect from "../../ReID/Condition/Constants/AreaSelect";
 
 type MapComponentProps = PropsWithChildren & {
     selectedCCTVs?: CameraDataType['cameraId'][]
@@ -66,6 +70,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const sitesData = useRecoilValue(SitesData)
     const treeData = useRecoilValue(SitesDataForTreeView)
     const [timeVisible, setTimeVisible] = useState(false)
+    const [areaVisible, setAreaVisible] = useState(false)
     const [timeValue, setTimeValue] = useRecoilState(AdditionalReIDTimeValue)
     const [rankInput, setRankInput] = useState(10)
     const [titleInput, setTitleinput] = useState('추가 동선')
@@ -75,6 +80,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         id: number,
         type: ReIDObjectTypeKeys
     }[]>([])
+    const [selectedAddtionalCCTVs, setSelectedAdditionalCCTVs] = useState<CameraDataType['cameraId'][]>([])
     const [duplicatedCCTVs, setDuplicatedCCTVs] = useState<CameraDataType['cameraId'][]>([])
     const targetReidresult = useRecoilValue(ReIDResultData(reIdId!))
     const progressStatus = useRecoilValue(ProgressStatus)
@@ -163,7 +169,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
         //         if(map.current) map.current.changeViewToSelectedCCTVs(pathCameras)
         //     }, 500);
         // }
-    },[visible])
+    }, [visible])
 
     useEffect(() => {
         if (idForViewChange) {
@@ -178,7 +184,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
             map.current?.clearHoverMarker()
         }
     }, [viewChangeForPath])
-    
+
     useEffect(() => {
         if (!trafficOverlayView || !circleSelectOverlayView) {
             valueInit()
@@ -196,12 +202,21 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [trafficOverlayView, circleSelectOverlayView, r, rUnit])
 
     const selectCCTVsInCircle = () => {
-        selectedChange!(selectedCCTVs!.concat(map.current?.getFeaturesInCircle() || []).deduplication())
+        const targets = map.current?.getFeaturesInCircle() || []
+        if (forAddtraffic) {
+            setSelectedAdditionalCCTVs(selectedAddtionalCCTVs.concat(targets).deduplication())
+        } else {
+            if (selectedCCTVs) selectedChange!(selectedCCTVs.concat(targets).deduplication())
+        }
         map.current?.closeOverlayView()
     }
 
     const openTimeModal = () => {
         setTimeVisible(true)
+    }
+
+    const openAreaModal = () => {
+        setAreaVisible(true)
     }
 
     const closeOverlayWrapper = (duplicatedFlag?: boolean) => {
@@ -223,19 +238,19 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
 
     useEffect(() => {
         if (!cameras && !(singleCamera && forSingleCamera)) map.current?.createMarkersBySites(sitesData)
-    },[sitesData])
+    }, [sitesData])
 
     const createCameraRow = (camera: CameraDataType) => {
         return <CCTVItemContainer selected={selectedCCTVs?.includes(camera.cameraId) || false} key={camera.cameraId} onClick={() => {
-            if(map.current) {
-                if(forAddtraffic) {
+            if (map.current) {
+                if (forAddtraffic) {
                     closeOverlayWrapper()
                     map.current.callAdditionalOverlyByCctvId(camera.cameraId)
                 } else {
-                    if(selectedCCTVs?.includes(camera.cameraId)) {
-                        if(selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
+                    if (selectedCCTVs?.includes(camera.cameraId)) {
+                        if (selectedChange) selectedChange(selectedCCTVs.filter(_ => _ !== camera.cameraId))
                     } else {
-                        if(selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
+                        if (selectedChange) selectedChange(selectedCCTVs!.concat(camera.cameraId))
                     }
                 }
             }
@@ -249,26 +264,26 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [duplicatedCCTVs, treeData])
 
     const duplicatedCCTVSelectView = useMemo(() => {
-        return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a,b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
-    },[duplicatedCCTVSelect, selectedCCTVs])
+        return duplicatedCCTVSelect.flatMap(_ => _.cameras).deduplication((a, b) => a.cameraId === b.cameraId).map(_ => createCameraRow(_))
+    }, [duplicatedCCTVSelect, selectedCCTVs])
 
     return <>
-        <MapContainer ref={mapElement} 
-        onMouseEnter={e => {
-            e.stopPropagation()
-        }}
-        onMouseDown={e => {
-            e.stopPropagation()
-        }}
-        onMouseUp={e => {
-            e.stopPropagation()
-        }}
-        onMouseLeave={e => {
-            e.stopPropagation()
-        }}
-        onMouseMove={e => {
-            e.stopPropagation()
-        }}
+        <MapContainer ref={mapElement}
+            onMouseEnter={e => {
+                e.stopPropagation()
+            }}
+            onMouseDown={e => {
+                e.stopPropagation()
+            }}
+            onMouseUp={e => {
+                e.stopPropagation()
+            }}
+            onMouseLeave={e => {
+                e.stopPropagation()
+            }}
+            onMouseMove={e => {
+                e.stopPropagation()
+            }}
         >
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if (map.current) map.current.viewChangeById(target.cameraId)
@@ -287,129 +302,131 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         height: '100%'
                     }} />
                 </SelectedViewBtn>
-                {duplicatedCCTVs.length > 0 && <CCTVListContainer>
-                    <CCTVListHeader>
-                        CCTV
-                    </CCTVListHeader>
-                    <CCTVContentsContainer>
-                        {duplicatedCCTVSelectView}
-                    </CCTVContentsContainer>
-                </CCTVListContainer>}
+                <ControlRowContainer>
+                    {duplicatedCCTVs.length > 0 && <CCTVListContainer>
+                        <CCTVListHeader>
+                            CCTV
+                        </CCTVListHeader>
+                        <CCTVContentsContainer>
+                            {duplicatedCCTVSelectView}
+                        </CCTVContentsContainer>
+                    </CCTVListContainer>}
+                    {
+                        forAddtraffic && <AddReIDInputContainer>
+                            <AddReIDInputTitle>
+                                <div>
+                                    추가 동선 분석
+                                </div>
+                                <Button>
+                                    접기
+                                </Button>
+                            </AddReIDInputTitle>
+                            <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
+                                setSelectedAddtionalTarget(data)
+                            }} value={selectedAddtionalTarget} />
+                            <AddReIDInputRow>
+                                <AddReIDInputLabel>
+                                    타이틀
+                                </AddReIDInputLabel>
+                                <AddReIDInputContentContainer>
+                                    <AddReIDInputContent value={titleInput} onChange={(val) => {
+                                        setTitleinput(val)
+                                    }} maxLength={20} />
+                                </AddReIDInputContentContainer>
+                            </AddReIDInputRow>
+                            <AddReIDInputRowDoubleCol>
+                                <AddReIDInputCol>
+                                    <AddReIDInputLabel>
+                                        <img src={rankIcon} />
+                                    </AddReIDInputLabel>
+                                    <AddReIDInputContentContainer>
+                                        <AddReIDInputContent value={rankInput} onChange={(val) => {
+                                            setRankInput(Number(val))
+                                        }} onlyNumber />
+                                    </AddReIDInputContentContainer>
+                                </AddReIDInputCol>
+                                <AddReIDInputCol>
+                                    <AddReIDInputLabel>
+                                        <img src={cctvIcon} />
+                                    </AddReIDInputLabel>
+                                    <AddReIDInputContentContainer>
+                                        <AdditionalCCTVValueContainer onClick={openAreaModal}>
+                                            {selectedAddtionalCCTVs.length} 대
+                                        </AdditionalCCTVValueContainer>
+                                    </AddReIDInputContentContainer>
+                                </AddReIDInputCol>
+                            </AddReIDInputRowDoubleCol>
+                            <AddReIDInputRow>
+                                <AddReIDInputLabel>
+                                    <img src={timeIcon} />
+                                </AddReIDInputLabel>
+                                <AddReIDInputContentContainer isDouble>
+                                    <AddReIDTimeInputContent onClick={openTimeModal}>
+                                        <TimeValueContainer>
+                                            <div>
+                                                시작
+                                            </div>
+                                            <div>
+                                                {timeValue && timeValue.startTime ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : 'YYYY-MM-DD HH:mm:ss'}
+                                            </div>
+                                        </TimeValueContainer>
+                                        <TimeValueContainer>
+                                            <div>
+                                                종료
+                                            </div>
+                                            <div>
+                                                {timeValue && timeValue.endTime ? convertFullTimeStringToHumanTimeFormat(timeValue.endTime) : 'YYYY-MM-DD HH:mm:ss'}
+                                            </div>
+                                        </TimeValueContainer>
+                                    </AddReIDTimeInputContent>
+                                </AddReIDInputContentContainer>
+                            </AddReIDInputRow>
+                            <AddReIDInputRow>
+                                <AddReIDInputLabel>
+                                    비고
+                                </AddReIDInputLabel>
+                                <AddReIDInputContentContainer isDouble>
+                                    <AddReIDInputContent value={etcInput} onChange={(val) => {
+                                        setEtcInput(val)
+                                    }} maxLength={100} type="textarea" />
+                                </AddReIDInputContentContainer>
+                            </AddReIDInputRow>
+                            <AddReIDInputBtn hover onClick={() => {
+                                if (selectedAddtionalTarget.length === 0) return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' });
+                                if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
+                                if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
+                                if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
+                                if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
+                                closeOverlayWrapper()
+                                setRequestFlag(true)
+                                setProgressRequestParams({
+                                    type: 'ADDITIONALREID',
+                                    params: {
+                                        reIdId,
+                                        title: titleInput,
+                                        etc: etcInput,
+                                        rank: rankInput,
+                                        objects: selectedAddtionalTarget,
+                                        timeGroups: [
+                                            {
+                                                startTime: timeValue.startTime,
+                                                endTime: timeValue.endTime!
+                                            }
+                                        ],
+                                        cctvIds: [
+                                            map.current!.getFeaturesInCircle().map(_ => _)
+                                        ]
+                                    }
+                                })
+                            }}>
+                                더 찾아보기
+                            </AddReIDInputBtn>
+                        </AddReIDInputContainer>
+                    }
+                </ControlRowContainer>
             </ControlsContainer>
             {children || <></>}
-            {forAddtraffic && <AddReIDInputContainer forAddTraffic={true} ref={addTrafficInputContainer} id="addTrafficContainer">
-                <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
-                    setSelectedAddtionalTarget(data)
-                }} value={selectedAddtionalTarget} />
-                <AddReIDInputSubContainer>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            타이틀
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDInputContent value={titleInput} onChange={(val) => {
-                                setTitleinput(val)
-                            }} maxLength={20} />
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            랭크
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDInputContent value={rankInput} onChange={(val) => {
-                                setRankInput(Number(val))
-                            }} onlyNumber />
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            반경
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDInputContent onlyNumber maxLength={5} value={r} onChange={val => {
-                                setR(val)
-                            }} style={{
-                                paddingRight: '60px'
-                            }} />
-                            <AddReIDInputContentLabel>
-                                <AddReIDInputContentLabelItem selected={rUnit === 'm'} onClick={() => {
-                                    setRUnit('m')
-                                }}>
-                                    m
-                                </AddReIDInputContentLabelItem>
-                                <AddReIDInputContentLabelItemLine />
-                                <AddReIDInputContentLabelItem selected={rUnit === 'km'} onClick={() => {
-                                    setRUnit('km')
-                                }}>
-                                    km
-                                </AddReIDInputContentLabelItem>
-                            </AddReIDInputContentLabel>
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            시간
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDTimeInputContent onClick={openTimeModal}>
-                                {timeValue ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : '시작 시간'}
-                            </AddReIDTimeInputContent>
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            ~
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDTimeInputContent onClick={openTimeModal}>
-                                {timeValue && timeValue.endTime ? convertFullTimeStringToHumanTimeFormat(timeValue.endTime!) : '종료 시간'}
-                            </AddReIDTimeInputContent>
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputRow>
-                        <AddReIDInputLabel>
-                            비고
-                        </AddReIDInputLabel>
-                        <AddReIDInputContentContainer>
-                            <AddReIDInputContent value={etcInput} onChange={(val) => {
-                                setEtcInput(val)
-                            }} maxLength={100} />
-                        </AddReIDInputContentContainer>
-                    </AddReIDInputRow>
-                    <AddReIDInputBtn onClick={() => {
-                        if (selectedAddtionalTarget.length === 0) return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' });
-                        if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
-                        if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
-                        if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
-                        if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
-                        closeOverlayWrapper()
-                        setRequestFlag(true)
-                        setProgressRequestParams({
-                            type: 'ADDITIONALREID',
-                            params: {
-                                reIdId,
-                                title: titleInput,
-                                etc: etcInput,
-                                rank: rankInput,
-                                objects: selectedAddtionalTarget,
-                                timeGroups: [
-                                    {
-                                        startTime: timeValue.startTime,
-                                        endTime: timeValue.endTime!
-                                    }
-                                ],
-                                cctvIds: [
-                                    map.current!.getFeaturesInCircle().map(_ => _)
-                                ]
-                            }
-                        })
-                    }}>
-                        더 찾아보기
-                    </AddReIDInputBtn>
-                </AddReIDInputSubContainer>
-            </AddReIDInputContainer>}
-            {!forAddtraffic && <AddReIDInputContainer forAddTraffic={false} ref={circleSelectContainer}>
+            <CircleSelectInputContianer ref={forAddtraffic ? addTrafficInputContainer : circleSelectContainer}>
                 <AddReIDInputSubContainer>
                     <AddReIDInputRow>
                         <AddReIDInputLabel>
@@ -421,10 +438,10 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                             }} style={{
                                 paddingRight: '60px'
                             }} onEnter={selectCCTVsInCircle} onBlur={() => {
-                                if(!r) {
+                                if (!r) {
                                     setR('1')
                                 }
-                            }}/>
+                            }} />
                             <AddReIDInputContentLabel>
                                 <AddReIDInputContentLabelItem selected={rUnit === 'm'} onClick={() => {
                                     setRUnit('m')
@@ -444,11 +461,24 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         범위 내 선택
                     </AddReIDInputBtn>
                 </AddReIDInputSubContainer>
-            </AddReIDInputContainer>}
+            </CircleSelectInputContianer>
         </MapContainer>
-        {forAddtraffic && <TimeModal title="추가 동선 시간" defaultValue={timeValue} onChange={setTimeValue} visible={timeVisible} close={() => {
-            setTimeVisible(false)
-        }} />}
+        {forAddtraffic && <>
+            <TimeModal title="추가 동선 시간" defaultValue={timeValue} onChange={setTimeValue} visible={timeVisible} close={() => {
+                setTimeVisible(false)
+            }} />
+            <AreaSelect
+                visible={areaVisible}
+                title="추가 동선 CCTV"
+                defaultSelected={selectedAddtionalCCTVs}
+                complete={values => {
+                    setSelectedAdditionalCCTVs(values)
+                }}
+                close={() => {
+                    setAreaVisible(false)
+                }}
+            />
+        </>}
     </>
 }
 
@@ -470,8 +500,24 @@ const MapContainer = styled.div`
     position: relative;
 `
 
-const AddReIDInputContainer = styled.div<{ forAddTraffic: boolean }>`
-    width: ${({ forAddTraffic }) => forAddTraffic ? 510 : 320}px;
+const AddReIDInputContainer = styled.div`
+    width: 300px;
+    background-color: ${GlobalBackgroundColor};
+    border-radius: 12px;
+    padding: 16px;
+    ${globalStyles.flex({ gap: '12px' })}
+`
+
+const AddReIDInputTitle = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
+    font-size: 1.3rem;
+    font-weight: bold;
+    width: 100%;
+    text-align: start;
+`
+
+const CircleSelectInputContianer = styled.div`
+    width: 320px;
     background-color: ${GlobalBackgroundColor};
     border-radius: 12px;
     padding: 16px;
@@ -484,28 +530,49 @@ const AddReIDInputSubContainer = styled.div`
 `
 
 const AddReIDInputRow = styled.div`
-    height: 30px;
+    ${globalStyles.flex({ gap: '4px' })}
+    width: 100%;
+`
+
+const AddReIDInputRowDoubleCol = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
     width: 100%;
 `
 
-const AddReIDInputLabel = styled.div`
-    font-size: 1.2rem;
-    flex: 0 0 60px;
-    text-align: center;
+const AddReIDInputCol = styled.div`
+    flex: 1;
+    ${globalStyles.flex({ gap: '4px' })}
 `
 
-const AddReIDInputContentContainer = styled.div`
-    flex: 1;
-    height: 100%;
+const AddReIDInputLabel = styled.div`
+    font-size: 1.1rem;
+    height: 20px;
+    text-align: start;
+    width: 100%;
+    & > img {
+        height: 100%;
+    }
+`
+
+const AddReIDInputContentContainer = styled.div<{ isDouble?: boolean }>`
+    height: ${({ isDouble }) => isDouble ? 56 : 32}px;
+    width: 100%;
     border-radius: 6px;
     position: relative;
     overflow: hidden;
 `
 
+const AdditionalCCTVValueContainer = styled.div`
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+    background-color: ${InputBackgroundColor};
+    ${globalStyles.flex()}
+`
+
 const AddReIDInputContent = styled(Input)`
-    font-size: 1.2rem;
-    width: 220px;
+    font-size: 1rem;
+    width: 100%;
     height: 100%;
     max-width: 100%;
     color: white;
@@ -518,8 +585,16 @@ const AddReIDTimeInputContent = styled.div`
     color: white;
     cursor: pointer;
     background-color: ${InputBackgroundColor};
-    ${globalStyles.flex()}
+    ${globalStyles.flex({ gap: '6px' })}
     text-align: center;
+`
+
+const TimeValueContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
+    & > div {
+        font-size: 1rem;
+        font-weight: bold;
+    }
 `
 
 const AddReIDInputContentLabel = styled.div`
@@ -546,6 +621,7 @@ const AddReIDInputContentLabelItemLine = styled.div`
 `
 
 const AddReIDInputBtn = styled(Button)`
+    width: 100%;
     padding: 10px 16px;
 `
 
@@ -564,7 +640,7 @@ const ControlsContainer = styled.div`
     & > * {
         z-index: 1005;
     }
-    ${globalStyles.flex({ gap: '12px', alignItems: 'flex-end' })}
+    ${globalStyles.flex({ gap: '6px', alignItems: 'flex-end' })}
 `
 
 const CCTVListContainer = styled.div`
@@ -609,13 +685,13 @@ const CollapseContainer = styled.div`
 
 const CCTVRowContentsContainer = styled.div`
     padding: 10px 0;
-    ${globalStyles.flex({justifyContent:'flex-start'})}
+    ${globalStyles.flex({ justifyContent: 'flex-start' })}
 `
 
-const CCTVItemContainer = styled.div<{selected: boolean}>`
+const CCTVItemContainer = styled.div<{ selected: boolean }>`
     width: 100%;
     border: none;
-    background-color: ${({selected}) => selected ? ContentsActivateColor : ContentsBorderColor};
+    background-color: ${({ selected }) => selected ? ContentsActivateColor : ContentsBorderColor};
     border-radius: 8px;
     height: 24px;
     line-height: 20px;
@@ -631,4 +707,8 @@ const CCTVItemContainer = styled.div<{selected: boolean}>`
     &:hover {
         background-color: ${ButtonDefaultHoverColor};
     }
+`
+
+const ControlRowContainer = styled.div`
+    ${globalStyles.flex({ flexDirection: 'row', alignItems:'flex-start', gap: '4px' })}
 `

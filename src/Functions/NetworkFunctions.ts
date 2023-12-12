@@ -47,7 +47,7 @@ export async function Axios(method: AxiosMethodType, url: CreateAxiosDefaults['u
     return axios(options).then(res => {
         if (res) {
             if (isFullResponse) return res
-            if(res.data.rows) return res.data.rows
+            if(res.data && res.data.success) return res.data.rows
             else return res.data
         }
     }).catch(err => {

@@ -15,7 +15,7 @@ type ModalProps = PropsWithChildren & {
     noFooter?: boolean
 }
 
-const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText, noFooter }: ModalProps) => {
+const Modal = ({ children, visible, close, title, complete, noComplete, isConfirm, completeText, noFooter=false }: ModalProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
     const completeRef = useRef(false)
@@ -78,7 +78,7 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
                 {title}
                 <CloseIcon src={ModalCloseIcon} onClick={close} />
             </Header>
-            <Contents>
+            <Contents noFooter={noFooter}>
                 {children}
             </Contents>
             {!noFooter &&
@@ -132,9 +132,9 @@ const ContentsContainer = styled.div`
 `
 
 const Header = styled.div`
-    ${globalStyles.flex()}
-    height: 40px;
-    padding: 4px 10px;
+    ${globalStyles.flex({alignItems:'flex-start'})}
+    height: 48px;
+    padding: 8px 16px;
     font-size: 1.1rem;
     border-bottom: 1px solid ${ContentsBorderColor};
     position: relative;
@@ -155,10 +155,10 @@ const CloseIcon = styled.img`
     pointer-events: auto;
 `
 
-const Contents = styled.div`
+const Contents = styled.div<{noFooter: boolean}>`
     padding: 12px;
     ${globalStyles.flex()}
-    min-height: calc(100% - 88px);
+    min-height: calc(100% - ${({noFooter}) => noFooter ? 40 : 88}px);
 `
 
 const Footer = styled.div`

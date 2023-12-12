@@ -20,7 +20,7 @@ const Pagination = ({ currentPage, setCurrentPage, totalCount, dataPerPage }: Pa
     }, [totalCount, currentPage])
     
     return <PaginationContainer>
-        <PaginationNumbersContainer>
+        {totalCount > 0 && <PaginationNumbersContainer>
             <LeftDoubleArrow disabled={currentPage <= 1} onClick={() => {
                 setCurrentPage(1)
                 paginationInputRef.current!.value = '1'
@@ -49,8 +49,8 @@ const Pagination = ({ currentPage, setCurrentPage, totalCount, dataPerPage }: Pa
                 if ((currentPage) <= (totalCount / dataPerPage)) setCurrentPage(Math.ceil(totalCount / dataPerPage))
                 paginationInputRef.current!.value = (Math.ceil(totalCount / dataPerPage)).toString()
             }} disabled={currentPage >= (totalCount / dataPerPage)} />
-        </PaginationNumbersContainer>
-        <PaginationInputContainer>
+        </PaginationNumbersContainer>}
+        {totalCount > 0 && <PaginationInputContainer>
             <Form style={{
                 height: '100%'
             }} onSubmit={(e) => {
@@ -65,7 +65,7 @@ const Pagination = ({ currentPage, setCurrentPage, totalCount, dataPerPage }: Pa
                     이동
                 </PaginationInputCompleteBtn>
             </Form>
-        </PaginationInputContainer>
+        </PaginationInputContainer>}
     </PaginationContainer>
 }
 

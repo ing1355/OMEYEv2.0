@@ -281,7 +281,7 @@ export function convertFullDatestring(now: Date) {
     return '' + now.getFullYear() + AddZeroFunc(now.getMonth() + 1) + AddZeroFunc(now.getDate())
 }
 
-export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorStr?: string) => {
+export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorStr?: string, isHalf?: boolean) => {
     if(!time) return ""
     const year = time.slice(0, 4)
     const month = time.slice(4, 6)
@@ -290,6 +290,7 @@ export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorSt
     const minute = time.slice(10, 12)
     const second = time.slice(12,)
     const separator = separatorStr ? ` ${separatorStr} ` : ' '
+    if(isHalf) return `${hour}:${minute}:${second}`
     return `${year}-${month}-${day}${separator}${hour}:${minute}:${second}`
 }
 
