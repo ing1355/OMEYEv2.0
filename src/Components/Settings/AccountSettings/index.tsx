@@ -174,9 +174,8 @@ const AccountSettings = ({visible}: {
     let usersAccountAllTemp = usersAccountRows.results.filter((_)=>!(_.username === 'admin' || _.username === 'omeye'))
 
     if(userInfo.user.role === 'ADMIN') {
-      usersAccountAllTemp = usersAccountRows.results.filter((_)=>_.role !== 'DEVELOPER')
+      usersAccountAllTemp = usersAccountRows.results.filter((_)=>!(_.username === 'admin' || _.username === 'omeye')).filter((_) => (_.role === 'ADMIN' && _.username === userInfo.user.username) || _.role === 'USER' )
     }
-
     if(usersAccountAllTemp.length > 0) {
       isAll = usersAccountAllTemp.every((_) => selectUsers.includes(_.id))
     } else {
@@ -294,11 +293,18 @@ const AccountSettings = ({visible}: {
           {(userInfo.user.role === 'DEVELOPER' || userInfo.user.role === 'ADMIN') ?
             <div onClick={() => {
                 let userUuidAllTemp:string[] = []
-                let filtedTemp = usersAccountRows.results.filter((_) =>!(_.username === 'omeye' || _.username === 'admin'))
+                let filtedTemp = usersAccountRows.results.filter((_) =>!(_.username === 'admin' || _.username === 'omeye'))
   
                 if(!allCheckFun()) {
                   if(userInfo.user.role === 'DEVELOPER') userUuidAllTemp = filtedTemp.map((_) => _.id)
-                  if(userInfo.user.role === 'ADMIN') userUuidAllTemp = filtedTemp.filter((_) => _.role !== 'DEVELOPER' ).map((_) => _.id)
+                  if(userInfo.user.role === 'ADMIN') {
+                    if(userInfo.user.username === 'admin') {
+                      userUuidAllTemp = filtedTemp.filter((_) => _.role !== 'DEVELOPER').map((_) => _.id)
+                    } else {
+                      userUuidAllTemp = filtedTemp.filter((_) => _.role !== 'DEVELOPER').filter((_) => (_.role === 'ADMIN' && _.username === userInfo.user.username) || _.role === 'USER' ).map((_) => _.id)
+                    }
+                    
+                  }
                 }
                 
                 setSelectUsers(userUuidAllTemp)
@@ -329,9 +335,9 @@ const AccountSettings = ({visible}: {
                     <AccountRow 
                       isSelected={selectUsers.some((_) => _ === data.id)}
                       key={'usersAccountRows' + index}
-                      style={{cursor: data.username === 'admin' || data.username === 'omeye' || userInfo.user.role === 'USER' ? 'default' : 'pointer'}}
+                      style={{cursor: (userInfo.user.role === 'DEVELOPER' || userInfo.user.username === 'admin' || userInfo.user.username === 'omeye' || (userInfo.user.role === 'ADMIN' && data.role === 'USER') || (userInfo.user.role === 'ADMIN' && data.username === userInfo.user.username)) || !(data.username === 'admin' || data.username === 'omeye') ? 'default' : 'pointer'}}
                       onClick={() => {
-                        if(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) {
+                        if(userInfo.user.role === 'DEVELOPER' || userInfo.user.username === 'admin' || userInfo.user.username === 'omeye' || (userInfo.user.role === 'ADMIN' && data.role === 'USER') || (userInfo.user.role === 'ADMIN' && data.username === userInfo.user.username)) {
                           if(!(data.username === 'admin' || data.username === 'omeye')) {
                             const isDelete = selectUsers.find((_) => _ === data.id)
                             let selectTemp:string[] = []
@@ -347,8 +353,8 @@ const AccountSettings = ({visible}: {
                       }}
                     >
                       <div>
-                        {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER')) ?
-                            !(data.username === 'admin' || data.username === 'omeye') ?
+                        {(userInfo.user.role === 'DEVELOPER' || userInfo.user.username === 'admin' || userInfo.user.username === 'omeye' || (userInfo.user.role === 'ADMIN' && data.role === 'USER') || (userInfo.user.role === 'ADMIN' && data.username === userInfo.user.username)) ?
+                            !(data.username === 'admin' ||data.username === 'omeye') ?
                               <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false} onChange={() => {
                                 
                               }}/>
@@ -363,7 +369,7 @@ const AccountSettings = ({visible}: {
                       <div>{data.name}</div>
                       <div>{data.email}</div>
                       <div>{data.phoneNumber}</div>
-                      {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
+                      {(userInfo.user.role === 'DEVELOPER' || userInfo.user.username === 'admin' || (userInfo.user.role === 'ADMIN' && data.username === userInfo.user.username) || (userInfo.user.role === 'ADMIN' && data.role === 'USER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
                       <div style={{cursor: 'pointer'}} onClick={(e) => {
                         e.stopPropagation()
                         setIsModifyMember(true);
@@ -377,7 +383,7 @@ const AccountSettings = ({visible}: {
                           organization: data.organization
                         })
                       }}><img src={edit} style={{height: '15px'}}/></div>:<div/>}
-                      {(userInfo.user.role === 'DEVELOPER' || (userInfo.user.role === 'ADMIN' && data.role !== 'DEVELOPER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
+                      {(userInfo.user.role === 'DEVELOPER' || userInfo.user.username === 'admin' || (userInfo.user.role === 'ADMIN' && data.username === userInfo.user.username) || (userInfo.user.role === 'ADMIN' && data.role === 'USER') || (userInfo.user.role === 'USER' && data.username === userInfo.user.username)) ?
                       <div style={{cursor: 'pointer'}} onClick={(e) => {
                         e.stopPropagation()
                         setPasscodeTarget(data.id)
