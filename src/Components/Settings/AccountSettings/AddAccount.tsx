@@ -43,15 +43,16 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
   const message = useMessage();
 
   const resetNewAccountFun = () => {
-    setIsAddMember(false);
-    setNewAccountUsername('');
-    setNewAccountPassword('');
-    setNewAccountPasswordConfirm('');
-    setNewAccountName('');
-    setSearchRoleValue('USER');
-    setNewAccountEmail('');
-    setNewAccountPhoneNumber('');
-    setNewAccountOrg('');
+    setIsAddMember(false)
+    setNewAccountUsername('')
+    setNewAccountPassword('')
+    setNewAccountPasswordConfirm('')
+    setNewAccountName('')
+    setSearchRoleValue('USER')
+    setNewAccountEmail('')
+    setNewAccountPhoneNumber('')
+    setNewAccountOrg('')
+    setNeedCheck(true)
   }
 
   const newAccountSaveFun = async () => {
