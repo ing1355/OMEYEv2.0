@@ -5,12 +5,12 @@ import Button from "../../Constants/Button"
 import { useState } from "react"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { IdCheckApi, UserAccountApi } from "../../../Constants/ApiRoutes"
-import { IsAddMember, UpdateMemeberList } from "../../../Model/AccountDataModel"
+import { IsAddMember, UpdateMemeberList, roleType } from "../../../Model/AccountDataModel"
 import { useRecoilState } from "recoil"
 import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
 import { ButtonBackgroundColor, InputBackgroundColor } from "../../../styles/global-styled"
-import { AdminRoleSearchDropdownList, RoleSearchDropdownList, RoleValues } from "."
+import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
@@ -36,7 +36,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
   const [newAccountOrg, setNewAccountOrg] = useState<string>('');
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember);
   const [needCheck, setNeedCheck] = useState(true)
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues>('USER');
+  const [searchRoleValue, setSearchRoleValue] = useState<roleType>('USER');
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList);
   const [login, setIsLogin] = useRecoilState(isLogin);
   const userInfo = decodedJwtToken(login!);
@@ -233,7 +233,7 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
             itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
             bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
             onChange={val => {
-              setSearchRoleValue(val.value as RoleValues)
+              setSearchRoleValue(val.value as roleType)
             }}
           />
         </div>

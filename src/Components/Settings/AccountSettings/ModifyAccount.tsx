@@ -3,13 +3,13 @@ import Modal from "../../Layout/Modal"
 import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import { useRecoilState } from "recoil"
-import { IsModifyMember, ModifiedName, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit } from "../../../Model/AccountDataModel"
+import { IsModifyMember, ModifiedName, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit, roleType } from "../../../Model/AccountDataModel"
 import { useEffect, useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
-import { AdminRoleSearchDropdownList, RoleSearchDropdownList, RoleValues } from "."
+import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { ButtonBackgroundColor } from "../../../styles/global-styled"
 import { emailRegex, nameRegex, passwordRegex, phoneNumberRegex } from "./AddAccount"
 import { isLogin } from "../../../Model/LoginModel"
@@ -31,7 +31,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [changeDropdown, setChangeDropdown] = useState<boolean>(false)
   const [login, setIsLogin] = useRecoilState(isLogin)
   const userInfo = decodedJwtToken(login!)
-  const [searchRoleValue, setSearchRoleValue] = useState<RoleValues | null>(null)
+  const [searchRoleValue, setSearchRoleValue] = useState<roleType | null>(null)
   const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
   const message = useMessage()
 
@@ -217,7 +217,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
                 itemList={userInfo.user.role === 'DEVELOPER' ? RoleSearchDropdownList : AdminRoleSearchDropdownList} 
                 bodyStyle={{backgroundColor: `${ButtonBackgroundColor}`, zIndex: 1, width: '240px'}}
                 onChange={val => {
-                  setSearchRoleValue(val.value as RoleValues)
+                  setSearchRoleValue(val.value as roleType)
                 }}
                 valueIndex={SelectedRoleValueIndexFun()}
                 // valueIndex={modifySelectMember.role === 'DEVELOPER' ? 2 : modifySelectMember.role === 'ADMIN' ? 1 : 0}

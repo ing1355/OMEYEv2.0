@@ -1,6 +1,6 @@
 import { atom } from "recoil";
 
-export type roleType = 'USER' | 'ADMIN' | 'DEVELOPER';
+export type roleType = 'USER' | 'ADMIN' | 'SUPER_ADMIN' | 'DEVELOPER';
 export type selectMemberType = {
   id: string;
   username: string;
