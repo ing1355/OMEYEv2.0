@@ -94,6 +94,22 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
     const [isOpenAddReIDContainer, setIsOpenAddReIDContainer] = useState<boolean>(true)
 
+    const foundEndDateTime = () => {
+        let endTime = '0';
+
+        selectedReIdResultData?.forEach((obj) => {
+            Object.values(obj).forEach((arr) => {
+                arr.forEach((item) => {
+                    const time = item.foundDateTime
+                    if(Number(time) > Number(endTime)) {
+                        endTime = time
+                    }
+                })
+            })
+        })
+        return endTime
+    }
+
     useEffect(() => {
         if (duplicatedCCTVs.length > 0) {
 
@@ -370,13 +386,20 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                             <img src={timeIcon} />
                                         </AddReIDInputLabel>
                                         <AddReIDInputContentContainer isDouble>
-                                            <AddReIDTimeInputContent onClick={openTimeModal}>
+                                            <AddReIDTimeInputContent 
+                                                onClick={() => {
+                                                    if(foundEndDateTime() !== '0') {
+                                                        setTimeValue((pre) => ({...pre, startTime: foundEndDateTime()}))
+                                                    }
+                                                    openTimeModal()
+                                                }}
+                                            >
                                                 <TimeValueContainer>
                                                     <div>
                                                         시작
                                                     </div>
                                                     <div>
-                                                        {timeValue && timeValue.startTime ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : 'YYYY-MM-DD HH:mm:ss'}
+                                                        {timeValue && timeValue.startTime ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : foundEndDateTime() === '0' ? 'YYYY-MM-DD HH:mm:ss' : convertFullTimeStringToHumanTimeFormat(foundEndDateTime())}
                                                     </div>
                                                 </TimeValueContainer>
                                                 <TimeValueContainer>
