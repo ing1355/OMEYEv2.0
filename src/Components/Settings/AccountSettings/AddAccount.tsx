@@ -106,9 +106,6 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
     } else if(!idRegex.test(newAccountUsername)) {
       message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
       return true
-    } else if(!idRegex.test(newAccountUsername)) {
-      message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
-      return true
     } else if(!passwordRegex.test(newAccountPassword)) {
       message.error({ title: '사용자 추가 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
       return true
