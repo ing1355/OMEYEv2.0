@@ -24,6 +24,7 @@ import cctvIcon from '../../../assets/img/treeCCTVIcon.png'
 import rankIcon from '../../../assets/img/rankIcon.png'
 import timeIcon from '../../../assets/img/ProgressTimeIcon.png'
 import CollapseArrow from "../CollapseArrow";
+import downArrowIcon from "../../../assets/img/downArrowIcon.png";
 import AreaSelect from "../../ReID/Condition/Constants/AreaSelect";
 
 type MapComponentProps = PropsWithChildren & {
@@ -91,6 +92,23 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const message = useMessage()
     const selectedReIdResultDataRef = useRef(selectedReIdResultData)
+    const [isOpenAddReIDContainer, setIsOpenAddReIDContainer] = useState<boolean>(true)
+
+    const foundEndDateTime = () => {
+        let endTime = '0';
+
+        selectedReIdResultData?.forEach((obj) => {
+            Object.values(obj).forEach((arr) => {
+                arr.forEach((item) => {
+                    const time = item.foundDateTime
+                    if(Number(time) > Number(endTime)) {
+                        endTime = time
+                    }
+                })
+            })
+        })
+        return endTime
+    }
 
     useEffect(() => {
         if (duplicatedCCTVs.length > 0) {
@@ -314,113 +332,130 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                     {
                         forAddtraffic && <AddReIDInputContainer>
                             <AddReIDInputTitle>
-                                <div>
+                                <div style={{fontSize: '1.1rem'}}>
                                     추가 동선 분석
                                 </div>
-                                <Button>
+                                {/* <Button>
                                     접기
-                                </Button>
+                                </Button> */}
+                                <div style={{cursor: 'pointer', position: 'relative', top: '3.5px'}}
+                                    onClick={() => {setIsOpenAddReIDContainer(!isOpenAddReIDContainer)}}
+                                >
+                                    <img src={downArrowIcon} width='30px' style={{transform: isOpenAddReIDContainer ? 'rotate(180deg)' : ''}} />
+                                </div>
                             </AddReIDInputTitle>
-                            <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
-                                setSelectedAddtionalTarget(data)
-                            }} value={selectedAddtionalTarget} />
-                            <AddReIDInputRow>
-                                <AddReIDInputLabel>
-                                    타이틀
-                                </AddReIDInputLabel>
-                                <AddReIDInputContentContainer>
-                                    <AddReIDInputContent value={titleInput} onChange={(val) => {
-                                        setTitleinput(val)
-                                    }} maxLength={20} />
-                                </AddReIDInputContentContainer>
-                            </AddReIDInputRow>
-                            <AddReIDInputRowDoubleCol>
-                                <AddReIDInputCol>
-                                    <AddReIDInputLabel>
-                                        <img src={rankIcon} />
-                                    </AddReIDInputLabel>
-                                    <AddReIDInputContentContainer>
-                                        <AddReIDInputContent value={rankInput} onChange={(val) => {
-                                            setRankInput(Number(val))
-                                        }} onlyNumber />
-                                    </AddReIDInputContentContainer>
-                                </AddReIDInputCol>
-                                <AddReIDInputCol>
-                                    <AddReIDInputLabel>
-                                        <img src={cctvIcon} />
-                                    </AddReIDInputLabel>
-                                    <AddReIDInputContentContainer>
-                                        <AdditionalCCTVValueContainer onClick={openAreaModal}>
-                                            {selectedAddtionalCCTVs.length} 대
-                                        </AdditionalCCTVValueContainer>
-                                    </AddReIDInputContentContainer>
-                                </AddReIDInputCol>
-                            </AddReIDInputRowDoubleCol>
-                            <AddReIDInputRow>
-                                <AddReIDInputLabel>
-                                    <img src={timeIcon} />
-                                </AddReIDInputLabel>
-                                <AddReIDInputContentContainer isDouble>
-                                    <AddReIDTimeInputContent onClick={openTimeModal}>
-                                        <TimeValueContainer>
-                                            <div>
-                                                시작
-                                            </div>
-                                            <div>
-                                                {timeValue && timeValue.startTime ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : 'YYYY-MM-DD HH:mm:ss'}
-                                            </div>
-                                        </TimeValueContainer>
-                                        <TimeValueContainer>
-                                            <div>
-                                                종료
-                                            </div>
-                                            <div>
-                                                {timeValue && timeValue.endTime ? convertFullTimeStringToHumanTimeFormat(timeValue.endTime) : 'YYYY-MM-DD HH:mm:ss'}
-                                            </div>
-                                        </TimeValueContainer>
-                                    </AddReIDTimeInputContent>
-                                </AddReIDInputContentContainer>
-                            </AddReIDInputRow>
-                            <AddReIDInputRow>
-                                <AddReIDInputLabel>
-                                    비고
-                                </AddReIDInputLabel>
-                                <AddReIDInputContentContainer isDouble>
-                                    <AddReIDInputContent value={etcInput} onChange={(val) => {
-                                        setEtcInput(val)
-                                    }} maxLength={100} type="textarea" />
-                                </AddReIDInputContentContainer>
-                            </AddReIDInputRow>
-                            <AddReIDInputBtn hover onClick={() => {
-                                if (selectedAddtionalTarget.length === 0) return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' });
-                                if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
-                                if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
-                                if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
-                                if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
-                                closeOverlayWrapper()
-                                setRequestFlag(true)
-                                setProgressRequestParams({
-                                    type: 'ADDITIONALREID',
-                                    params: {
-                                        reIdId,
-                                        title: titleInput,
-                                        etc: etcInput,
-                                        rank: rankInput,
-                                        objects: selectedAddtionalTarget,
-                                        timeGroups: [
-                                            {
-                                                startTime: timeValue.startTime,
-                                                endTime: timeValue.endTime!
+                            {isOpenAddReIDContainer && 
+                                <>
+                                    <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
+                                        setSelectedAddtionalTarget(data)
+                                    }} value={selectedAddtionalTarget} />
+                                    <AddReIDInputRow>
+                                        <AddReIDInputLabel>
+                                            타이틀
+                                        </AddReIDInputLabel>
+                                        <AddReIDInputContentContainer>
+                                            <AddReIDInputContent value={titleInput} onChange={(val) => {
+                                                setTitleinput(val)
+                                            }} maxLength={20} />
+                                        </AddReIDInputContentContainer>
+                                    </AddReIDInputRow>
+                                    <AddReIDInputRowDoubleCol>
+                                        <AddReIDInputCol>
+                                            <AddReIDInputLabel>
+                                                <img src={rankIcon} />
+                                            </AddReIDInputLabel>
+                                            <AddReIDInputContentContainer>
+                                                <AddReIDInputContent value={rankInput} onChange={(val) => {
+                                                    setRankInput(Number(val))
+                                                }} onlyNumber />
+                                            </AddReIDInputContentContainer>
+                                        </AddReIDInputCol>
+                                        <AddReIDInputCol>
+                                            <AddReIDInputLabel>
+                                                <img src={cctvIcon} />
+                                            </AddReIDInputLabel>
+                                            <AddReIDInputContentContainer>
+                                                <AdditionalCCTVValueContainer onClick={openAreaModal}>
+                                                    {selectedAddtionalCCTVs.length} 대
+                                                </AdditionalCCTVValueContainer>
+                                            </AddReIDInputContentContainer>
+                                        </AddReIDInputCol>
+                                    </AddReIDInputRowDoubleCol>
+                                    <AddReIDInputRow>
+                                        <AddReIDInputLabel>
+                                            <img src={timeIcon} />
+                                        </AddReIDInputLabel>
+                                        <AddReIDInputContentContainer isDouble>
+                                            <AddReIDTimeInputContent 
+                                                onClick={() => {
+                                                    if(foundEndDateTime() !== '0') {
+                                                        setTimeValue((pre) => ({...pre, startTime: foundEndDateTime()}))
+                                                    }
+                                                    openTimeModal()
+                                                }}
+                                            >
+                                                <TimeValueContainer>
+                                                    <div>
+                                                        시작
+                                                    </div>
+                                                    <div>
+                                                        {timeValue && timeValue.startTime ? convertFullTimeStringToHumanTimeFormat(timeValue.startTime) : foundEndDateTime() === '0' ? 'YYYY-MM-DD HH:mm:ss' : convertFullTimeStringToHumanTimeFormat(foundEndDateTime())}
+                                                    </div>
+                                                </TimeValueContainer>
+                                                <TimeValueContainer>
+                                                    <div>
+                                                        종료
+                                                    </div>
+                                                    <div>
+                                                        {timeValue && timeValue.endTime ? convertFullTimeStringToHumanTimeFormat(timeValue.endTime) : 'YYYY-MM-DD HH:mm:ss'}
+                                                    </div>
+                                                </TimeValueContainer>
+                                            </AddReIDTimeInputContent>
+                                        </AddReIDInputContentContainer>
+                                    </AddReIDInputRow>
+                                    <AddReIDInputRow>
+                                        <AddReIDInputLabel>
+                                            비고
+                                        </AddReIDInputLabel>
+                                        <AddReIDInputContentContainer isDouble>
+                                            <AddReIDInputContent value={etcInput} onChange={(val) => {
+                                                setEtcInput(val)
+                                            }} maxLength={100} type="textarea" />
+                                        </AddReIDInputContentContainer>
+                                    </AddReIDInputRow>
+                                    <AddReIDInputBtn hover onClick={() => {
+                                        if (selectedAddtionalTarget.length === 0) return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' });
+                                        if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
+                                        if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
+                                        if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
+                                        if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
+                                        closeOverlayWrapper()
+                                        setRequestFlag(true)
+                                        setProgressRequestParams({
+                                            type: 'ADDITIONALREID',
+                                            params: {
+                                                reIdId,
+                                                title: titleInput,
+                                                etc: etcInput,
+                                                rank: rankInput,
+                                                objects: selectedAddtionalTarget,
+                                                timeGroups: [
+                                                    {
+                                                        startTime: timeValue.startTime,
+                                                        endTime: timeValue.endTime!
+                                                    }
+                                                ],
+                                                cctvIds: [
+                                                    map.current!.getFeaturesInCircle().map(_ => _)
+                                                ]
                                             }
-                                        ],
-                                        cctvIds: [
-                                            map.current!.getFeaturesInCircle().map(_ => _)
-                                        ]
-                                    }
-                                })
-                            }}>
-                                더 찾아보기
-                            </AddReIDInputBtn>
+                                        })
+                                    }}>
+                                        더 찾아보기
+                                    </AddReIDInputBtn>
+                                </>
+                            }
+ 
                         </AddReIDInputContainer>
                     }
                 </ControlRowContainer>
@@ -505,7 +540,7 @@ const AddReIDInputContainer = styled.div`
     background-color: ${GlobalBackgroundColor};
     border-radius: 12px;
     padding: 16px;
-    ${globalStyles.flex({ gap: '12px' })}
+    ${globalStyles.flex({ gap: '9px' })}
 `
 
 const AddReIDInputTitle = styled.div`

@@ -1,6 +1,6 @@
 {
   "name": "omeye_renewal",
-  "version": "2.0(66)",
+  "version": "2.0(67)",
   "private": true,
   "proxy": "https://omsecurity.kr:58081",
   "dependencies": {

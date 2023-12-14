@@ -19,15 +19,20 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
     const containerRef = useRef<HTMLDivElement>(null)
     const callbackRef = useRef<(e: KeyboardEvent) => void>()
     const completeRef = useRef(false)
+    const completeFuncRef = useRef(complete)
+
+    useEffect(() => {
+        completeFuncRef.current = complete
+    },[complete])
 
     const escKeydownCallback = async (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             close()
         } else if (e.key === 'Enter') {
             if (!noComplete) {
-                if (complete && completeRef.current === false) {
+                if (completeFuncRef.current && completeRef.current === false) {
                     completeRef.current = true
-                    if (!(await complete())) {
+                    if (!(await completeFuncRef.current())) {
                         close()
                     }
                     completeRef.current = false
@@ -84,10 +89,10 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
             {!noFooter &&
                 <Footer>
                     <FooterBtn hover onClick={async () => {
-                        if (complete) {
-                            if (complete && completeRef.current === false) {
+                        if (completeFuncRef.current) {
+                            if (completeFuncRef.current && completeRef.current === false) {
                                 completeRef.current = true
-                                if (!(await complete())) {
+                                if (!(await completeFuncRef.current())) {
                                     close()
                                 }
                                 completeRef.current = false

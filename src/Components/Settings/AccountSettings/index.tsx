@@ -1,14 +1,14 @@
 import styled from "styled-components"
 import Button from "../../Constants/Button"
-import { ButtonBackgroundColor, ButtonBorderColor, ButtonInActiveBackgroundColor, InputBackgroundColor, globalStyles } from "../../../styles/global-styled"
+import { ButtonActiveBackgroundColor, ButtonBackgroundColor, ButtonBorderColor, ButtonInActiveBackgroundColor, InputBackgroundColor, globalStyles } from "../../../styles/global-styled"
 import Input from "../../Constants/Input"
 import Dropdown from "../../Layout/Dropdown"
 import searchIcon from "../../../assets/img/searchIcon.png"
 import edit from "../../../assets/img/edit.png"
 import Pagination from "../../Layout/Pagination"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Axios } from "../../../Functions/NetworkFunctions"
-import { UserAccountApi } from "../../../Constants/ApiRoutes"
+import { PasswordVerificationApi, UserAccountApi } from "../../../Constants/ApiRoutes"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { IsAddMember, IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit, roleType } from "../../../Model/AccountDataModel"
 import Modal from "../../Layout/Modal"
@@ -121,15 +121,18 @@ const AccountSettings = ({ visible }: {
   const [isAddMember, setIsAddMember] = useRecoilState(IsAddMember)
   const [isDeleteMember, setIsDeleteMember] = useState<boolean>(false)
   const [usersAccountRows, setUsersAccountRows] = useState<ResType>({ totalCount: 0, results: [] })
-  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember)
   const setModifySelectMember = useSetRecoilState(ModifySelectMember)
   const [searchValue, setSearchValue] = useState<AccountSearchValues>('username')
   const [searchInputValue, setSearchInputValue] = useState<string>('')
   const [searchRoleValue, setSearchRoleValue] = useState<roleType>('USER')
+  const [isOpenPWConfirmModal, setIsOpenPWConfirmModal] = useState<boolean>(false)
+  const [passwordConfirm, setPasswordConfirm] = useState<string>('')
+  const [passcodeTarget, setPasscodeTarget] = useState('')
+  const [isModifyMember, setIsModifyMember] = useRecoilState(IsModifyMember)
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
   const login = useRecoilValue(isLogin)
-  const [passcodeTarget, setPasscodeTarget] = useState('')
   const userInfo = decodedJwtToken(login!)
+  const passwordConfirmRef = useRef<HTMLInputElement>(null)
   const message = useMessage()
   const isSelf = (username: string) => userInfo.user.username === username
   const isUser = userInfo.user.role === 'USER'
@@ -159,25 +162,42 @@ const AccountSettings = ({ visible }: {
   const deleteUsersAccount = async () => {
     const res = await Axios('DELETE', UserAccountApi, {
       uuid: selectUsers.join(',')
-    }, true)
+    })
     setIsDeleteMember(false)
     setUpdateMemeberList(!updateMemeberList)
     setSelectUsers([])
 
-    if (res !== undefined) {
-      if (res.data.success) {
-        message.success({ title: '사용자 삭제', msg: '사용자를 삭제했습니다' })
-      } else {
-        message.error({ title: '사용자 삭제 에러', msg: '사용자 삭제를 실패했습니다' })
-      }
+    if(res) {
+      message.success({ title: '사용자 삭제', msg: '사용자를 삭제했습니다' })
     } else {
       message.error({ title: '사용자 삭제 에러', msg: '사용자 삭제를 실패했습니다' })
+    }
+  }
+
+  const PasswordConfirmFun = async () => {
+    const res = await Axios('POST', PasswordVerificationApi, {
+      password: passwordConfirm,
+      uuid: userInfo.user.id
+    })
+
+    if(res) {
+      message.success({ title: '비밀번호 확인', msg: '비밀번호 확인에 성공했습니다' })
+      setIsOpenPWConfirmModal(false)
+      setIsModifyMember(true)
+      setPasswordConfirm('')
+    } else {
+      message.error({ title: '비밀번호 확인 에러', msg: '비밀번호 확인에 실패했습니다' })
+      setPasswordConfirm('')
     }
   }
 
   useEffect(() => {
     if (visible) getUsersAccountList()
   }, [currentPage, updateMemeberList])
+
+  useEffect(() => {
+    if(isOpenPWConfirmModal) passwordConfirmRef.current?.focus()
+  },[isOpenPWConfirmModal])
 
   return (
     <div>
@@ -287,7 +307,7 @@ const AccountSettings = ({ visible }: {
               else setSelectUsers(selectUsers.concat(filteredTemp).deduplication())
             }}
             >
-              <input type="checkbox" checked={usersAccountRows.results.filter(_ => higherThanOtherRole(userInfo.user.role, _.role)).map(_ => _.id).every(_ => selectUsers.includes(_))} onChange={() => {
+              <input type="checkbox" style={{accentColor: ButtonActiveBackgroundColor}} checked={usersAccountRows.results.filter(_ => higherThanOtherRole(userInfo.user.role, _.role)).map(_ => _.id).every(_ => selectUsers.includes(_))} onChange={() => {
 
               }} />
             </div>}
@@ -341,7 +361,8 @@ const AccountSettings = ({ visible }: {
                       {higherThanOtherRole(userInfo.user.role, data.role) || isSelf(data.username) ?
                         <div style={{ cursor: 'pointer' }} onClick={(e) => {
                           e.stopPropagation()
-                          setIsModifyMember(true);
+                          // setIsModifyMember(true);
+                          setIsOpenPWConfirmModal(true)
                           setModifySelectMember({
                             id: data.id,
                             username: data.username,
@@ -386,6 +407,21 @@ const AccountSettings = ({ visible }: {
         }}
       />
       <Modal
+        title="비밀번호 확인"
+        visible={isOpenPWConfirmModal}
+        close={() => {
+          setIsOpenPWConfirmModal(false)
+        }}
+        complete={PasswordConfirmFun}
+      >
+        <ModalInnerContainer>
+          <div style={{ margin: '30px 0px' }}>비밀번호를 입력해주세요.</div>
+          <div>
+            <AccountInput type="password" value={passwordConfirm} onChange={setPasswordConfirm} inputRef={passwordConfirmRef}/>
+          </div>
+        </ModalInnerContainer>
+      </Modal>
+      <Modal
         visible={isDeleteMember}
         close={() => {
           setIsDeleteMember(false)
@@ -400,6 +436,7 @@ const AccountSettings = ({ visible }: {
             <DeleteModalButton
               hover
               onClick={deleteUsersAccount}
+              activate={true}
             >
               삭제
             </DeleteModalButton>
@@ -541,4 +578,16 @@ const ModalInnerContainer = styled.div`
   ${globalStyles.flex({ justifyContent: 'space-evenly' })}
   height: 100%;
   text-align: center;
+`
+
+const AccountInput = styled(Input)`
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  border-radius: 10px
+  font-size: 2.3rem;
+  text-align: center;
+  color: white;
+  width: 240px;
 `

@@ -54,6 +54,7 @@ export const RefreshApi = '/api/v2/refresh'
 // 계정 설정
 export const UserAccountApi = '/api/v2/users'
 export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
+export const PasswordVerificationApi = '/api/v2/users/password-verification'
 
 // VMS 설정
 export const GetVmsListApi = '/api/v2/settings/vms/list'
