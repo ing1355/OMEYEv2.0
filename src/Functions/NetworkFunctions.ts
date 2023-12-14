@@ -131,7 +131,7 @@ export const GetAllSitesData = async () => {
     return res
 }
 
-export const ReIDStartApi = async (params: ReIDRequestParamsType[]): Promise<{ reIdId: number, storageAlert: boolean }> => {
+export const ReIDStartApi = async (params: ReIDRequestParamsType[]): Promise<{ reIdId: number, storageExceeded: boolean }> => {
     const res = await Axios('POST', StartReIdApi, params.map(_ => ({
         etc: _.etc,
         objectIds: _.objects.map(__ => __.id),

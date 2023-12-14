@@ -132,6 +132,7 @@ const AccountSettings = ({ visible }: {
   const userInfo = decodedJwtToken(login!)
   const message = useMessage()
   const isSelf = (username: string) => userInfo.user.username === username
+  const isUser = userInfo.user.role === 'USER'
 
   const getUsersAccountList = async () => {
     const res: ResType = await Axios('GET', UserAccountApi, {
@@ -278,21 +279,18 @@ const AccountSettings = ({ visible }: {
       </div>
       {/* content */}
       <div style={{ width: '100%', textAlign: 'center', marginTop: '15px' }}>
-        <AccountRow>
-          {usersAccountRows.results.some(_ => !higherThanOtherRole(_.role, userInfo.user.role)) ?
+        <AccountRow isUser={isUser}>
+          {usersAccountRows.results.some(_ => !higherThanOtherRole(_.role, userInfo.user.role)) && !isUser &&
             <div onClick={() => {
               let filteredTemp = usersAccountRows.results.filter(_ => higherThanOtherRole(userInfo.user.role, _.role)).map(_ => _.id)
-              if(filteredTemp.every(_ => selectUsers.includes(_))) setSelectUsers(filteredTemp.filter(_ => !selectUsers.includes(_)))
+              if (filteredTemp.every(_ => selectUsers.includes(_))) setSelectUsers(filteredTemp.filter(_ => !selectUsers.includes(_)))
               else setSelectUsers(selectUsers.concat(filteredTemp).deduplication())
             }}
             >
               <input type="checkbox" checked={usersAccountRows.results.filter(_ => higherThanOtherRole(userInfo.user.role, _.role)).map(_ => _.id).every(_ => selectUsers.includes(_))} onChange={() => {
 
               }} />
-            </div>
-            :
-            <div />
-          }
+            </div>}
           <div>아이디</div>
           <div>등급</div>
           <div>소속</div>
@@ -300,7 +298,7 @@ const AccountSettings = ({ visible }: {
           <div>이메일</div>
           <div>전화번호</div>
           <div>수정</div>
-          <div>패스코드</div>
+          {userInfo.user.role !== 'USER' && <div>초기화 코드</div>}
         </AccountRow>
         <div>
           {usersAccountRows && usersAccountRows.results.length > 0 ?
@@ -309,6 +307,7 @@ const AccountSettings = ({ visible }: {
                 {usersAccountRows.results.map((data: usersType, index) => {
                   return (
                     <AccountRow
+                      isUser={isUser}
                       isSelected={selectUsers.some((_) => _ === data.id)}
                       key={'usersAccountRows' + index}
                       isGranted={higherThanOtherRole(userInfo.user.role, data.role)}
@@ -326,14 +325,13 @@ const AccountSettings = ({ visible }: {
                         }
                       }}
                     >
-                      <div>
-                        {higherThanOtherRole(userInfo.user.role, data.role) && !isSelf(data.username) ?
+                      {!isUser && (higherThanOtherRole(userInfo.user.role, data.role) && !isSelf(data.username) ?
+                        <div>
                           <input type="checkbox" checked={selectUsers.find((_) => _ === data.id) ? true : false} onChange={() => {
 
                           }} />
-                          : <></>
-                        }
-                      </div>
+                        </div> : <div/>)
+                      }
                       <div>{data.username}</div>
                       <div>{data.role}</div>
                       <div>{data.organization}</div>
@@ -354,11 +352,11 @@ const AccountSettings = ({ visible }: {
                             organization: data.organization
                           })
                         }}><img src={edit} style={{ height: '15px' }} /></div> : <div />}
-                      {userInfo.user.role !== 'USER' && (data.role === "USER" || data.role === 'ADMIN') ?
+                      {!isUser && data.role === "USER" && !isSelf(data.username) ?
                         <div style={{ cursor: 'pointer' }} onClick={(e) => {
                           e.stopPropagation()
                           setPasscodeTarget(data.id)
-                        }}><img src={passcodeIcon} style={{ height: '15px' }} /></div> : <div />}
+                        }}><img src={passcodeIcon} style={{ height: '15px' }} /></div> : <div/>}
                     </AccountRow>
                   )
                 })}
@@ -469,7 +467,7 @@ const DeleteModalButton = styled(Button)`
   margin: 0 4px;
 `
 
-const AccountRow = styled.div<{ isSelected?: boolean, isGranted?: boolean }>`
+const AccountRow = styled.div<{ isSelected?: boolean, isGranted?: boolean, isUser: boolean }>`
   ${globalStyles.flex({ flexDirection: 'row' })}
   background-color: ${({ isSelected }) => isSelected === undefined ? ButtonBackgroundColor : (isSelected ? ButtonInActiveBackgroundColor : 'transparent')};
   height: 44px;
@@ -485,6 +483,29 @@ const AccountRow = styled.div<{ isSelected?: boolean, isGranted?: boolean }>`
   & > div {
     height: 100%;
     ${globalStyles.flex()}
+    ${({ isUser }) => isUser ? `
+    &:first-child {
+      width: 15%;
+    }
+    &:nth-child(2) {
+      width: 10%;
+    }
+    &:nth-child(3) {
+      width: 15%;
+    }
+    &:nth-child(4) {
+      width: 15%;
+    }
+    &:nth-child(5) {
+      width: 20%;
+    }
+    &:nth-child(6) {
+      width: 20%;
+    }
+    &:nth-child(7) {
+      width: 5%;
+    }
+    ` : `
     &:first-child {
       width: 3%;
     }
@@ -512,6 +533,7 @@ const AccountRow = styled.div<{ isSelected?: boolean, isGranted?: boolean }>`
     &:nth-child(9) {
       width: 7%;
     }
+    `}
   }
 `
 

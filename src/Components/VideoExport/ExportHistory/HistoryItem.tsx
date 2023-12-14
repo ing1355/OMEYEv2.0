@@ -99,7 +99,7 @@ const CloseIcon = styled.img`
 
 const ThumbnailContainer = styled.div`
     border: 1px solid ${ContentsBorderColor};
-    flex: 0 0 250px;
+    flex: 0 0 40%;
     height: 100%;
     border-radius: 8px;
     overflow: hidden;

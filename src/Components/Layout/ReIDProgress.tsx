@@ -850,6 +850,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                     case 'REID': {
                         const _params = params as ReIDRequestParamsType[]
                         const res = await ReIDStartApi(_params)
+                        if (res.storageExceeded) {
+                            message.warning({title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요."})
+                        }
                         if (res) {
                             reidResultTempRef.current = [...reidResult, {
                                 reIdId: res.reIdId,

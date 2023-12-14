@@ -14,6 +14,7 @@ import logoTextImg from '../../assets/img/logoText.png'
 import { useEffect, useRef, useState } from 'react';
 import Modal from '../Layout/Modal';
 import useMessage from '../../Hooks/useMessage';
+import { passwordTest } from '../../Functions/RegExpFunctions';
 
 const copyRightText = 'OMEYE v2.0 © 2023. OneMoreSecurity Inc. All Rights Reserved'
 
@@ -52,7 +53,7 @@ const Login = () => {
         }, true)
 
         if (res) {
-            message.success({ title: "패스코드 인증 성공", msg: "새로운 비밀번호를 지정해주세요." })
+            message.success({ title: "초기화 코드 인증 성공", msg: "새로운 비밀번호를 지정해주세요." })
             setInitOpen(false)
             setInitToken(res.headers.authorization)
         }
@@ -62,6 +63,9 @@ const Login = () => {
         if(passwodConfirm !== passwordInput) {
             passwordRef.current?.focus()
             return message.error({title: "비밀번호 입력 에러", msg : "입력하신 비밀번호가 일치하지 않습니다."})
+        }
+        if(!passwordTest(passwordInput)) {
+            return message.error({title: "비밀번호 입력 에러", msg : "비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다"})
         }
         const res = await Axios('PATCH', UserAccountApi, {
             password: passwordInput
@@ -89,7 +93,7 @@ const Login = () => {
                         password: password.value,
                     }, true)
                     if (res) {
-                        const { isDuplicatedLogin, action, tempAccessToken } = res.data.rows
+                        const { isDuplicatedLogin, action, tempAccessToken, storageExceeded } = res.data.rows
                         if (isDuplicatedLogin && action === 'nothing') {
                             const _res = await axios.post(duplicateLoginApi, tempAccessToken)
                             setIsLogin(_res.headers.authorization)
@@ -97,6 +101,9 @@ const Login = () => {
 
                         } else {
                             setIsLogin(res.headers.authorization)
+                        }
+                        if(storageExceeded) {
+                            message.warning({title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요."})
                         }
                     }
                 }}>
@@ -137,8 +144,8 @@ const Login = () => {
         </CopyRight>
         <Modal visible={initOpen && !initToken} close={() => {
             setInitOpen(false)
-        }} title="패스코드 입력" noFooter>
-            <Form onSubmit={PasscodeValidateFunc}>
+        }} title="초기화 코드 입력" noFooter>
+            <Initform onSubmit={PasscodeValidateFunc}>
                 <PasswordInitRow>
                     <PasswordInitRowTitle>
                         <div>
@@ -152,11 +159,11 @@ const Login = () => {
                 <PasswordInitRow>
                     <PasswordInitRowTitle>
                         <div>
-                            패스코드 :
+                            초기화 코드 :
                         </div>
                         <Input value={initPassword} onChange={value => {
                             setInitPassword(value)
-                        }} type="password" maxLength={6} onlyNumber />
+                        }} maxLength={6} onlyNumber />
                     </PasswordInitRowTitle>
                 </PasswordInitRow>
                 <InitButtonsContainer>
@@ -169,7 +176,7 @@ const Login = () => {
                         닫기
                     </InitButton>
                 </InitButtonsContainer>
-            </Form>
+            </Initform>
         </Modal>
         <Modal visible={initToken !== ''} close={() => {
             setInitToken('')
@@ -200,7 +207,7 @@ const Login = () => {
                         초기화
                     </InitButton>
                     <InitButton hover onClick={() => {
-                        setInitOpen(false)
+                        setInitToken('')
                     }} type='button'>
                         닫기
                     </InitButton>
@@ -326,7 +333,7 @@ const PasswordInitRowTitle = styled.label`
     height: 100%;
     ${globalStyles.flex({ flexDirection: 'row', gap: '8px' })}
     & > div {
-        flex: 0 0 60px;
+        flex: 0 0 80px;
         text-align: right;
     }
     & > input {
@@ -360,4 +367,8 @@ const PasswordConfirmTitle = styled.div`
         height: 100%;
         flex: 1;
     }
+`
+
+const Initform = styled(Form)`
+    width: 320px;
 `

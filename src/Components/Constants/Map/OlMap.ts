@@ -397,10 +397,9 @@ export class OlMap extends CustomMap<Map> {
         if (!this.noSelect && !this.singleSelected) this.registerBoxEndHandler();
     }
 
-    fitWithPaddingByExtent(ext: Extent): void {
-        let padding: number = 500
-        let x_padding = (ext[2] - ext[0]) / 2.5
-        let y_padding = (ext[3] - ext[1]) / 2.5
+    fitWithPaddingByExtent(ext: Extent, isHalf?: boolean): void {
+        let x_padding = (ext[2] - ext[0]) / (isHalf ? 5 : 2.5)
+        let y_padding = (ext[3] - ext[1]) / (isHalf ? 5 : 2.5)
         this.map.getView().fit([ext[0] - x_padding, ext[1] - y_padding, ext[2] + x_padding, ext[3] + y_padding])
     }
 
@@ -444,12 +443,12 @@ export class OlMap extends CustomMap<Map> {
             if (feature) {
                 let features: Feature[] = feature.get("features");
                 if (features && features.length > 1) {
-                    if (features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
+                    if (this.map.getView().getZoom()! > 18 || features.every(_ => JSON.stringify(features[0].getGeometry()?.getExtent()) === JSON.stringify(_.getGeometry()?.getExtent()))) {
                         this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     } else {
                         this.dispatchDuplicatedMarkerChangeEvent([])
-                        this.map.getView().fit(new VectorSource({ features: features }).getExtent())
-                        this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent())
+                        // this.map.getView().fit(new VectorSource({ features: features }).getExtent())
+                        this.fitWithPaddingByExtent(new VectorSource({ features: features }).getExtent(), true)
                         // this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     }
                 } else if (features || feature) {

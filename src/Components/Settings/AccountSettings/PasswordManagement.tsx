@@ -13,8 +13,10 @@ import addIcon from '../../../assets/img/plusIcon.png'
 import deleteIcon from '../../../assets/img/delete.png'
 import Input from "../../Constants/Input"
 import Dropdown, { DropdownItemType } from "../../Layout/Dropdown"
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import useMessage from "../../../Hooks/useMessage"
 
-const tableColumns = ["패스코드", "생성 시간", "만료 시간", "남은 사용 횟수"]
+const tableColumns = ["초기화 코드", "생성 시간", "만료 시간", "남은 사용 횟수"]
 const timeTypeItems: DropdownItemType<number>[] = [
     {
         key: 1,
@@ -37,11 +39,6 @@ const timeTypeItems: DropdownItemType<number>[] = [
         label: '무제한'
     }
 ]
-
-const actionLabels = {
-    CREATE: '생성',
-    DELETE: '삭제'
-}
 
 type PasswordManagementProps = {
     visible: string
@@ -87,6 +84,7 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
     const [inputTime, setInputTime] = useState(1)
     const [inputTimeType, setInputTimeType] = useState(1)
     const [inputCount, setInputCount] = useState(1)
+    const message = useMessage()
 
     const initValues = () => {
         setInputCount(1)
@@ -140,15 +138,15 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
             setVisible('')
         }}
         noFooter
-        title="패스코드 관리"
+        title="초기화 코드 관리"
     >
         <Container>
             <Title>
-                현재 패스코드
+                현재 초기화 코드
             </Title>
             <CurrentPasscodeContainer>
                 {!datas.data.passcode ? <>
-                    <AddCol>
+                    {/* <AddCol>
                         <AddLabel>
                             유효 시간 :
                         </AddLabel>
@@ -170,7 +168,7 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
                         }))} onChange={({ value }) => {
                             setInputCount(value)
                         }} value={inputCount} />
-                    </AddCol>
+                    </AddCol> */}
                     <AddBtn
                         hover
                         activate
@@ -178,8 +176,10 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
                         onClick={async () => {
                             const res = await Axios('POST', AddPasscodeApi, {
                                 userId: visible,
-                                validTime: inputTime * inputTimeType,
-                                recycleCount: inputCount
+                                validTime: 30,
+                                recycleCount: 1
+                                // validTime: inputTime * inputTimeType,
+                                // recycleCount: inputCount
                             })
 
                             if (res) setRefresh(true)
@@ -189,11 +189,17 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
                 </> : <>
                     <AddCol>
                         <AddLabel>
-                            패스코드 :
+                            초기화 코드 :
                         </AddLabel>
-                        <PasscodeContainer>
-                            {datas.data.passcode.number}
-                        </PasscodeContainer>
+                        <CopyToClipboard text={datas.data.passcode.number} onCopy={() => {
+                            message.success({ title: "복사 성공", msg: "초기화 코드가 클립보드에 저장되었습니다." })
+                        }}>
+                            <PasscodeContainer style={{
+                                cursor: 'pointer'
+                            }}>
+                                {datas.data.passcode.number}
+                            </PasscodeContainer>
+                        </CopyToClipboard>
                     </AddCol>
                     <AddCol>
                         <AddLabel>
@@ -232,7 +238,7 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
                 </>}
             </CurrentPasscodeContainer>
             <Title>
-                패스코드 이력
+                초기화 코드 이력
             </Title>
             <HeaderRow>
                 {tableColumns.map((_, ind) => <Col key={ind}>

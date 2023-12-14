@@ -2,7 +2,7 @@ import styled from "styled-components"
 import Modal from "../../Layout/Modal"
 import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
-import { useRecoilState } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { IsModifyMember, ModifiedName, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit, roleType } from "../../../Model/AccountDataModel"
 import { useEffect, useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
@@ -11,11 +11,10 @@ import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
 import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { ButtonBackgroundColor } from "../../../styles/global-styled"
-import { emailRegex, nameRegex, passwordRegex, phoneNumberRegex } from "./AddAccount"
 import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
-import { async } from "q"
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
+import { emailTest, nameTest, passwordTest, phoneNumberTest } from "../../../Functions/RegExpFunctions"
 
 type ModifyAccountType = {
   visible: boolean
@@ -28,11 +27,10 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const [modifyAccountPassword, setModifyAccountPassword] = useState<string>('')
   const [modifyAccountPasswordConfirm, setModifyAccountPasswordConfirm] = useState<string>('')
   const [updateMemeberList, setUpdateMemeberList] = useRecoilState(UpdateMemeberList)
-  const [changeDropdown, setChangeDropdown] = useState<boolean>(false)
-  const [login, setIsLogin] = useRecoilState(isLogin)
+  const login = useRecoilValue(isLogin)
   const userInfo = decodedJwtToken(login!)
   const [searchRoleValue, setSearchRoleValue] = useState<roleType | null>(null)
-  const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
+  const setModifiedName = useSetRecoilState(ModifiedName)
   const message = useMessage()
 
   const modifyInit = () => {
@@ -90,27 +88,18 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
       message.error({ title: '정보 수정 에러', msg: '소속, 이름, 이메일, 전화번호 항목을 모두 입력해주세요.' })
       return true
     } 
-    
-    // else if(!passwordRegex.test(modifyAccountPassword)) {
-    //   message.error({ title: '정보 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
-    //   return true
-    // } else if(modifyAccountPassword !== modifyAccountPasswordConfirm) {
-    //   message.error({ title: '정보 수정 에러', msg: '비밀번호가 일치하지 않습니다' })
-    //   return true
-    // } 
-    
-    else if(!nameRegex.test(modifySelectMember.name)) {
+    else if(!nameTest(modifySelectMember.name)) {
       message.error({ title: '정보 수정 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
       return true
-    } else if(!emailRegex.test(modifySelectMember.email)) {
+    } else if(!emailTest(modifySelectMember.email)) {
       message.error({ title: '정보 수정 에러', msg: '잘못된 이메일 형식 입니다' })
       return true
-    } else if(!phoneNumberRegex.test(modifySelectMember.phoneNumber)) {
+    } else if(!phoneNumberTest(modifySelectMember.phoneNumber)) {
       message.error({ title: '정보 수정 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
       return true
     } else {
       if(modifyAccountPassword) {
-        if (!passwordRegex.test(modifyAccountPassword)){
+        if (!passwordTest(modifyAccountPassword)){
           message.error({ title: '정보 수정 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
           return true
         } else if(!modifyAccountPasswordConfirm) {

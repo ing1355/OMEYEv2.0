@@ -32,6 +32,7 @@ export type VideoExportRowDataType = {
         points: number[][][]
         password: string
         description: string
+        areaInfoImg: string
     }
     path?: string
     progress: ProgressDataVideoExportPercentType

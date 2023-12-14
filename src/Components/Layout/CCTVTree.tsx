@@ -31,7 +31,7 @@ const getCameraIdsInNode = (node: SiteDataType): CameraDataType['cameraId'][] =>
     }
 }
 
-const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId, initEvent }: CCTVTreeProps) => {
+const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, searchCCTVId, initEvent, visible }: CCTVTreeProps) => {
     const [opened, setOpened] = useState<SiteDataType['fullName'][]>([])
     const sitesData = useRecoilValue(SitesDataForTreeView)
     const lastClickedCCTV = useRef<CameraDataType['cameraId']>(0)
@@ -46,18 +46,23 @@ const CCTVTree = ({ selectedCCTVs, selectedChange, singleTarget, openedInit, sea
     const keyUpCallback = useCallback((e: KeyboardEvent) => {
         if(e.key === 'Shift') {
             shiftKeyClicked.current = false
-            lastClickedCCTV.current = 0
+            // lastClickedCCTV.current = 0
         }
     },[])
 
     useEffect(() => {
-        document.addEventListener('keydown', keyDownCallback)
-        document.addEventListener('keyup', keyUpCallback)
+        if(visible) {
+            document.addEventListener('keydown', keyDownCallback)
+            document.addEventListener('keyup', keyUpCallback)
+        } else {
+            document.removeEventListener('keydown', keyDownCallback)
+            document.removeEventListener('keyup', keyUpCallback)
+        }
         return () => {
             document.removeEventListener('keydown', keyDownCallback)
             document.removeEventListener('keyup', keyUpCallback)
         }
-    },[])
+    },[visible])
 
     useEffect(() => {
         if (searchCCTVId && searchCCTVId) {

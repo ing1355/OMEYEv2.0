@@ -14,6 +14,7 @@ import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { isLogin } from "../../../Model/LoginModel"
 import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
+import { emailTest, nameTest, passwordTest, phoneNumberTest, usernameTest } from "../../../Functions/RegExpFunctions"
 
 type AddAccountType = {
   visible: boolean
@@ -83,6 +84,10 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
     if(!newAccountUsername) {
       message.error({ title: '아이디 중복 확인', msg: '아이디를 입력해주세요.' })
     } else {
+      if(!usernameTest(newAccountUsername)) {
+        message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
+        return true
+      }
       const res = await Axios("GET", IdCheckApi(newAccountUsername))
       if(res) {
         message.error({ title: '아이디 중복 확인', msg: '사용 불가능한 아이디 입니다.' })
@@ -103,25 +108,19 @@ const AddAccount = ({ visible, close }: AddAccountType) => {
     } else if(newAccountPassword !== newAccountPasswordConfirm) {
       message.error({ title: '사용자 추가 에러', msg: '비밀번호가 일치하지 않습니다.' })
       return true
-    } else if(!idRegex.test(newAccountUsername)) {
+    } else if(!usernameTest(newAccountUsername)) {
       message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
       return true
-    } else if(!idRegex.test(newAccountUsername)) {
-      message.error({ title: '사용자 추가 에러', msg: 'ID는 4~16자의 영소문자 및 숫자만 사용 가능합니다' })
-      return true
-    } else if(!passwordRegex.test(newAccountPassword)) {
+    } else if(!passwordTest(newAccountPassword)) {
       message.error({ title: '사용자 추가 에러', msg: '비밀번호는 8자 이상 3가지 조합(영문자, 숫자, 특수문자) 혹은 10자 이상 2가지 조합(영문자, 숫자, 특수문자 중 선택)이어야 합니다' })
       return true
-    } else if(newAccountPassword !== newAccountPasswordConfirm) {
-      message.error({ title: '사용자 추가 에러', msg: '비밀번호가 일치하지 않습니다' })
-      return true
-    } else if(!nameRegex.test(newAccountName)) {
+    } else if(!nameTest(newAccountName)) {
       message.error({ title: '사용자 추가 에러', msg: '이름은 특수문자 및 공백 사용불가합니다' })
       return true
-    } else if(!emailRegex.test(newAccountEmail)) {
+    } else if(!emailTest(newAccountEmail)) {
       message.error({ title: '사용자 추가 에러', msg: '잘못된 이메일 형식 입니다' })
       return true
-    } else if(!phoneNumberRegex.test(newAccountPhoneNumber)) {
+    } else if(!phoneNumberTest(newAccountPhoneNumber)) {
       message.error({ title: '사용자 추가 에러', msg: '전화번호를 9~11자리 숫자로만 입력해주세요' })
       return true
     } else {

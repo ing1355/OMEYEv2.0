@@ -140,7 +140,7 @@ export default MapView
 const Container = styled.div<{ opened: boolean }>`
     height: 100%;
     ${globalStyles.flex({ gap: '12px' })}
-    visibility: ${({ opened }) => opened ? 'visible' : `hidden`};
+    display: ${({ opened }) => opened ? 'flex' : `none`};
     ${globalStyles.fadeOut()}
 `
 

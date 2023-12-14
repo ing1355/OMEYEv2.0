@@ -120,6 +120,8 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
         if (status === 'downloading') {
             timerRef.current = setInterval(() => setCount(_ => _ + 1), 1000)
             window.addEventListener('unload', videoExportCancelFunc)
+        } else if(status === 'none' || status === 'cancel') {
+            setCount(0)
         } else {
             window.removeEventListener('unload', videoExportCancelFunc)
             if (timerRef.current) {
@@ -208,7 +210,6 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                 <ActionBottomBtnsContainer>
                     <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
                         if (status === 'downloading') {
-                            setCount(0)
                             videoExportCancelFunc()
                         }
                         if (status === 'canDownload' || status === 'cancel') exportCallback()
@@ -236,7 +237,8 @@ const defaultExportRowData: VideoExportRowDataType = {
         masking: [],
         points: [],
         password: '',
-        description: ''
+        description: '',
+        areaInfoImg: ''
     },
     progress: {
         aiPercent: 0,
@@ -309,7 +311,8 @@ const NewExport = () => {
                     "masking": [],
                     "points": [],
                     "password": "",
-                    "description": "test"
+                    "description": "test",
+                    "areaInfoImg": ""
                 },
                 "progress": {
                     "aiPercent": 0,
@@ -328,7 +331,8 @@ const NewExport = () => {
                     "masking": [],
                     "points": [],
                     "password": "",
-                    "description": "test2"
+                    "description": "test2",
+                    "areaInfoImg": ""
                 },
                 "progress": {
                     "aiPercent": 0,

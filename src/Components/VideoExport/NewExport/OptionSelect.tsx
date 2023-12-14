@@ -13,6 +13,7 @@ import { Axios } from "../../../Functions/NetworkFunctions"
 import { GetThumbnailImageApi } from "../../../Constants/ApiRoutes"
 import { CameraDataType, TimeDataType } from "../../../Constants/GlobalTypes"
 import useMessage from "../../../Hooks/useMessage"
+import { ConvertWebImageSrcToServerBase64ImageSrc } from "../../../Functions/GlobalFunctions"
 
 type OptionSelectProps = {
     defaultValue?: VideoExportRowDataType
@@ -35,7 +36,8 @@ const defaultOptions: VideoExportRowDataType['options'] = {
     masking: [],
     points: [],
     password: '',
-    description: ''
+    description: '',
+    areaInfoImg: ''
 }
 
 const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectProps) => {
@@ -131,15 +133,21 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
         }
     }, [clickPoints, submitPoints])
 
-    return <Modal complete={() => {
+    return <Modal complete={async () => {
         if (options.masking.includes('area') && submitPoints.length === 0) {
             message.error({ title: "입력값 에러", msg: "비식별화 할 영역이 선택되지 않았습니다.\n영역을 지정하거나 영역 비식별화를 해제해주세요." })
+            return true
+        }
+        if (options.masking.includes('area') && clickPoints.length > 0) {
+            message.error({ title: "입력값 에러", msg: "비식별화 할 영역이 확정되지 않았습니다.\n우클릭을 통해 영역을 확정시켜 주세요." })
             return true
         }
         let temp = { ...options }
         if (!passwordSet) temp['password'] = ""
         if (masking.includes('area')) {
             temp['points'] = submitPoints
+            temp['areaInfoImg'] = ConvertWebImageSrcToServerBase64ImageSrc(rectCanvasRef.current?.toDataURL()!)
+            console.debug(temp)
             // temp['points'] = submitPoints.map(_ => _.flatMap(__ => __.map((___, ind) => {
             //     if(ind === 0) {
             //         const x = ___
