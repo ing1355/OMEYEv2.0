@@ -308,12 +308,6 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                         setSelectedCondition(ind)
                     }}>
                     {_.title}
-                    {/* {ind + ' '}
-                    {(data.data.length + ' ' )}
-                    {progressData.length + ' '}
-                    {selectedCondition}
-                    {(data.data.length - 1 === selectedCondition) && 'dsf'}
-                    {progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition] ? Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition].times)) : 0} */}
                 </ConditionItem>)}
             </ConditionsInnerContainer>
         </ConditionsContainer>
