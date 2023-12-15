@@ -250,11 +250,36 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
     const progressData = useRecoilValue(ProgressData)
     const globalCurrentReIdId = useRecoilValue(globalCurrentReidId)
     const message = useMessage()
+    const [loading, setLoading] = useState<boolean[]>([])
 
     // useEffect(() => {
     //     console.debug("Resultcontainer data Change : ", data)
     // },[data])
+    const CheckStateSuccess = () => {
+        const state = progressData.map((item) => {
+            return item.times.map((_) => _.data).map(_ => Object.values(_)).some((_) => _.some(_ => _.status === 'RUNNING' || _.status === 'WAIT'))
+        })
+        return state
+    }
 
+    useEffect(() => {
+        if(data && data.reIdId === globalCurrentReIdId) {
+            // if(data?.data.length > progressData.length) {
+            //     const completeTemp = Array(data?.data.length - progressData.length).fill(false)
+            //     setLoading(completeTemp.concat(CheckStateSuccess()))
+            // } else {
+            //     setLoading(CheckStateSuccess())
+            // }
+
+            if(progressStatus.type === 'ADDITIONALREID') {
+                const completeTemp = Array(data?.data.length - progressData.length).fill(false)
+                setLoading(completeTemp.concat(CheckStateSuccess()))
+            } else {
+                setLoading(CheckStateSuccess())
+            }
+        }
+    }, [data])
+    
     useEffect(() => {
         if (selectedView[0] === reIdId) {
             setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
@@ -266,8 +291,11 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
             <ConditionsInnerContainer>
                 {data.data.map((_, ind, arr) => <ConditionItem
                     subIcon={<ReIdStatusIcon
-                        isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : ind].times)) !== 0}>
-                        <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon} />
+                        // isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : ind].times)) !== 0}
+                            isLoading={globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length}
+                        >
+                        {/* <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon} /> */}
+                        <img src={(globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length) ? reidLoadingIcon : reidCompleteIcon} />
                     </ReIdStatusIcon>}
                     icon={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.resultList[0].objectType)]}
                     iconStyle={{
@@ -280,6 +308,12 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                         setSelectedCondition(ind)
                     }}>
                     {_.title}
+                    {/* {ind + ' '}
+                    {(data.data.length + ' ' )}
+                    {progressData.length + ' '}
+                    {selectedCondition}
+                    {(data.data.length - 1 === selectedCondition) && 'dsf'}
+                    {progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition] ? Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : selectedCondition].times)) : 0} */}
                 </ConditionItem>)}
             </ConditionsInnerContainer>
         </ConditionsContainer>

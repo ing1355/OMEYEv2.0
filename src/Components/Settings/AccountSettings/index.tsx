@@ -417,7 +417,7 @@ const AccountSettings = ({ visible }: {
         <ModalInnerContainer>
           <div style={{ margin: '30px 0px' }}>비밀번호를 입력해주세요.</div>
           <div>
-            <AccountInput type="password" value={passwordConfirm} onChange={setPasswordConfirm} inputRef={passwordConfirmRef}/>
+            <AccountInput type="password" value={passwordConfirm} onChange={setPasswordConfirm} inputRef={passwordConfirmRef} onEnter={PasswordConfirmFun}/>
           </div>
         </ModalInnerContainer>
       </Modal>
