@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { LoadableDataType } from "../Constants/NetworkTypes";
 import { menuState } from "./MenuModel";
 import { VideoExportMenuKey } from "../Constants/GlobalConstantsValues";
+import { ManagementServerSingleDataType } from "./ServerManagementModel";
 
 export type VideoExportStatusType = 'canDownload' | 'downloading' | 'complete' | 'none' | 'wait' | 'cancel' | 'downloadComplete'
 
@@ -23,6 +24,7 @@ export type VideoExportMaskingType = "head" | "area" | "carplate"
 
 export type VideoExportRowDataType = {
     videoUUID?: string
+    managementId?: ManagementServerSingleDataType['id']
     status?: VideoExportStatusType
     cctvId?: CameraDataType['cameraId']
     time?: TimeModalDataType

@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { ButtonBackgroundColor, ButtonBorderColor, InputBackgroundColor } from "../../../styles/global-styled";
 import { GetServerInfoApi, ServerMgmtInfoApi } from "../../../Constants/ApiRoutes";
 import { CustomEventSource } from "../../../Constants/GlobalConstantsValues";
-import { Progress } from "antd";
 import { LineChart } from "@mui/x-charts";
 import { useRecoilState } from "recoil";
 import { isLogin } from "../../../Model/LoginModel";
-import { decodedJwtToken } from "../../Layout/Header/UserMenu";
 import { Axios } from "../../../Functions/NetworkFunctions";
 import resetIcon from "../../../assets/img/resetIcon.png"
-import { convertFullTimeString, convertFullTimeStringToHumanTimeFormat } from "../../../Functions/GlobalFunctions";
+import { convertFullTimeString, convertFullTimeStringToHumanTimeFormat, decodedJwtToken } from "../../../Functions/GlobalFunctions";
 
 // type serviceType = 'detect2' | 'main2' | 'reid2' | 'rt2' | 'mediaserver' | '';
 type serviceType = 'detect' | 'main' | 'back' | 'rt' | 'mediaserver' | '';
@@ -88,7 +86,7 @@ type networkBandwidthType = {
   downlink: string,
 }
 
-type GetServerInfoType = {
+export type GetServerInfoType = {
   monitorVersion: string,
   hardwareInfos: hardwareInfosType,
   networkInfo: networkInfoType
@@ -570,9 +568,9 @@ const ServerManagement = ({visible}: {
             <div style={{padding: '10px'}}>CPU sockets: {fixedServerMgmtInfo?.hardwareInfos.cpu_sockets}</div>
             <div style={{padding: '10px'}}>CPU threads: {fixedServerMgmtInfo?.hardwareInfos.cpu_threads}</div>
             {/* <div style={{padding: '10px'}}>Gpu: {fixedServerMgmtInfo?.hardwareInfos.gpu}</div> */}
-            {fixedServerMgmtInfo?.hardwareInfos.gpu.map((data)=>{
+            {fixedServerMgmtInfo?.hardwareInfos.gpu.map((data, ind)=>{
               return (
-                <div style={{padding: '10px'}}>{data}</div>
+                <div key={ind} style={{padding: '10px'}}>{data}</div>
               )
             })}
             <div style={{padding: '10px'}}>GPU sockets: {fixedServerMgmtInfo?.hardwareInfos.gpu_sockets}</div>

@@ -5,26 +5,11 @@ import UserIcon from '../../../assets/img/UserIcon.png'
 import ArrowIcon from '../../../assets/img/downArrowIcon.png'
 import { useRecoilState } from "recoil"
 import { isLogin } from "../../../Model/LoginModel"
-import jwtDecode from "jwt-decode"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { LogoutApi } from "../../../Constants/ApiRoutes"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ModifiedName } from "../../../Model/AccountDataModel"
-
-export const decodedJwtToken = (token: string) => {
-    return jwtDecode(token) as {
-        user: {
-            email: string
-            id: string
-            isAlreadyLoggedIn: boolean
-            isLock: boolean
-            name: string
-            phoneNumber: string
-            role: 'USER' | 'ADMIN' | 'DEVELOPER'
-            username: string
-        }
-    }
-}
+import { decodedJwtToken } from "../../../Functions/GlobalFunctions"
 
 const UserMenu = () => {
     const [login, setIsLogin] = useRecoilState(isLogin)

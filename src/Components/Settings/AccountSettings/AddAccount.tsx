@@ -12,8 +12,7 @@ import Dropdown from "../../Layout/Dropdown"
 import { ButtonBackgroundColor, InputBackgroundColor } from "../../../styles/global-styled"
 import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { isLogin } from "../../../Model/LoginModel"
-import { decodedJwtToken } from "../../Layout/Header/UserMenu"
-import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
+import { OnlyInputNumberFun, decodedJwtToken } from "../../../Functions/GlobalFunctions"
 import { emailTest, nameTest, passwordTest, phoneNumberTest, usernameTest } from "../../../Functions/RegExpFunctions"
 
 type AddAccountType = {

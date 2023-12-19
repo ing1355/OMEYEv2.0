@@ -5,12 +5,13 @@ import { ConditionDataType } from "../Model/ConditionDataModel";
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../Components/ReID/Condition/Constants/Params";
 import { toPng } from "html-to-image";
 import { ServerObjectDataType } from "./NetworkFunctions";
+import jwtDecode from "jwt-decode"
 
 function arrayDistinct(list: any[]):any[] {
     const result = [];
     for (var i = 0; i < list.length; i++) {
         var value = list[i];
-        if (result.indexOf(value) == -1)
+        if (result.indexOf(value) === -1)
             result.push(value);
     }
     return result;
@@ -367,6 +368,14 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
     aTag.remove();
 }
 
+export const videoDownloadByPath = (path: string, fileName: string) => {
+    fetch(path).then(res => res.blob()).then(file => {
+        let tempUrl = URL.createObjectURL(file);
+        FileDownloadByUrl(tempUrl, fileName)
+        URL.revokeObjectURL(tempUrl)
+    })
+}
+
 export const DivToImg = async (div: HTMLDivElement) => {
     return toPng(div)
 }
@@ -400,4 +409,19 @@ export const MaxInputNumberFun = (num: string, max: number) => {
     }
 
     return inputValue
+}
+
+export const decodedJwtToken = (token: string) => {
+    return jwtDecode(token) as {
+        user: {
+            email: string
+            id: string
+            isAlreadyLoggedIn: boolean
+            isLock: boolean
+            name: string
+            phoneNumber: string
+            role: 'USER' | 'ADMIN' | 'DEVELOPER'
+            username: string
+        }
+    }
 }

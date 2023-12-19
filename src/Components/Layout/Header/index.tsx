@@ -2,60 +2,40 @@ import styled from "styled-components"
 import { HeaderHeight, SidebarWidth } from "../../../Constants/CSSValues"
 import Logo from "../../Constants/Logo"
 import { globalStyles } from "../../../styles/global-styled"
-import { useRecoilState, useRecoilValue } from "recoil"
+import { useRecoilState, useSetRecoilState } from "recoil"
 import { menuState } from "../../../Model/MenuModel"
-import { useEffect, useLayoutEffect, useState } from "react"
-import ReIDProgress from "../ReIDProgress"
-import ProgressIcon from '../../../assets/img/ProgressIcon.png'
-import ProgressActivateIcon from '../../../assets/img/ProgressActivateIcon.png'
+import { useEffect } from "react"
 import logoTextImg from '../../../assets/img/logoText.png'
 import UserMenu from "./UserMenu"
 import Menus from "./Menus"
-import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
-import { conditionMenu } from "../../../Model/ConditionMenuModel"
-import { AllMenuStateInitEvent } from "../../../Model/GlobalEventModel"
-import VisibleToggleContainer from "../../Constants/VisibleToggleContainer"
+import ManagementComponent from "./ManagementComponent"
+import ReIDProgress from "./ReIDProgress"
+import { GlobalEvents } from "../../../Model/GlobalEventsModel"
 
 const Header = () => {
-    const [reIDProgressVisible, setReIDProgressVisible] = useState(false)
-    const [currentMenu, setCurrentMenu] = useRecoilState(menuState)
-    const [allMenuEvent, setAllMenuEvent] = useRecoilState(AllMenuStateInitEvent)
-    const cMenu = useRecoilValue(conditionMenu)
-    const progressStatus = useRecoilValue(ProgressStatus)
+    
+    const setCurrentMenu = useSetRecoilState(menuState)
+    const setGlobalEvent = useSetRecoilState(GlobalEvents)
 
     const goToMain = () => {
-        setAllMenuEvent(true)
+        setGlobalEvent({
+            key: 'AllMenuStateInit',
+            data: undefined
+        })
         setCurrentMenu(null)
     }
 
-    useLayoutEffect(() => {
-        setReIDProgressVisible(false)
-    }, [currentMenu, cMenu])
-
-    useEffect(() => {
-        if(allMenuEvent) {
-            setAllMenuEvent(false)
-        }
-    },[allMenuEvent])
-
     return <HeaderContainer>
         <LogoContainer onClick={goToMain}>
-            <LogoImg/>
+            <LogoImg />
             <LogoTextContainer>
                 <img src={logoTextImg} />
             </LogoTextContainer>
         </LogoContainer>
         <Menus />
         <ButtonsContainer>
-            v{process.env.REACT_APP_VERSION}
-            <ProgressBtn visible={reIDProgressVisible} setVisible={v => {
-                setReIDProgressVisible(v)
-            }}>
-                <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']}/>
-                <ReIDProgress visible={reIDProgressVisible} close={() => {
-                    setReIDProgressVisible(false)
-                }}/>
-            </ProgressBtn>
+            <ManagementComponent />
+            <ReIDProgress/>
             <UserMenu />
         </ButtonsContainer>
     </HeaderContainer>
@@ -96,19 +76,5 @@ const LogoImg = styled(Logo)`
 
 const ButtonsContainer = styled.div`
     height: 80%;
-    ${globalStyles.flex({ flexDirection: 'row' })}
-`
-
-const ProgressBtn = styled(VisibleToggleContainer)`
-    height: 100%;
-    position: relative;
-    ${globalStyles.flex({ justifyContent: 'space-between' })}
-    border-radius: 4px;
-    padding: 4px 12px;
-    cursor: pointer;
-`
-
-const ProgressBtnIcon = styled.img<{isRunning: boolean}>`
-    height: 75%;
-    ${({isRunning}) => isRunning && globalStyles.flash({animationDuration: '3s', animationIterationCount: 'infinite'})}
+    ${globalStyles.flex({ flexDirection: 'row', gap: '4px' })}
 `

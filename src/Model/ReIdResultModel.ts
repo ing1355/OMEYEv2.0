@@ -130,6 +130,7 @@ export const ReIDAllResultData = selector({ // reid 결과 받아서 결과 추�
     return get(_reidResultDatas)
   },
   set: ({ get, set }, newValue) => {
+    console.debug('ReIDResult change : ', newValue)
     if (!(newValue instanceof DefaultValue)) {
       const temp = get(_reidResultDatas)
       const tempValueIds = temp.map(_ => _.reIdId)

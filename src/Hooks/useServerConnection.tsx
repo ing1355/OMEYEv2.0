@@ -12,17 +12,17 @@ const useServerConnection = () => {
     const message = useMessage()
 
     const healthCheckTimerRegister = (callback?: (params?: any) => void) => {
-        if (timer.current) clearTimeout(timer.current)
-        timer.current = setTimeout(() => {
-            if (callback) callback()
-            message.preset('SERVER_CONNECTION_ERROR')
-            Axios("POST", LogoutApi)
-            setIsLogin(null)
-        }, HealthCheckTimerDuration);
+        // if (timer.current) clearTimeout(timer.current)
+        // timer.current = setTimeout(() => {
+        //     if (callback) callback()
+        //     message.preset('SERVER_CONNECTION_ERROR')
+        //     Axios("POST", LogoutApi)
+        //     setIsLogin(null)
+        // }, HealthCheckTimerDuration);
     }
 
     const healthCheckClear = () => {
-        if (timer.current) clearTimeout(timer.current)
+        // if (timer.current) clearTimeout(timer.current)
     }
 
     return { healthCheckTimerRegister, healthCheckClear }

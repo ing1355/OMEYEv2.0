@@ -7,6 +7,7 @@ import { CurrentLang } from "./Model/LanguageModel"
 
 type ServerErrorDataType = {
     code: number
+    errorTitle: string
     errorCode: string
     extraData: any
     message: string
@@ -20,6 +21,7 @@ const AxiosController = () => {
 
     useLayoutEffect(() => {
         langRef.current = lang
+        document.documentElement.lang = lang
     },[lang])
 
     useLayoutEffect(() => {
@@ -38,6 +40,7 @@ const AxiosController = () => {
                     try {
                         const pyResponse = JSON.parse(await data.text())
                         const { code, errorCode, extraData, message, success } = pyResponse as ServerErrorDataType
+                        console.debug("Patch Error : ", pyResponse)
                         _message.error({
                             title: errorCode,
                             msg: message
@@ -46,12 +49,20 @@ const AxiosController = () => {
                         console.debug(e)
                     }
                 } else {
-                    const { code, errorCode, extraData, message, success } = data as ServerErrorDataType
+                    console.debug("Backend Error : ", data)
+                    const { code, errorTitle, errorCode, extraData, message, success } = data as ServerErrorDataType
                     if (!success) {
-                        _message.error({
-                            title: errorCode,
-                            msg: message
-                        })
+                        if(errorCode && errorTitle) {
+                            _message.error({
+                                title: `${errorCode} - ${errorTitle}`,
+                                msg: message
+                            })
+                        } else {
+                            _message.error({
+                                title: '서버 연결 실패',
+                                msg: '서버와의 연결이 종료되었습니다.\n관리자에게 문의하세요.'
+                            })
+                        }
                     }
                     if (code === 401 || status === 502) {
                         // setLoginState(null)

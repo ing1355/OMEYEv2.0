@@ -111,7 +111,7 @@ const _Input = (props?: InputProps) => {
             }}
             onInput={e => {
                 if (props?.onlyNumber) {
-                    if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9.\*]/g, '').replace(/(\..*)\./g, '$1')
+                    if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\*]/g, '').replace(/(\..*)\./g, '$1')
                     else {
                         let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
                         if (props.maxNumber) {

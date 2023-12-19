@@ -64,7 +64,7 @@ export const MonitoringDatas = selectorFamily({
                     })
                 }
                 if(oldData.status === PROGRESS_STATUS['IDLE'] && newValue === PROGRESS_STATUS['RUNNING']) {
-                    window.addEventListener('unload', streamingAllStopRequest)
+                    window.addEventListener('beforeunload', streamingAllStopRequest)
                 }
                 return set(_MonitoringCCTVsData, {
                     ...oldData,

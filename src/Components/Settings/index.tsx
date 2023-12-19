@@ -10,9 +10,9 @@ import OMEYESidebar from "./OMEYESettings/OMEYESidebar/OMEYESidebar";
 import ServerMgmtSidebar from "./ServerManagement/ServerMgmtSidebar/ServerMgmtSidebar";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { isLogin } from "../../Model/LoginModel";
-import { decodedJwtToken } from "../Layout/Header/UserMenu";
 import { menuState } from "../../Model/MenuModel";
 import { SettingsMenuKey } from "../../Constants/GlobalConstantsValues";
+import { decodedJwtToken } from "../../Functions/GlobalFunctions";
 
 type settingsCategoryType = 'account' | 'vms' | 'omeye' | 'server';
 

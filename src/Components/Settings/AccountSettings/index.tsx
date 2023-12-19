@@ -16,13 +16,13 @@ import AddAccount from "./AddAccount"
 import ModifyAccount from "./ModifyAccount"
 import resetIcon from "../../../assets/img/resetIcon.png"
 import { isLogin } from "../../../Model/LoginModel"
-import { decodedJwtToken } from "../../Layout/Header/UserMenu"
 import useMessage from "../../../Hooks/useMessage"
 import plusIcon from "../../../assets/img/plusIcon.png"
 import minusIcon from "../../../assets/img/minusIcon.png"
 import passcodeIcon from "../../../assets/img/passcodeIcon.png"
 import PasswordManagement from "./PasswordManagement"
 import { BasicLogDataType } from "../../../Constants/GlobalTypes"
+import { decodedJwtToken } from "../../../Functions/GlobalFunctions"
 
 const AccountSearchDropdownList = [
   {

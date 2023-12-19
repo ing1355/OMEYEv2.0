@@ -72,7 +72,6 @@ const VisibleToggleContainer = ({
     }, [visible, otherRef])
 
     return <Container ref={containerRef} className={className} onClick={(e) => {
-        e.stopPropagation()
         if (e.target === containerRef.current && !visibleRef.current) setVisible(true)
         else if (e.target === containerRef.current) setVisible(false)
     }}>

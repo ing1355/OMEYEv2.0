@@ -12,8 +12,7 @@ import Dropdown from "../../Layout/Dropdown"
 import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { ButtonBackgroundColor } from "../../../styles/global-styled"
 import { isLogin } from "../../../Model/LoginModel"
-import { decodedJwtToken } from "../../Layout/Header/UserMenu"
-import { OnlyInputNumberFun } from "../../../Functions/GlobalFunctions"
+import { OnlyInputNumberFun, decodedJwtToken } from "../../../Functions/GlobalFunctions"
 import { emailTest, nameTest, passwordTest, phoneNumberTest } from "../../../Functions/RegExpFunctions"
 
 type ModifyAccountType = {

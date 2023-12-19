@@ -30,7 +30,7 @@ const Button = forwardRef(({ icon, children, iconStyle, activate, concept, onCli
                 e.currentTarget.blur()
                 setTimeout(() => {
                     clickedRef.current = false
-                }, 300);
+                }, 450);
             }
         }}
         ref={(ref as any) || btnRef}

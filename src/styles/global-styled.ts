@@ -27,7 +27,7 @@ export const ScrollBarColor = "#4f4f56"
 export const ModalBoxShadowColor = '#060607'
 export const ModalBoxShadow = `0 0 20px ${ModalBoxShadowColor}`
 export const ProgressCCTVErrorColor = '#ff8eb3'
-export const ProgressErrorColor = 'red'
+export const ProgressErrorColor = '#ff4545'
 
 const fadeOut = keyframes`
   0% {
@@ -59,8 +59,6 @@ const zoomIn = keyframes`
 
   100% {
     opacity: 1;
-    width: 600px;
-    height: 800px;
   }
 `
 

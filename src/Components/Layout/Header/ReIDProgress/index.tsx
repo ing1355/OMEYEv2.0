@@ -1,213 +1,65 @@
 import styled from "styled-components"
-import { ProgressCCTVErrorColor, ProgressErrorColor, ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, ModalBoxShadow, SectionBackgroundColor, globalStyles, loadingAIAnalysisColor, loadingVideoDownloadColor } from "../../styles/global-styled"
-import React, { Suspense, useEffect, useRef, useState } from "react"
-import Button from "../Constants/Button"
-import { AdditionalReIdApi, ReidCancelApi, SseStartApi, StartReIdApi } from "../../Constants/ApiRoutes"
-import { useRecoilState, useSetRecoilState } from "recoil"
-import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../Model/ReIdResultModel"
-import ProgressTimeIcon from '../../assets/img/ProgressTimeIcon.png'
-import ProgressVideoIcon from '../../assets/img/ProgressVideoIcon.png'
-import ProgressLocationIcon from '../../assets/img/ProgressLocationIcon.png'
-import ProgressAIIcon from '../../assets/img/ProgressAIIcon.png'
-import Progress from "./Progress"
-import CollapseArrow from "../Constants/CollapseArrow"
-import { Axios, ReIDStartApi, reidCancelFunc } from "../../Functions/NetworkFunctions"
-import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../Functions/GlobalFunctions"
-import CCTVNameById from "../Constants/CCTVNameById"
-import { CameraDataType } from "../../Constants/GlobalTypes"
-import useMessage from "../../Hooks/useMessage"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressRequestType, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseErrorMsg, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, SSEResponseStatusType, defaultProgressRequestParams } from "../../Model/ProgressModel"
-import { CustomEventSource, HealthCheckTimerDuration, IS_PRODUCTION, ReIdMenuKey } from "../../Constants/GlobalConstantsValues"
-import { ReIDStartRequestParamsType } from "../../Constants/NetworkTypes"
-import { conditionMenu } from "../../Model/ConditionMenuModel"
-import { ReIDMenuKeys } from "../ReID/ConstantsValues"
-import { menuState } from "../../Model/MenuModel"
-import useServerConnection from "../../Hooks/useServerConnection"
-import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
+import { ProgressErrorColor, ContentsActivateColor, ModalBoxShadow, SectionBackgroundColor, globalStyles } from "../../../../styles/global-styled"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import Button from "../../../Constants/Button"
+import { AdditionalReIdApi, ReidCancelApi, RequestManagementStartApi, SseStartApi } from "../../../../Constants/ApiRoutes"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
+import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
+import { Axios, ManagementCancelFunc, ReIDStartApi, RequestToManagementServer } from "../../../../Functions/NetworkFunctions"
+import Progress from "../../Progress"
+import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../../../Functions/GlobalFunctions"
+import useMessage from "../../../../Hooks/useMessage"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressRequestType, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, defaultProgressRequestParams } from "../../../../Model/ProgressModel"
+import { CustomEventSource, IS_PRODUCTION, ReIdMenuKey } from "../../../../Constants/GlobalConstantsValues"
+import { conditionMenu } from "../../../../Model/ConditionMenuModel"
+import { ReIDMenuKeys } from "../../../ReID/ConstantsValues"
+import { menuState } from "../../../../Model/MenuModel"
+import useServerConnection from "../../../../Hooks/useServerConnection"
+import VisibleToggleContainer from "../../../Constants/VisibleToggleContainer"
+import { ConditionGroupContainer } from "./ProgressInner"
+import ProgressActivateIcon from '../../../../assets/img/ProgressActivateIcon.png'
+import ProgressIcon from '../../../../assets/img/ProgressIcon.png'
+import { GlobalEvents } from "../../../../Model/GlobalEventsModel"
+import { currentManagementId } from "../../../../Model/ServerManagementModel"
 
 type ReIDProgressProps = {
-    visible: boolean
-    close: () => void
+    
 }
 
-const getAllProgressPercent = (data: ProgressDataType[]) => {
+export const getAllProgressPercent = (data: ProgressDataType[]) => {
     return Math.floor(data.reduce((pre, cur) => pre + getConditionPercent(cur.times), 0) / data.length)
 }
 
-const getConditionPercent = (data: ProgressDataType['times']) => {
+export const getConditionPercent = (data: ProgressDataType['times']) => {
     return Math.floor(data.reduce((pre, cur) => pre + Number(getTimeGroupPercent(cur)), 0) / data.length)
 }
 
-const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
+export const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
     const cctvIds = Object.keys(data.data)
     return Math.floor(cctvIds.reduce((pre, cur) => (data.data[Number(cur)].aiPercent! + data.data[Number(cur)].videoPercent) / 2 + pre, 0) / cctvIds.length)
 }
 
-const getSuccessByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
-    const cctvIds = Object.keys(data)
-    const success = cctvIds.filter(_ => data[Number(_)].status === 'SUCCESS').length
-    return success
-}
-
-const getFailByTimeGroup = (data: ProgressDataParamsTimesDataType['data']) => {
-    const cctvIds = Object.keys(data)
-    const fail = cctvIds.filter(_ => data[Number(_)].status === 'FAIL').length
-    return fail
-}
-
 let intervalId: NodeJS.Timer
 
-const CCTVProgressRow = ({ data, cctvId }: {
-    cctvId: CameraDataType['cameraId']
-    data: ProgressDataPercentType
-}) => {
-    const { aiPercent, videoPercent, status, errReason } = data
-    return <CCTVProgressContainer>
-        <CCTVProgressDataContainer style={{
-            position: 'relative'
-        }}>
-            <CCTVProgressDataIconContainer>
-                <CCTVProgressDataIconContents src={ProgressLocationIcon} />
-            </CCTVProgressDataIconContainer>
-            <CCTVProgressDataTitleContainer isFail={status === 'FAIL'} data-tooltip={errReason}>
-                <Suspense fallback={<></>}>
-                    <CCTVNameById cctvId={cctvId} />
-                </Suspense>
-            </CCTVProgressDataTitleContainer>
-        </CCTVProgressDataContainer>
-        <CCTVProgressDataContainer>
-            <CCTVProgressDataIconContainer>
-                <CCTVProgressDataIconContents src={ProgressVideoIcon} />
-            </CCTVProgressDataIconContainer>
-            <ProgressWrapper noString percent={videoPercent} color={loadingVideoDownloadColor} />
-            <CCTVProgressDataLabelContainer>
-                {videoPercent}%
-            </CCTVProgressDataLabelContainer>
-        </CCTVProgressDataContainer>
-        <CCTVProgressDataContainer>
-            <CCTVProgressDataIconContainer>
-                <CCTVProgressDataIconContents src={ProgressAIIcon} />
-            </CCTVProgressDataIconContainer>
-            <ProgressWrapper noString percent={aiPercent || 0} color={loadingAIAnalysisColor} />
-            <CCTVProgressDataLabelContainer>
-                {aiPercent}%
-            </CCTVProgressDataLabelContainer>
-        </CCTVProgressDataContainer>
-    </CCTVProgressContainer>
-}
-
-const ConditionGroupContainer = ({ num, progressData, visible }: {
-    num: number
-    progressData: ProgressDataType
-    visible: boolean
-}) => {
-    const [opened, setOpened] = useState(false)
-    const [timeGroupOpened, setTimeGroupOpened] = useState<number[]>([])
-
-    useEffect(() => {
-        setOpened(false)
-        setTimeGroupOpened([])
-    }, [visible])
-
-    return <Contents opened={opened}>
-        <ConditionTitle onClick={() => {
-            setOpened(!opened)
-        }}>
-            <ConditionTitleText>
-                {progressData.title}
-            </ConditionTitleText>
-            <ConditionTitleSubContainer>
-                <ConditionTitleSubContentOne>
-                    <LabelWithValue>
-                        진행률
-                    </LabelWithValue>
-                    <ValueWithLabel>
-                        {Math.floor(getConditionPercent(progressData.times))}%
-                    </ValueWithLabel>
-                </ConditionTitleSubContentOne>
-                {/* <ConditionTitleSubContentTwo hover disabled={true}>
-                    분석 취소
-                </ConditionTitleSubContentTwo> */}
-                <ConditionTitleSubContentThree>
-                    <TimeGroupCollapse opened={opened} />
-                </ConditionTitleSubContentThree>
-            </ConditionTitleSubContainer>
-        </ConditionTitle>
-        {
-            progressData.times.map((__, _ind) => <TimeGroupContainer key={_ind} opened={timeGroupOpened.includes(_ind)} rowNum={Math.ceil(Object.keys(__.data).length / 2)}>
-                <TimeGroupHeader onClick={() => {
-                    if (timeGroupOpened.includes(_ind)) setTimeGroupOpened(timeGroupOpened.filter(t => t !== _ind))
-                    else setTimeGroupOpened(timeGroupOpened.concat(_ind))
-                }}>
-                    <TimeGroupIcon>
-                        <CCTVProgressDataIconContents src={ProgressTimeIcon} />
-                    </TimeGroupIcon>
-                    <TimeGroupTitle>
-                        {__.time}
-                    </TimeGroupTitle>
-                    <TimeGroupProgress>
-                        <TimeGroupProgressItem>
-                            <LabelWithValue>
-                                진행률
-                            </LabelWithValue>
-                            <ValueWithLabel>
-                                {getTimeGroupPercent(__)}%
-                            </ValueWithLabel>
-                        </TimeGroupProgressItem>
-                        <TimeGroupProgressItem>
-                            <LabelWithValue>
-                                전체
-                            </LabelWithValue>
-                            <ValueWithLabel>
-                                {Object.keys(__.data).length}
-                            </ValueWithLabel>
-                        </TimeGroupProgressItem>
-                        <TimeGroupProgressItem>
-                            <LabelWithValue>
-                                성공
-                            </LabelWithValue>
-                            <ValueWithLabel>
-                                {getSuccessByTimeGroup(__.data)}
-                            </ValueWithLabel>
-                        </TimeGroupProgressItem>
-                        <TimeGroupProgressItem>
-                            <LabelWithValue>
-                                실패
-                            </LabelWithValue>
-                            <ValueWithLabel>
-                                {getFailByTimeGroup(__.data)}
-                            </ValueWithLabel>
-                        </TimeGroupProgressItem>
-                    </TimeGroupProgress>
-                    <TimeGroupCollapse opened={timeGroupOpened.includes(_ind)} style={{
-                        flex: '0 0 40px',
-                        height: '40px',
-                        padding: '8px'
-                    }} />
-                </TimeGroupHeader>
-                <TimeGroupContents>
-                    {progressData && Object.keys(__.data).map((___, __ind) => <CCTVProgressRow key={__ind} cctvId={Number(___)} data={__.data[Number(___)]} />)}
-                </TimeGroupContents>
-            </TimeGroupContainer>)
-        }
-    </Contents>
-}
-
-const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
+const ReIDProgress = ({}: ReIDProgressProps) => {
     const [loadingTime, setLoadingTime] = useState(0)
+    const [reIDProgressVisible, setReIDProgressVisible] = useState(false)
     const [isProgress, setIsProgress] = useState(false)
     const [progressStatus, setProgressStatus] = useRecoilState(ProgressStatus)
-    const setReidResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
-    const setMenu = useSetRecoilState(conditionMenu)
-    const setGlobalMenu = useSetRecoilState(menuState)
     const [_progressRequestParams, setProgressRequestParams] = useRecoilState(ProgressRequestParams)
-    const params = _progressRequestParams.params
     const [progressData, setProgressData] = useRecoilState(ProgressData)
     const [globalCurrentReIdId, setGlobalCurrentReIdId] = useRecoilState(globalCurrentReidId)
     const [reidResult, setReidResult] = useRecoilState(ReIDAllResultData)
     const [singleReIdResult, setSingleReIdresult] = useRecoilState(ReIDResultData((_progressRequestParams.params as AdditionalReIDRequestParamsType).reIdId || null))
-    const setSelectedResultCondition = useSetRecoilState(ReIDResultSelectedCondition)
     const [requestFlag, setRequestFlag] = useRecoilState(ReIdRequestFlag)
+    const [globalEvents, setGlobalEvents] = useRecoilState(GlobalEvents)
+    const managementId = useRecoilValue(currentManagementId)
+    const setReidResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
+    const setMenu = useSetRecoilState(conditionMenu)
+    const setGlobalMenu = useSetRecoilState(menuState)
+    const setSelectedResultCondition = useSetRecoilState(ReIDResultSelectedCondition)
+    const cMenu = useRecoilValue(conditionMenu)
+    const currentMenu = useRecoilValue(menuState)
     const sseRef = useRef<EventSource>()
     const message = useMessage()
     const reidResultRef = useRef(reidResult)
@@ -220,7 +72,9 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
     const reidResultTimer = useRef<NodeJS.Timer>()
     const additinoalReidResultTimer = useRef<NodeJS.Timer>()
     const healthCheckTimer = useRef<NodeJS.Timer>()
-    const {healthCheckClear, healthCheckTimerRegister} = useServerConnection()
+    const managementIdRef = useRef(managementId)
+    const params = _progressRequestParams.params
+    const { healthCheckClear, healthCheckTimerRegister } = useServerConnection()
 
     const healthCheckClearCallback = (type: ProgressRequestType) => {
         setProgressStatus({ type, status: PROGRESS_STATUS['IDLE'] })
@@ -231,6 +85,18 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
             healthCheckClearCallback(type)
         })
     }
+
+    const cancelFunc = useCallback(() => {
+        ManagementCancelFunc('REID', managementIdRef.current)
+    }, [])
+
+    useLayoutEffect(() => {
+        managementIdRef.current = managementId
+    }, [managementId])
+
+    useLayoutEffect(() => {
+        setReIDProgressVisible(false)
+    }, [currentMenu, cMenu])
 
     useEffect(() => {
         if (!IS_PRODUCTION) setProgressData([
@@ -723,10 +589,10 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
         ])
     }, [])
 
+
     useEffect(() => {
         reidResultRef.current = reidResult
         reidResultTempRef.current = reidResult
-        console.debug('ReIDResult change : ', reidResult)
     }, [reidResult])
 
     useEffect(() => {
@@ -749,12 +615,10 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     useEffect(() => {
         if (isProgress) {
-            window.addEventListener('unload', reidCancelFunc, {
-                once: true,
-            });
+            window.addEventListener('beforeunload', cancelFunc);
         } else {
             clearTimeout(healthCheckTimer.current)
-            window.removeEventListener('unload', reidCancelFunc)
+            window.removeEventListener('beforeunload', cancelFunc)
         }
     }, [isProgress])
 
@@ -810,19 +674,18 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
             sseRef.current = await CustomEventSource(SseStartApi);
             sseRef.current.onopen = async (e) => {
                 console.debug(`${_progressRequestParams.type} sse setting open : `, _progressRequestParams.params)
+                const res = await Axios('POST', RequestManagementStartApi, globalEvents.data)
+                if (res && res.storageExceeded) {
+                    message.warning({ title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요." })
+                }
+                setGlobalEvents({
+                    key: 'Refresh'
+                })
                 switch (_progressRequestParams.type) {
                     case 'ADDITIONALREID': {
                         const _additionalParams = params as AdditionalReIDRequestParamsType
                         const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
                         console.debug("params : ", _additionalParams)
-                        const res = await Axios('POST', AdditionalReIdApi(_additionalParams.reIdId!), {
-                            etc,
-                            objectIds: objects.map(_ => _.id),
-                            timeGroups,
-                            cctvIds,
-                            title,
-                            rank
-                        })
                         if (res) {
                             if (singleReidResultRef.current) {
                                 additionalReidResultTempRef.current = {
@@ -849,10 +712,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                     }
                     case 'REID': {
                         const _params = params as ReIDRequestParamsType[]
-                        const res = await ReIDStartApi(_params)
-                        if (res.storageExceeded) {
-                            message.warning({title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요."})
-                        }
                         if (res) {
                             reidResultTempRef.current = [...reidResult, {
                                 reIdId: res.reIdId,
@@ -877,7 +736,6 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         }
                         break;
                     }
-                    case 'REALTIME': return;
                     default: return;
                 }
             };
@@ -923,7 +781,7 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                         }
                     }
 
-                    if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                    if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
                         healthCheckRegisterCallback(type)
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_COMPLETE']]) {
                         setProgressStatus({ type: type, status: PROGRESS_STATUS['COMPLETE'] })
@@ -1056,7 +914,41 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
 
     useEffect(() => {
         console.debug('Request Params 변경 : ', _progressRequestParams, requestFlag)
-        if (requestFlag) {
+        if(requestFlag) {
+            let paramTemp;
+            if(_progressRequestParams.type === 'REID') {
+                paramTemp = params as ReIDRequestParamsType[]
+                paramTemp = paramTemp.map(_ => ({
+                    etc: _.etc,
+                    objectIds: _.objects.map(__ => __.id),
+                    timeGroups: _.timeGroups,
+                    cctvIds: _.cctvIds,
+                    title: _.title,
+                    rank: _.rank
+                }))
+            } else if(_progressRequestParams.type === 'ADDITIONALREID') {
+                const _additionalParams = params as AdditionalReIDRequestParamsType
+                const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
+                paramTemp = {
+                    etc,
+                    objectIds: objects.map(_ => _.id),
+                    timeGroups,
+                    cctvIds,
+                    title,
+                    rank
+                }
+            }
+            RequestToManagementServer('REID', paramTemp, (res) => {
+                setGlobalEvents({
+                    key: 'StackManagementServer'
+                })
+            })
+            setRequestFlag(false)
+        }
+    }, [_progressRequestParams, requestFlag])
+
+    useEffect(() => {
+        if(globalEvents.key === 'ReIDStart') {
             if (_progressRequestParams.type) {
                 let temp: typeof progressData = [];
                 if (_progressRequestParams.type === 'REID') {
@@ -1108,67 +1000,86 @@ const ReIDProgress = ({ visible, close }: ReIDProgressProps) => {
                 }
                 progressDataRef.current = temp
                 console.debug("Progress Data Init : ", temp)
-                setProgressData(temp)
-                sseSetting()
+                // setProgressData(temp)
             }
-            setRequestFlag(false)
+            sseSetting()
         }
-    }, [_progressRequestParams, requestFlag])
+    },[globalEvents])
 
     return <>
-        <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
-        <ProgressContainer visible={visible}>
-            <Arrow />
-            <HeaderContainer>
-                <Header>
-                    <TitleContainer>
-                        <Title>
-                            진행 현황
-                        </Title>
-                        <TimeTitle>
-                            {getLoadingTimeString(loadingTime)}
-                        </TimeTitle>
-                    </TitleContainer>
-                    <CancelBtn hover onClick={() => {
-                        if (progressStatus.status === PROGRESS_STATUS['COMPLETE']) {
-                            const targetResult = reidResult.find(_ => _.reIdId === globalCurrentReIdId)
-                            if (targetResult) {
-                                close()
-                                setReidResultSelectedView([reidResult[reidResult.length - 1].reIdId])
-                                if (_progressRequestParams.type === 'ADDITIONALREID') setSelectedResultCondition(targetResult.data.length - 1)
-                                setGlobalMenu(ReIdMenuKey)
-                                setMenu(ReIDMenuKeys['REIDRESULT'])
+        <ProgressBtn visible={reIDProgressVisible} setVisible={v => {
+            setReIDProgressVisible(v)
+        }}>
+            <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']}/>
+            <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
+            <ProgressContainer visible={reIDProgressVisible}>
+                <Arrow />
+                <HeaderContainer>
+                    <Header>
+                        <TitleContainer>
+                            <Title>
+                                진행 현황
+                            </Title>
+                            <TimeTitle>
+                                {getLoadingTimeString(loadingTime)}
+                            </TimeTitle>
+                        </TitleContainer>
+                        <CancelBtn hover onClick={() => {
+                            if (progressStatus.status === PROGRESS_STATUS['COMPLETE']) {
+                                const targetResult = reidResult.find(_ => _.reIdId === globalCurrentReIdId)
+                                if (targetResult) {
+                                    setReIDProgressVisible(false)
+                                    setReidResultSelectedView([reidResult[reidResult.length - 1].reIdId])
+                                    if (_progressRequestParams.type === 'ADDITIONALREID') setSelectedResultCondition(targetResult.data.length - 1)
+                                    setGlobalMenu(ReIdMenuKey)
+                                    setMenu(ReIDMenuKeys['REIDRESULT'])
 
+                                } else {
+                                    message.error({
+                                        title: "입력값 에러",
+                                        msg: "결과가 존재하지 않습니다.\n분석 로그를 확인해주세요."
+                                    })
+                                }
                             } else {
-                                message.error({
-                                    title: "입력값 에러",
-                                    msg: "결과가 존재하지 않습니다.\n분석 로그를 확인해주세요."
-                                })
+                                ManagementCancelFunc('REID', managementId)
+                                // navigator.sendBeacon(
+                                //     ReidCancelApi,
+                                //     localStorage.getItem("Authorization")
+                                // );
                             }
-                        } else {
-                            navigator.sendBeacon(
-                                ReidCancelApi,
-                                localStorage.getItem("Authorization")
-                            );
-                        }
-                    }} disabled={[PROGRESS_STATUS['IDLE'], PROGRESS_STATUS['CANCELD']].includes(progressStatus.status)}>
-                        {progressStatus.status === PROGRESS_STATUS['COMPLETE'] ? '결과 보기' : '전체 분석 취소'}
-                    </CancelBtn>
-                </Header>
-                <Progress percent={getAllProgressPercent(progressData) || 0} color={progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : ContentsActivateColor} />
-            </HeaderContainer>
-            <ContentsWrapper>
-                {progressData.map((_, ind) => <ConditionGroupContainer key={ind} num={ind} progressData={_} visible={visible} />)}
-            </ContentsWrapper>
-        </ProgressContainer>
+                        }} disabled={[PROGRESS_STATUS['IDLE'], PROGRESS_STATUS['CANCELD']].includes(progressStatus.status)}>
+                            {progressStatus.status === PROGRESS_STATUS['COMPLETE'] ? '결과 보기' : '전체 분석 취소'}
+                        </CancelBtn>
+                    </Header>
+                    <Progress percent={getAllProgressPercent(progressData) || 0} color={progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : ContentsActivateColor} />
+                </HeaderContainer>
+                <ContentsWrapper>
+                    {progressData.map((_, ind) => <ConditionGroupContainer key={ind} num={ind} progressData={_} visible={reIDProgressVisible} />)}
+                </ContentsWrapper>
+            </ProgressContainer>
+        </ProgressBtn>
     </>
 }
 
 export default ReIDProgress
 
 const progressContainerBackgroundColor = SectionBackgroundColor
-const rowHeight = 72
+
 const headerHeight = 54
+
+const ProgressBtn = styled(VisibleToggleContainer)`
+    height: 100%;
+    position: relative;
+    ${globalStyles.flex({ justifyContent: 'space-between' })}
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+`
+
+const ProgressBtnIcon = styled.img<{ isRunning: boolean }>`
+    height: 75%;
+    ${({ isRunning }) => isRunning && globalStyles.flash({ animationDuration: '3s', animationIterationCount: 'infinite' })}
+`
 
 const ProgressContainer = styled.div<{ visible: boolean }>`
     position: absolute;
@@ -1195,7 +1106,7 @@ const Arrow = styled.div`
     border-right: 10px solid transparent;
     position: absolute;
     top: -10px;
-    left: 91%;
+    right: 36px;
 `
 
 const HeaderContainer = styled.div`
@@ -1231,205 +1142,6 @@ const ContentsWrapper = styled.div`
     transition: height .1s ease;
     max-height: calc(100% - ${headerHeight}px);
     width: 100%;
-`
-
-const ConditionTitle = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between' })}
-    height: 36px;
-    width: 100%;
-    cursor: pointer;
-    margin-bottom: 12px;
-`
-
-const ConditionTitleText = styled.div`
-    font-weight: bold;
-    font-size: 1.2rem;
-    flex: 1;
-    padding-right: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`
-
-const ConditionTitleSubContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', gap: '8px', justifyContent: 'space-around' })}
-    flex: 0 0 120px;
-    padding: 0 0 0 16px;
-    border-left: 1px solid ${ContentsBorderColor};
-    height: 100%;
-`
-
-const ConditionTitleSubContentOne = styled.div`
-    flex: 1;
-    height: 100%;
-`
-
-const LabelWithValue = styled.div`
-    font-size: .8rem;
-    text-align: center;
-`
-const ValueWithLabel = styled.div`
-    font-size: 1.3rem;
-    text-align: center;
-    font-weight: bold;
-`
-
-const ConditionTitleSubContentTwo = styled(Button)`
-    flex: 1;
-`
-
-const ConditionTitleSubContentThree = styled.div`
-    height: 100%;
-    flex: 0 0 36px;
-`
-
-const Contents = styled.div<{ opened: boolean }>`
-    width: 100%;
-    border: 1px solid ${ContentsBorderColor};
-    border-radius: 12px;
-    padding: 12px;
-    max-height: 100%;
-    height: ${({ opened }) => opened ? 'auto' : '60px'};
-    overflow-y: ${({ opened }) => opened ? 'auto' : 'hidden'};
-    overflow-y: hidden;
-    transition: height .1s ease;
-    margin-bottom: 4px;
-    ${globalStyles.flex({ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', gap: '6px' })}
-`
-
-const CCTVProgressContainer = styled.div`
-    flex: 0 0 49%;
-    max-width: 49%;
-    height: ${rowHeight}px;
-    ${globalStyles.flex({ gap: '4px' })}
-`
-
-const CCTVProgressDataContainer = styled.div`
-    width: 100%;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '4px' })}
-`
-
-const CCTVProgressDataIconContainer = styled.div`
-    flex: 0 0 16px;
-    height: 16px;
-`
-
-const CCTVProgressDataIconContents = styled.img`
-    width: 100%;
-    height: 100%;
-`
-
-const CCTVProgressDataTitleContainer = styled.div<{ isFail: boolean }>`
-    font-size: .8rem;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    flex: 0 0 calc(90% - 16px)%;
-    font-weight: 300;
-    font-family: NanumGothicLight;
-    ${({ isFail }) => isFail && `
-        color: ${ProgressCCTVErrorColor};
-        cursor: pointer;
-        &:before,&:after {
-            visibility:hidden;
-            opacity:0;
-            position:absolute;
-            z-index: 9995;
-            left:50%;
-            transform:translateX(-50%);
-            white-space:nowrap;
-            transition:all .2s ease;
-            font-size:11px;
-            letter-spacing:-1px;
-        }
-        &:before {
-            content:attr(data-tooltip);
-            height:13px;
-            position:absolute;
-            top: 30px;
-            padding: 5px 10px;
-            border-radius:5px;
-            color:#fff;
-            background: ${SectionBackgroundColor};
-            box-shadow:0 3px 8px rgba(165, 165, 165, 0.5);
-        }
-        &:after {
-            content: '';
-            border-left: 5px solid transparent;
-            top:20px;
-            border-right: 5px solid transparent;
-            border-bottom: 5px solid ${SectionBackgroundColor};
-        }
-        &:hover:before {
-            visibility:visible;
-            opacity:1;
-            top: 25px
-        }
-        &:hover:after {
-            visibility:visible;
-            opacity:1;
-            top: 18px
-        }
-    `}
-`
-
-const CCTVProgressDataLabelContainer = styled.div`
-    flex: 0 0 36px;
-`
-
-const ProgressWrapper = styled(Progress)`
-    flex: 1;
-    height: 35%;
-`
-
-const TimeGroupContainer = styled.div<{ opened: boolean, rowNum: number }>`
-    background-color: ${GlobalBackgroundColor};
-    border-radius: 8px;
-    width: 100%;
-    height: ${({ opened, rowNum }) => opened ? (60 + (rowNum * rowHeight)) : 60}px;
-    overflow: hidden;
-    transition: height .3s ease-out;
-`
-
-const TimeGroupHeader = styled.div`
-    cursor: pointer;
-    height: 60px;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '6px' })}
-    padding: 0 6px;
-`
-
-const TimeGroupIcon = styled.div`
-    flex: 0 0 18px;
-    height: 18px;
-`
-
-const TimeGroupTitle = styled.div`
-    letter-spacing: -0.5px;
-    font-size: 1rem;
-    font-weight: bold;
-    flex: 1;
-`
-
-const TimeGroupCollapse = styled(CollapseArrow)`
-    height: 100%;
-    cursor: pointer;
-`
-
-const TimeGroupProgress = styled.div`
-    flex: 0 0 200px;
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'space-between', gap: '12px' })}
-`
-
-const TimeGroupProgressItem = styled.div`
-    flex: 1;
-`
-
-const TimeGroupContents = styled.div`
-    width: 100%;
-    max-height: calc(100% - 28px);
-    overflow-y: hidden;
-    padding: 0 6px;
-    ${globalStyles.flex({ flexDirection: 'row', gap: '1%', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start' })}
 `
 
 const SmallProgress = styled(Progress)`

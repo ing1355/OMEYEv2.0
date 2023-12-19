@@ -260,7 +260,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
             setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
         }
     }, [selectedView, selectedCondition])
-    console.debug('params ?? : ', requestParams, data, progressData)
+    
     return data ? <Container visible={visible}>
         <ConditionsContainer>
             <ConditionsInnerContainer>

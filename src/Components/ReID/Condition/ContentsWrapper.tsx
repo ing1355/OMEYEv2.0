@@ -26,6 +26,7 @@ import { PersonDescriptionResultImageID } from "./Constants/ConstantsValues"
 import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "./Constants/Params"
+import { GlobalEvents } from "../../../Model/GlobalEventsModel"
 
 const ContentsWrapper = () => {
     const [homeHover, setHomeHover] = useState(false)
@@ -36,7 +37,6 @@ const ContentsWrapper = () => {
     const [targetDatas, setTargetDatas] = useRecoilState(conditionTargetDatas)
     const targetDatasCCTVTemp = useRecoilValue(conditionTargetDatasCCTVTemp)
     const targetDatasImageTemp = useRecoilValue(conditionTargetDatasImageTemp)
-    const setCurrentMenu = useSetRecoilState(conditionMenu)
     const setRequestFlag = useSetRecoilState(ReIdRequestFlag)
     const [timeIndex, setTimeIndex] = useRecoilState(TimeSelectIndex)
     const [timeData, setTimeData] = useRecoilState(conditionTimeDatas)
@@ -44,8 +44,9 @@ const ContentsWrapper = () => {
     const [areaVisible, setAreaVisible] = useRecoilState(AreaSelectVisible)
     const [areaIndex, setAreaIndex] = useRecoilState(AreaSelectIndex)
     const [areaData, setAreaData] = useRecoilState(conditionAreaDatas)
+    const [globalEvent, setGlobalEvent] = useRecoilState(GlobalEvents)
     const addTimeData = useSetRecoilState(addConditionSingleTimeData)
-    const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
+    const rtStatus = useRecoilValue(realTimeStatus)
     const setRealTimeData = useSetRecoilState(realTimeData)
     const setProgressRequestParams = useSetRecoilState(ProgressRequestParams)
     const currentObjectType = useRecoilValue(conditionSelectedType)
@@ -55,7 +56,7 @@ const ContentsWrapper = () => {
     const allSelected = useMemo(() => {
         return isRealTime ? (targets.every(_ => _.selected) && cctv.every(_ => _.selected)) : (time.every(_ => _.selected) && targets.every(_ => _.selected) && cctv.every(_ => _.selected))
     }, [_conditionData, isRealTime])
-    console.debug(_conditionData)
+    
     useLayoutEffect(() => {
         if (!timeVisible) setTimeIndex(-1)
     }, [timeVisible])
@@ -125,8 +126,9 @@ const ContentsWrapper = () => {
                             src: filteredTarget[0].src
                         })
                     }
-                    setRtStatus(PROGRESS_STATUS['RUNNING'])
-                    setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
+                    setGlobalEvent({
+                        key: 'RealTimeStack'
+                    })
                 } else {
                     if (time.filter(_ => _.selected).length === 0) return message.error({ title: "입력값 에러", msg: "시간 그룹을 1개 이상 선택해주세요." })
                     if (progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({ title: "입력값 에러", msg: "이미 고속분석 요청이 진행 중입니다." })
@@ -278,6 +280,7 @@ const ContentsWrapper = () => {
                     {!(currentObjectType !== ReIDObjectTypes[ObjectTypes['ATTRIBUTION']].key && (routeInfo.length === 2 || routeInfo.length === 3)) && <CompleteButton 
                     concept="activate" 
                     disabled={disableCompleteBtn()} 
+                    hover
                     onClick={() => {
                         completeCallback()
                     }} 

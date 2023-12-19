@@ -65,21 +65,6 @@ const Modal = ({ children, visible, close, title, complete, noComplete, isConfir
             e.stopPropagation()
         }}>
             <Header>
-                {/* {!noComplete && <CompleteBtn activate onClick={async () => {
-                    if (complete) {
-                        if (complete && completeRef.current === false) {
-                            completeRef.current = true
-                            if (!(await complete())) {
-                                close()
-                            }
-                            completeRef.current = false
-                        }
-                    } else {
-                        close()
-                    }
-                }}>
-                    {completeText ? completeText : (isConfirm ? '확인' : '완료')}
-                </CompleteBtn>} */}
                 {title}
                 <CloseIcon src={ModalCloseIcon} onClick={close} />
             </Header>
@@ -145,12 +130,6 @@ const Header = styled.div`
     position: relative;
 `
 
-const CompleteBtn = styled(Button)`
-    position: absolute;
-    height: 70%;
-    left: 10px;
-`
-
 const CloseIcon = styled.img`
     height: 100%;
     padding: 12px;
@@ -163,6 +142,7 @@ const CloseIcon = styled.img`
 const Contents = styled.div<{noFooter: boolean}>`
     padding: 12px 16px 24px 16px;
     ${globalStyles.flex()}
+    height: calc(100% - ${({noFooter}) => noFooter ? 56 : 56 + 48}px)
 `
 
 const Footer = styled.div`

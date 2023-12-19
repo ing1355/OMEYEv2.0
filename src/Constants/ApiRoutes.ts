@@ -24,7 +24,8 @@ export const SubmitTargetInfoApi = '/api/v2/target/save'
 
 export const ReidCancelApi = '/api/v2/reid/cancel';
 
-export const SseStartApi = '/sse/reid/progress';
+// export const SseStartApi = '/sse/reid/progress';
+export const SseStartApi = '/manager/sse/reid/progress';
 
 export const GetReidStatusApi = '/api/v1/reid/status';
 
@@ -86,3 +87,16 @@ export const PasscodeValidationApi = '/api/v2/init-code-validation'
 export const AddPasscodeApi = '/api/v2/passcode'
 export const GetPasscodesApi = '/api/v2/passcode'
 export const DeletePasscordApi = (id: number) => `/api/v2/passcode/${id}`
+
+// 매니지먼트
+export const GetManagementListApi = '/manager/get-list'
+
+export const StackManagementReIDApi = '/manager/reid'
+export const StackManagementRealTimeApi = 'manager/reid/real-time'
+export const StackManagementExportVideoApi = '/manager/export/de-identity-video'
+
+export const CancelManagementReIDApi = '/manager/reid/cancel'
+export const CancelManagementRealTimeApi = '/manager/reid/real-time/cancel'
+export const CancelManagementExportVideoApi = '/manager/export/cancel'
+
+export const RequestManagementStartApi = '/manager/start-request'

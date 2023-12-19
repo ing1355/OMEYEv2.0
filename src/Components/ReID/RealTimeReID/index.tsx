@@ -3,25 +3,28 @@ import { ButtonBorderColor, ContentsActivateColor, ContentsBorderColor, GlobalBa
 import Input from "../../Constants/Input"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import Button from "../../Constants/Button"
-import { RealTimeReidApi, RealTimeReidCancelApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
-import { useRecoilState, useRecoilValue } from "recoil"
+import { CancelManagementRealTimeApi, RequestManagementStartApi, SseStartApi, UpdateRealTimeThresholdApi } from "../../../Constants/ApiRoutes"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { realTimeData, realTimeStatus } from "../../../Model/RealTimeDataModel"
-import { Axios } from "../../../Functions/NetworkFunctions"
+import { Axios, ManagementCancelFunc, RequestToManagementServer } from "../../../Functions/NetworkFunctions"
 import { getColorByScore } from "../../../Functions/GlobalFunctions"
 import { ReIDObjectTypeKeys, setStateType } from "../../../Constants/GlobalTypes"
 import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
 import useMessage from "../../../Hooks/useMessage"
-import { CustomEventSource, GetAuthorizationToken } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource } from "../../../Constants/GlobalConstantsValues"
 import { PROGRESS_STATUS, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseStatusType } from "../../../Model/ProgressModel"
-import { ObjectTypes, ReIDObjectTypes } from "../ConstantsValues"
+import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
 import { DescriptionCategoryKeyType, descriptionDataType, descriptionSubDataKeys } from "../Condition/TargetSelect/PersonDescription/DescriptionType"
 import CCTVNameById from "../../Constants/CCTVNameById"
 import realtimeStartIcon from '../../../assets/img/realtimeStartIcon.png'
 import realtimeStopIcon from '../../../assets/img/realtimeStopIcon.png'
 import useServerConnection from "../../../Hooks/useServerConnection"
+import { GlobalEvents } from "../../../Model/GlobalEventsModel"
+import { conditionMenu } from "../../../Model/ConditionMenuModel"
+import { currentManagementId } from "../../../Model/ServerManagementModel"
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -111,15 +114,14 @@ const convertThreshHoldToDescriptionPercent = (threshHold: number, descriptionNu
 
 let timerId: NodeJS.Timer
 
-const cancelFunc = (): void => {
-    navigator.sendBeacon(RealTimeReidCancelApi, GetAuthorizationToken());
-}
-
 const RealTimeReID = () => {
     const [selected, setSelected] = useState<RealTimeResponseDataType | null>(null)
     const [images, setImages] = useState<RealTimeResponseDataType[]>([])
     const [rtStatus, setRtStatus] = useRecoilState(realTimeStatus)
     const [rtData, setRtData] = useRecoilState(realTimeData)
+    const [globalEvent, setGlobalEvent] = useRecoilState(GlobalEvents)
+    const managementId = useRecoilValue(currentManagementId)
+    const setCurrentMenu = useSetRecoilState(conditionMenu)
     const message = useMessage()
     const sseRef = useRef<EventSource>()
     const selectedRef = useRef(selected)
@@ -127,7 +129,25 @@ const RealTimeReID = () => {
     const imagesRef = useRef<RealTimeResponseDataType[]>([])
     const accuracyRef = useRef(rtData.threshHold)
     const changeTimer = useRef<NodeJS.Timer>()
-    const {healthCheckClear, healthCheckTimerRegister} = useServerConnection()
+    const managementIdRef = useRef(managementId)
+    const { healthCheckClear, healthCheckTimerRegister } = useServerConnection()
+
+    const cancelFunc = useCallback(() => {
+        ManagementCancelFunc('REALTIME', managementIdRef.current)
+    },[])
+
+    const stackToManagement = () => {
+        RequestToManagementServer('REALTIME', {
+            cameraIdList: rtData.cameraIdList,
+            objectId: rtData.objectId,
+            threshHold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold,
+        }, (res) => {
+            setGlobalEvent({
+                key: 'StackManagementServer',
+                data: res
+            })
+        })
+    }
 
     const healthCheckClearCallback = () => {
         setRtStatus(PROGRESS_STATUS['IDLE'])
@@ -138,11 +158,15 @@ const RealTimeReID = () => {
     }
 
     useLayoutEffect(() => {
+        managementIdRef.current = managementId
+    }, [managementId])
+
+    useLayoutEffect(() => {
         selectedRef.current = selected
     }, [selected])
 
     useLayoutEffect(() => {
-        if(rtStatus === PROGRESS_STATUS['IDLE']) {
+        if (rtStatus === PROGRESS_STATUS['IDLE']) {
             healthCheckClear()
         }
         statusRef.current = rtStatus
@@ -183,10 +207,9 @@ const RealTimeReID = () => {
                 setRtStatus(PROGRESS_STATUS['IDLE'])
                 return message.error({ title: '입력값 에러', msg: '분석 대상이 존재하지 않습니다.\n검색 조건 설정에서 먼저 실시간 분석을 진행해주세요.' })
             }
-            window.addEventListener("unload", cancelFunc);
-            RealTimeSseSetting()
+            window.addEventListener("beforeunload", cancelFunc);
         } else {
-            window.removeEventListener("unload", cancelFunc);
+            window.removeEventListener("beforeunload", cancelFunc);
         }
     }, [rtStatus])
 
@@ -195,12 +218,16 @@ const RealTimeReID = () => {
         sseRef.current = await CustomEventSource(SseStartApi);
         sseRef.current.onopen = async (e: any) => {
             console.debug("sse open realtime: ", e);
-            const res = await Axios("POST", RealTimeReidApi, {
-                cameraIdList: rtData.cameraIdList,
-                objectId: rtData.objectId,
-                threshHold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold,
+            const res = await Axios('POST', RequestManagementStartApi, globalEvent.data)
+            setGlobalEvent({
+                key: 'Refresh'
             })
             if (res) {
+                message.info({
+                    title: '분석 시작',
+                    msg: '실시간 분석이 시작되었습니다.\좌측에서 실시간 분석 결과를 확인하실 수 있습니다.'
+                })
+                setRtStatus('RUNNING')
                 setImages([])
                 setSelected(null)
                 timerId = setInterval(intervalCallback, 500)
@@ -248,7 +275,7 @@ const RealTimeReID = () => {
                             });
                     }
                 }
-                if(status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
+                if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_CONNECTION']]) {
                     healthCheckRegisterCallback()
                 } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                     console.debug('realtime sse end')
@@ -278,6 +305,15 @@ const RealTimeReID = () => {
             }, 300);
         }
     }, [rtData.threshHold])
+
+    useEffect(() => {
+        if (globalEvent.key === 'RealTimeStack') {
+            setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
+            stackToManagement()
+        } else if (globalEvent.key === 'RealTimeStart') {
+            RealTimeSseSetting()
+        }
+    }, [globalEvent])
 
     return <Container>
         <InputRow>
@@ -344,9 +380,15 @@ const RealTimeReID = () => {
                 <RequestBtn icon={rtStatus === PROGRESS_STATUS['RUNNING'] ? realtimeStopIcon : realtimeStartIcon} disabled={!rtData.type} hover onClick={async () => {
                     if (rtStatus === PROGRESS_STATUS['IDLE']) {
                         // if (rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) return message.error({ title: '입력값 에러', msg: '인상착의로는 실시간 분석을 사용할 수 없습니다.' })
-                        setRtStatus(PROGRESS_STATUS['RUNNING'])
+                        // setRtStatus(PROGRESS_STATUS['RUNNING'])
+                        setGlobalEvent({
+                            key: 'RealTimeStack'
+                        })
                     } else {
-                        cancelFunc()
+                        const res = await Axios('POST', CancelManagementRealTimeApi, managementId)
+                            if (res) {
+                                message.success({ title: "취소 성공", msg: "매니지먼트 서버에 등록했던 요청을 취소하였습니다." })
+                            }
                         // if(res) {
                         // }
                     }

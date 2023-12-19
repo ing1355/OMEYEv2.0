@@ -24,12 +24,13 @@ export const SettingsMenuKey: SettingsMenuKeyType = 'SETTINGSMENU'
 export const HealthCheckTimerDuration = 10000
 
 export const GetAuthorizationToken = () => localStorage.getItem('Authorization')
-export const GetCurrentLocale = () => document.head.lang || localStorage.getItem('locale')
+export const GetCurrentLocale = () => localStorage.getItem('locale') || document.documentElement.lang
 
 export const CustomEventSource = async (url: string) => new EventSource(url, {
     headers: {
         Authorization: GetAuthorizationToken()!,
-        'X-Forwarded-For': await getLocalIp(url) as string
+        'X-Forwarded-For': await getLocalIp(url) as string,
+        'Service-Language': document.documentElement.lang
     },
     heartbeatTimeout: 3600000,
 })

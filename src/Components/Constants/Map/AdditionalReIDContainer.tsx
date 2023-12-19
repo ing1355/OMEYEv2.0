@@ -84,7 +84,7 @@ const AddReIDObjectContainer = styled.div`
     height: 260px;
     background-color: ${SectionBackgroundColor};
     border-radius: 10px;
-    ${globalStyles.flex({ gap: '4px' })}
+    ${globalStyles.flex({ gap: '4px', justifyContent:'flex-start' })}
 `
 
 const Title = styled.div`
@@ -97,7 +97,7 @@ const Title = styled.div`
 
 const AddReIDObjectSubContainer = styled.div`
     ${globalStyles.flex()}
-    height: calc(100% - 76px);
+    height: calc(100% - 87px);
     width: 100%;
 `
 

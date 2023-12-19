@@ -1,11 +1,12 @@
-import axios, { AxiosHeaderValue, AxiosHeaders, AxiosRequestConfig, CreateAxiosDefaults } from "axios";
+import axios, { AxiosHeaderValue, AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
-import { CameraDataType, CaptureResultListItemType, ReIDObjectTypeKeys, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetReidDataApi, PatchFileUploadApi, RefreshApi, ReidCancelApi, ServerControlApi, ServerLogFilesDownloadApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
+import { CameraDataType, CaptureResultListItemType, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
+import { CCTVIconUploadApi, CancelManagementExportVideoApi, CancelManagementReIDApi, CancelManagementRealTimeApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetManagementListApi, GetReidDataApi, PatchFileUploadApi, RefreshApi, ServerControlApi, ServerLogFilesDownloadApi, StackManagementExportVideoApi, StackManagementReIDApi, StackManagementRealTimeApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { convertFromClientToServerFormatObjectData } from "./GlobalFunctions";
 import { ReIDRequestParamsType } from "../Model/ReIdResultModel";
+import { ManagementServerSingleDataType } from "../Model/ServerManagementModel";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
@@ -101,15 +102,18 @@ export async function SubmitCarVrp(vrpInfo: {
     return await Axios("POST", SubmitCarVrpApi, vrpInfo)
 }
 
-export const reidCancelFunc = (): void => {
-    console.debug("ReIdCancelFunc Request!!")
-    navigator.sendBeacon(ReidCancelApi, GetAuthorizationToken());
+export const ManagementCancelFunc = (type: ManagementServerSingleDataType['type'], id: ManagementServerSingleDataType['id'], callback?: () => void): void => {
+    console.debug(`Management Cancel Request : (${type},${id})`)
+    // Axios('POST', type === 'REID' ? CancelManagementReIDApi : (type === 'REALTIME' ? CancelManagementRealTimeApi : CancelManagementExportVideoApi), id).then(_ => {
+    //     if(callback) callback()
+    // })
+    navigator.sendBeacon(type === 'REID' ? CancelManagementReIDApi : (type === 'REALTIME' ? CancelManagementRealTimeApi : CancelManagementExportVideoApi), id.toString());
 }
 
-export const videoExportCancelFunc = (): void => {
-    console.debug("ReIdCancelFunc Request!!")
-    navigator.sendBeacon(VideoExportCancelApi, GetAuthorizationToken());
-}
+// export const videoExportCancelFunc = (): void => {
+//     console.debug("ReIdCancelFunc Request!!")
+//     navigator.sendBeacon(VideoExportCancelApi, GetAuthorizationToken());
+// }
 
 export const streamingAllStopRequest = () => {
     navigator.sendBeacon(StopAllVMSVideoApi, GetAuthorizationToken());
@@ -141,4 +145,20 @@ export const ReIDStartApi = async (params: ReIDRequestParamsType[]): Promise<{ r
         rank: _.rank
     })))
     return res
+}
+
+export const GetManagementList = async (): Promise<ManagementServerSingleDataType[]> => {
+    const res = await Axios('GET', GetManagementListApi)
+    return res
+}
+
+export const RequestToManagementServer = async (type: ManagementServerSingleDataType['type'], params: any, callback?: (params: any) => void) => {
+    let url = ''
+    if(type === 'REALTIME') url = StackManagementRealTimeApi
+    if(type === 'REID') url = StackManagementReIDApi
+    if(type === 'VIDEO_EXPORT') url = StackManagementExportVideoApi
+    const res = await Axios('POST', url, params)
+    if(res) {
+        if(callback) callback(res)
+    }
 }
