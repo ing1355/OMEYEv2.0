@@ -28,6 +28,7 @@ export const ModalBoxShadowColor = '#060607'
 export const ModalBoxShadow = `0 0 20px ${ModalBoxShadowColor}`
 export const ProgressCCTVErrorColor = '#ff8eb3'
 export const ProgressErrorColor = '#ff4545'
+export const DisconnectColor = '#ffe600'
 
 const fadeOut = keyframes`
   0% {

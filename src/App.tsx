@@ -7,19 +7,37 @@ import { useRecoilState } from 'recoil';
 import { isLogin } from './Model/LoginModel';
 import Layout from './Components/Layout';
 import ErrorHandleComponent from './ErrorHandleComponent';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import AxiosController from './AxiosContoller';
+import { refreshFunction } from './Functions/NetworkFunctions';
 
 const App = () => {
   const [loginState, setLoginState] = useRecoilState(isLogin)
   const [handlerComplete, setHandlerComplete] = useState(false)
-  
+  const timerId = useRef<NodeJS.Timer>()
+
   useLayoutEffect(() => {
     setHandlerComplete(true)
   }, [])
 
+  const timerFunc = () => {
+    refreshFunction()
+    console.debug("refreshFuntion!")
+    timerId.current = setTimeout(() => {
+      timerFunc()
+    }, 10000);
+  }
+
+  useEffect(() => {
+    if (loginState) {
+      timerFunc()
+    } else {
+      if (timerId.current) clearTimeout(timerId.current)
+    }
+  }, [loginState])
+
   return handlerComplete ? <ErrorHandleComponent>
-    <AxiosController/>
+    <AxiosController />
     <MainContainer>
       {
         loginState ? <Layout>

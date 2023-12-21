@@ -49,23 +49,28 @@ const AxiosController = () => {
                         console.debug(e)
                     }
                 } else {
-                    console.debug("Backend Error : ", data)
-                    const { code, errorTitle, errorCode, extraData, message, success } = data as ServerErrorDataType
-                    if (!success) {
-                        if(errorCode && errorTitle) {
-                            _message.error({
-                                title: `${errorCode} - ${errorTitle}`,
-                                msg: message
-                            })
-                        } else {
-                            _message.error({
-                                title: '서버 연결 실패',
-                                msg: '서버와의 연결이 종료되었습니다.\n관리자에게 문의하세요.'
-                            })
+                    console.debug(`${err.config.url.startsWith('/manager') ? 'Management' : 'Backend'} Error : `, data)
+                    const { errorCode } = data as ServerErrorDataType
+                    if(err.config.url.startsWith('/manager') && !errorCode) {
+
+                    } else {
+                        const { code, errorTitle, extraData, message, success } = data as ServerErrorDataType
+                        if (!success) {
+                            if(errorCode && errorTitle) {
+                                _message.error({
+                                    title: `${errorCode} - ${errorTitle}`,
+                                    msg: message
+                                })
+                            } else {
+                                _message.error({
+                                    title: '서버 연결 실패',
+                                    msg: '서버와의 연결이 종료되었습니다.\n관리자에게 문의하세요.'
+                                })
+                            }
                         }
-                    }
-                    if (code === 401 || status === 502) {
-                        // setLoginState(null)
+                        if (code === 401 || status === 502) {
+                            // setLoginState(null)
+                        }
                     }
                 }
             }

@@ -27,6 +27,7 @@ import { ReIDObjectTypeKeys } from "../../../Constants/GlobalTypes"
 import ForLog from "../../Constants/ForLog"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "./Constants/Params"
 import { GlobalEvents } from "../../../Model/GlobalEventsModel"
+import { convertThreshHoldToDescriptionPercent, existValueNumsInDescription } from "../RealTimeReID"
 
 const ContentsWrapper = () => {
     const [homeHover, setHomeHover] = useState(false)
@@ -109,11 +110,12 @@ const ContentsWrapper = () => {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
                     if (filteredTarget[0].type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
+                        console.debug("nums : ", existValueNumsInDescription(filteredTarget[0].description))
                         setRealTimeData({
                             type: filteredTarget[0].type,
                             cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),
                             objectId: filteredTarget[0].objectId,
-                            threshHold: 1,
+                            threshHold: existValueNumsInDescription(filteredTarget[0].description) - 2 < 1 ? 1 : existValueNumsInDescription(filteredTarget[0].description) - 2,
                             description: filteredTarget[0].description,
                             src: filteredTarget[0].src
                         })
@@ -281,9 +283,7 @@ const ContentsWrapper = () => {
                     concept="activate" 
                     disabled={disableCompleteBtn()} 
                     hover
-                    onClick={() => {
-                        completeCallback()
-                    }} 
+                    onClick={completeCallback} 
                     icon={routeInfo.length === 2 ? reidReqIcon : ''}>
                         {getCompleteButtonTextByRoute()}
                     </CompleteButton>}

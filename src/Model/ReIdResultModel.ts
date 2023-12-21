@@ -17,6 +17,16 @@ export type ReIDRequestParamsType = {
   }[]
 }
 
+export type ReIDRequestServerParamsType = {
+  title: ConditionDataType['title']
+  timeGroups: TimeDataType[]
+  cctvIds: CameraDataType['cameraId'][][]
+  rank: ConditionDataType['rank']
+  etc: ConditionDataType['etc']
+  objectIds: number[]
+  originalReId?: number
+}
+
 export type AdditionalReIDRequestParamsType = ReIDRequestParamsType & {
   reIdId?: number
 }

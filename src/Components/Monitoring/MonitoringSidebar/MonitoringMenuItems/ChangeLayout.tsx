@@ -15,12 +15,14 @@ const ChangeLayout = ({ index }: {
 }) => {
     const [visible, setVisible] = useRecoilState(MonitoringDatas('visible'))
     const [monitoringLayoutNums, setMonitoringLayoutNums] = useRecoilState(MonitoringDatas('layoutNum'))
+    const [titleVisible, setTitleVisible] = useRecoilState(MonitoringDatas('titleVisible'))
     const cctvNums = useRecoilValue(MonitoringDatas('CCTVs'))
     const message = useMessage()
     const otherRef = useRef(null)
-
+    console.debug(visible)
     return <>
-        <MonitoringSidebarButton onClick={() => {
+        <MonitoringSidebarButton onClick={(e) => {
+            e.stopPropagation()
             if (visible === 'layoutNum') setVisible(undefined)
             else setVisible('layoutNum')
         }} ref={otherRef}>
@@ -67,13 +69,11 @@ const Label = styled.div`
     font-size: 1.1rem;
     flex: 0 0 90px;
 `
-
+    
 const InnerContainer = styled.div`
     width: 200px;
     background-color: ${SectionBackgroundColor};
-    height: 48px;
     padding: 6px 16px;
-    ${globalStyles.flex({ flexDirection: 'row' })}
     &:before {
         content: "";
         width: 0px;
@@ -87,4 +87,6 @@ const InnerContainer = styled.div`
     }
     border-radius: 12px;
     box-shadow: ${ModalBoxShadow};
+    ${globalStyles.flex({ flexDirection: 'row' })}
+    height: 48px;
 `

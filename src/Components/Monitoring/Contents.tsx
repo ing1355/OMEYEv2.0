@@ -22,9 +22,9 @@ const VideoCard = memo(({ data, timeVisibleChange }: {
 }) => {
     const [cctvs, setCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
     const monitoringStatus = useRecoilValue(MonitoringDatas('status'))
-    const {cctvId, time} = data || {}
+    const { cctvId, time } = data || {}
     const cameraInfo = useRecoilValue(GetCameraById(cctvId!))
-    
+
     return <>
         <VideoTitle hasIcon={!(!cctvId)}>
             {cctvId ? <VideoTimeIcon onClick={() => {
@@ -56,9 +56,10 @@ const VideoCard = memo(({ data, timeVisibleChange }: {
 const Contents = () => {
     const monitoringLayoutNums = useRecoilValue(MonitoringDatas('layoutNum'))
     const [monitoringCCTVs, setMonitoringCCTVs] = useRecoilState(MonitoringDatas('CCTVs'))
+    const titleVisible = useRecoilValue(MonitoringDatas('titleVisible'))
     const cctvListTemp = useRef<MonitoringDataType['cctvs']>(monitoringCCTVs as MonitoringDataType['cctvs'])
     const [timeVisible, setTimeVisible] = useState(-1)
-    
+
     const cctvList = useMemo(() => {
         let count = 0
         const datas = monitoringCCTVs as MonitoringDataType['cctvs']
@@ -75,7 +76,7 @@ const Contents = () => {
         cctvListTemp.current = [...temp] as MonitoringDataType['cctvs']
         return temp
     }, [monitoringCCTVs, monitoringLayoutNums])
-    
+
     return <>
         <ContentsContainer>
             <VideosContainer>
@@ -83,12 +84,12 @@ const Contents = () => {
                     <img src={noImage} />
                 </NoImage>
                 {
-                    cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind}>
+                    cctvList.map((_, ind) => <VideoCardContainer layoutNum={monitoringLayoutNums as number} key={ind} titleVisible={titleVisible as boolean}>
                         <VideoCard data={_} timeVisibleChange={v => {
-                            if(v) {
+                            if (v) {
                                 setTimeVisible(ind)
                             }
-                        }}/>
+                        }} />
                     </VideoCardContainer>)
                 }
             </VideosContainer>
@@ -117,17 +118,24 @@ const VideosContainer = styled.div`
     box-sizing: border-box;
 `
 
-const VideoCardContainer = styled.div<{ layoutNum: number }>`
+const VideoCardContainer = styled.div<{ layoutNum: number, titleVisible: boolean }>`
     width: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
     height: ${({ layoutNum }) => 100 / Math.sqrt(layoutNum)}%;
     border: 1px solid ${ContentsBorderColor};
     background-color: transparent;
     position: relative;
-    &:hover {
+    ${({ titleVisible }) => titleVisible ? `
         & > div:first-child {
             display: block;
         }
-    }
+    ` : `
+        &:hover {
+            & > div:first-child {
+                display: block;
+            }
+        }
+    `}
+    
 `
 
 const VideoTitle = styled.div<{ hasIcon: boolean }>`
@@ -144,7 +152,7 @@ const VideoTitle = styled.div<{ hasIcon: boolean }>`
     left: 0;
     width: 100%;
     z-index: 1;
-    ${globalStyles.fadeOut({animationDuration: '.25s'})}
+    ${globalStyles.fadeOut({ animationDuration: '.25s' })}
     display: none;
 `
 

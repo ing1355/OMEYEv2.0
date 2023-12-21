@@ -92,7 +92,9 @@ export const defaultProgressRequestParams: { type: ProgressRequestType, params: 
   params: []
 }
 
-const _progressRequestParamsData = atom<{ type: ProgressRequestType, params: ReIDRequestParamsType[] | AdditionalReIDRequestParamsType }>({
+export type ProgressrequestParamsDataType = { type: ProgressRequestType, params: ReIDRequestParamsType[] | AdditionalReIDRequestParamsType }
+
+const _progressRequestParamsData = atom<ProgressrequestParamsDataType>({
   key: "reidParams/data",
   default: defaultProgressRequestParams
 })

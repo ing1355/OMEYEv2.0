@@ -5,7 +5,7 @@ import { StopAllVMSVideoApi } from "../Constants/ApiRoutes";
 import { PROGRESS_STATUS, ProgressStatusType } from "./ProgressModel";
 import { TimeModalDataType } from "../Components/ReID/Condition/Constants/TimeModal";
 
-type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status" | "layoutNum"
+type MonitoringCCTVsDataKeyType = "visible" | "CCTVs" | "status" | "layoutNum" | "titleVisible"
 export type MonitoringCCTVDataType = {
     cctvId: CameraDataType['cameraId']|undefined,
     time: TimeModalDataType|undefined
@@ -14,6 +14,7 @@ export type MonitoringDataType = {
     visible: MonitoringCCTVsDataKeyType|undefined
     cctvs: MonitoringCCTVDataType[]
     status: ProgressStatusType
+    titleVisible: boolean
     layoutNum: number
 }
 
@@ -23,6 +24,7 @@ const _MonitoringCCTVsData = atom<MonitoringDataType>({
         visible: undefined,
         cctvs: [],
         status: "IDLE",
+        titleVisible: false,
         layoutNum: 1
     }
 })
@@ -45,6 +47,7 @@ export const MonitoringDatas = selectorFamily({
         else if(key === "status") return _.status
         else if(key === 'CCTVs') return _.cctvs
         else if(key === 'layoutNum') return _.layoutNum
+        else if(key === 'titleVisible') return _.titleVisible
     },
     set: (key: MonitoringCCTVsDataKeyType) => ({ get, set }, newValue) => {
         if (!(newValue instanceof DefaultValue)) {
@@ -54,8 +57,7 @@ export const MonitoringDatas = selectorFamily({
                     ...oldData,
                     visible: newValue as MonitoringCCTVsDataKeyType
                 })
-            }
-            else if(key === "status") {
+            } else if(key === "status") {
                 if(oldData.status === PROGRESS_STATUS['RUNNING'] && newValue === PROGRESS_STATUS['IDLE'] && oldData.cctvs.length !== 0) {
                     Axios('POST', StopAllVMSVideoApi)
                     set(_MonitoringCCTVsData, {
@@ -80,6 +82,11 @@ export const MonitoringDatas = selectorFamily({
                 return set(_MonitoringCCTVsData, {
                     ...oldData,
                     layoutNum: newValue as number
+                })
+            } else if(key === 'titleVisible') {
+                return set(_MonitoringCCTVsData, {
+                    ...oldData,
+                    titleVisible: newValue as boolean
                 })
             }
         }

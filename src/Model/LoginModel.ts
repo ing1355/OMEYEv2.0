@@ -14,6 +14,9 @@ import { realTimeData, realTimeStatus } from "./RealTimeDataModel";
 import { AdditionalReIDTimeValue, ReIDResultSelectedCondition, ReIDResultSelectedView, ReIDSelectedData, _reidResultDatas, globalCurrentReidId } from "./ReIdResultModel";
 import { SitesState } from "./SiteDataModel";
 import { ReIDObjectTypeKeys } from "../Constants/GlobalTypes";
+import { GlobalEvents } from "./GlobalEventsModel";
+import { UserDataType } from "../Components/Settings/AccountSettings";
+import { LoadableDataType } from "../Constants/NetworkTypes";
 
 const loginToken = atom<string | null>({
     key: "isLogin",
@@ -65,7 +68,8 @@ export const isLogin = selector<string | null>({
                     visible: undefined,
                     cctvs: [],
                     status: "IDLE",
-                    layoutNum: 1
+                    layoutNum: 1,
+                    titleVisible: false
                 })
                 // 모니터링 데이터 초기화
 
@@ -107,6 +111,11 @@ export const isLogin = selector<string | null>({
                 // 사이트 데이터 초기화 - 분석 로그 데이터랑 동일
 
                 // 영상 반출 데이터 초기화 - 반출 이력 제외 로컬 데이터라 초기화 필요 X
+
+                set(GlobalEvents, {
+                    key: ''
+                })
+                // 전역 이벤트 데이터 초기화
             } else {
                 localStorage.setItem(AuthorizationKey, newValue)
             }
@@ -114,3 +123,11 @@ export const isLogin = selector<string | null>({
         }
     }
 })
+
+export const userProfile = atom<LoadableDataType<UserDataType|undefined>>({
+    key: 'profile',
+    default: {
+        state: 'RUNNING',
+        data: undefined
+    }
+  })

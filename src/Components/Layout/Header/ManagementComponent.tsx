@@ -7,14 +7,15 @@ import locationIcon from '../../../assets/img/ProgressLocationIcon.png'
 import selfUsingIcon from '../../../assets/img/selfUsingIcon.png'
 import otherUsingIcon from '../../../assets/img/otherUsingIcon.png'
 import infoIcon from '../../../assets/img/etcIcon.png'
+import disconnectIcon from '../../../assets/img/disconnectIcon.png'
 import VisibleToggleContainer from "../../Constants/VisibleToggleContainer"
 import { useEffect, useRef, useState } from "react"
-import { ButtonBackgroundColor, ModalBoxShadow, ProgressErrorColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
+import { ButtonBackgroundColor, DisconnectColor, ModalBoxShadow, ProgressErrorColor, SectionBackgroundColor, TextActivateColor, globalStyles } from "../../../styles/global-styled"
 import { Axios, GetManagementList } from "../../../Functions/NetworkFunctions"
 import Button from "../../Constants/Button"
-import { ManagementServerSingleDataType, currentManagementId } from "../../../Model/ServerManagementModel"
+import { ManagementServerSingleDataType, currentManagementId, managementServerStatus } from "../../../Model/ServerManagementModel"
 import { convertFullTimeStringToHumanTimeFormat, decodedJwtToken } from "../../../Functions/GlobalFunctions"
-import { useRecoilState, useRecoilValue } from "recoil"
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { isLogin } from "../../../Model/LoginModel"
 import { GlobalEvents } from "../../../Model/GlobalEventsModel"
 import { CancelManagementExportVideoApi, CancelManagementReIDApi, CancelManagementRealTimeApi } from "../../../Constants/ApiRoutes"
@@ -80,16 +81,27 @@ const ManagementComponent = () => {
     const [datas, setDatas] = useState<ManagementServerSingleDataType[]>([])
     const [globalEvents, setGlobalEvents] = useRecoilState(GlobalEvents)
     const [managementId, setManagementId] = useRecoilState(currentManagementId)
+    const [managementStatus, setManagementStatus] = useRecoilState(managementServerStatus)
     const login = useRecoilValue(isLogin)
     const userInfo = decodedJwtToken(login!)
     const timerId = useRef<NodeJS.Timer>()
     const message = useMessage()
+    const datasRef = useRef(datas)
 
-    const getList = async () => {
+    const getList = async (id?: ManagementServerSingleDataType['id'], addedParams?: any) => {
         if (timerId.current) clearTimeout(timerId.current)
         const res = await GetManagementList()
-        console.debug("Get Management Server Data List : ", res)
-        if (res) setDatas(res)
+        if (res) {
+            const result = res.map(_ => {
+                const target = datasRef.current.find(__ => __.id === _.id)
+                return target ? {...target, ..._} : {..._, params: addedParams}
+            })
+            setDatas(result)
+            console.debug("Get Management Server Data List : ", result)
+            setManagementStatus('ON')
+        } else {
+            setManagementStatus('OFF')
+        }
         timerId.current = setTimeout(() => {
             getList()
         }, 5000);
@@ -104,25 +116,27 @@ const ManagementComponent = () => {
 
     useEffect(() => {
         if (globalEvents.key === 'StackManagementServer' || globalEvents.key === 'Cancel' || globalEvents.key === 'Refresh') {
-            if(globalEvents.key === 'StackManagementServer') {
-                message.info({title: "작업 등록 성공", msg: "요청한 작업이 매니지먼트 서버에 정상적으로 등록되었습니다."})
+            if (globalEvents.key === 'StackManagementServer') {
+                message.info({ title: "작업 등록 성공", msg: "요청한 작업이 매니지먼트 서버에 정상적으로 등록되었습니다." })
             }
-            getList()
+            getList(globalEvents.data, globalEvents.params)
         }
         console.debug("Global Events Data : ", globalEvents)
     }, [globalEvents])
 
     useEffect(() => {
         if (datas.length > 0) {
-            const { type, status, username, tag, id } = datas[0]
+            const { type, status, username, tag, id, params } = datas[0]
             if (status === 'WAIT' && userInfo.user.username === username && tag === 'OMEYE2' && id !== managementId) {
                 setManagementId(id)
                 setGlobalEvents({
                     key: type === 'REID' ? 'ReIDStart' : (type === 'REALTIME' ? 'RealTimeStart' : 'VideoExportStart'),
                     data: id,
+                    params
                 })
             }
         }
+        datasRef.current = datas
     }, [datas])
 
     return <Container visible={visible} setVisible={(v) => {
@@ -130,12 +144,12 @@ const ManagementComponent = () => {
     }}>
         <OuterContainer>
             <Icon>
-                <img src={getIconByData(datas, userInfo.user.username)} />
+                <img src={managementStatus === 'ON' ? getIconByData(datas, userInfo.user.username) : disconnectIcon} />
             </Icon>
             <Title style={{
-                color: getColorByData(datas, userInfo.user.username)
+                color: managementStatus === 'ON' ? getColorByData(datas, userInfo.user.username) : DisconnectColor
             }}>
-                {getTitleByData(datas, userInfo.user.username)}
+                {managementStatus === 'ON' ? getTitleByData(datas, userInfo.user.username) : '연결끊김'}
             </Title>
         </OuterContainer>
         <PopUpContainer visible={visible}>
@@ -169,7 +183,7 @@ const ManagementComponent = () => {
                                 <div>{getTypeLabelByData(_.type)}</div>
                             </Item>
                         </ItemsContainer>
-                        {userInfo.user.username === _.username ? <Button hover style={{
+                        {userInfo.user.username === _.username && _.tag === 'OMEYE2' ? <Button hover style={{
                             width: '80px'
                         }} onClick={async () => {
                             setIsLoading(true)
@@ -221,6 +235,8 @@ const Icon = styled.div`
 
 const Title = styled.div`
     font-size: 1rem;
+    width: 60px;
+    ${globalStyles.flex()}
 `
 
 const PopUpContainer = styled.div<{ visible: boolean }>`

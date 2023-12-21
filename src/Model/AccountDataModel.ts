@@ -41,8 +41,3 @@ export const UpdateMemeberList = atom<boolean>({
   key: 'AccountDataModel/UpdateMemeberList',
   default: false
 })
-
-export const ModifiedName = atom<string | null>({
-  key: 'AccountDataModel/ModifiedName',
-  default: null
-})

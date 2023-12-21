@@ -53,12 +53,13 @@ const iconByStatus = (status: VideoExportRowDataType['status']) => {
     }
 }
 
-const btnMsgByStatus = (status: VideoExportRowDataType['status']) => {
-    switch (status) {
+const btnMsgByStatus = (data: VideoExportRowDataType) => {
+    switch (data.status) {
         case 'downloadComplete':
         case 'complete': return '다운로드'
         case 'downloading': return '취소'
-        default: return '반출하기'
+        case 'cancel': return '반출하기'
+        default: return data.managementId ? '취소' : '반출하기'
     }
 }
 
@@ -77,9 +78,8 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
     const timerRef = useRef<NodeJS.Timer>()
     const cctvInfo = useRecoilValue(GetCameraById(cctvId || 0))
     const managementIdRef = useRef(managementId)
-    
     const canChangeInput = useMemo(() => {
-        return status === 'none' || status === 'canDownload' || status === 'cancel' || status === 'wait'
+        return status === 'none' || status === 'canDownload' || status === 'cancel' || !managementId
     }, [status])
 
     useEffect(() => {
@@ -101,22 +101,29 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
 
     const cancelFunc = useCallback(() => {
         ManagementCancelFunc('VIDEO_EXPORT', managementIdRef.current!)
-    },[])
+    }, [])
+
+    useEffect(() => {
+        if (managementId) {
+            window.addEventListener('beforeunload', cancelFunc)
+        } else {
+            window.removeEventListener('beforeunload', cancelFunc)
+        }
+        return () => {
+            window.removeEventListener('beforeunload', cancelFunc)
+        }
+    }, [managementId])
 
     useEffect(() => {
         if (status === 'downloading') {
             timerRef.current = setInterval(() => setCount(_ => _ + 1), 1000)
-            window.addEventListener('beforeunload', cancelFunc)
-        } else if(status === 'none' || status === 'cancel') {
-            setCount(0)
+
+        } else if (status === 'wait' || status === 'complete') {
         } else {
-            window.removeEventListener('beforeunload', cancelFunc)
+            setCount(0)
             if (timerRef.current) {
                 clearInterval(timerRef.current)
             }
-        }
-        return () => {
-            window.removeEventListener('beforeunload', cancelFunc)
         }
     }, [status])
 
@@ -124,7 +131,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
         <IconContainer>
             <Icon src={iconByStatus(status)} width="60%" height="60%" />
             {!canChangeInput && <CountText>
-                {getLoadingTimeString(count)}
+                {count > 0 && getLoadingTimeString(count)}
             </CountText>}
         </IconContainer>
         <ContentsContainer>
@@ -198,8 +205,13 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                     </OptionBtn>
                 </ActionBottomBtnsContainer>
                 <ActionBottomBtnsContainer>
-                    <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || alreadyOtherProgress || (status === 'downloadComplete')} onClick={() => {
-                        if (status === 'downloading') {
+                    <ActionBottomBtn disabled={(status === 'complete' && !path) || status === 'none' || (status === 'downloadComplete')} onClick={() => {
+                        if (status === 'downloading' || status === 'wait') {
+                            setData({
+                                ...data,
+                                managementId: undefined,
+                                status: 'cancel'
+                            })
                             cancelFunc()
                         }
                         if (status === 'canDownload' || status === 'cancel') exportCallback()
@@ -211,7 +223,7 @@ const ExportRow = ({ data, setData, inputTypeChange, deleteCallback, setIndex, e
                             videoDownloadByPath(path!, `${cctvInfo?.name}_${time?.startTime}_${time?.endTime}`)
                         }
                     }}>
-                        {btnMsgByStatus(status)}
+                        {btnMsgByStatus(data)}
                     </ActionBottomBtn>
                 </ActionBottomBtnsContainer>
             </ActionBottomContainer>
@@ -326,7 +338,7 @@ const TagsContainer = styled.div`
 
 const ETCContainer = styled.div`
     width: calc(100% - 140px);
-    ${globalStyles.flex({ flexDirection: 'row', justifyContent:'flex-start', gap: '4px', flexWrap:'wrap' })}
+    ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '4px', flexWrap: 'wrap' })}
     & > div:first-child {
         flex: 0 0 48px;
         font-size: 1.2rem;

@@ -53,10 +53,6 @@ const NewExport = () => {
     const [selectedRowIndex, setSelectedRowIndex] = useState<number | undefined>(undefined)
     const [currentUUID, setCurrentUUID] = useState<VideoExportRowDataType['videoUUID']>('')
     const [globalEvent, setGlobalEvent] = useRecoilState(GlobalEvents)
-    const currentTarget = useRef({
-        data: undefined,
-        index: 0
-    })
     const currentUUIDRef = useRef(currentUUID)
     const sseRef = useRef<EventSource>()
     const datasRef = useRef(datas)
@@ -103,7 +99,7 @@ const NewExport = () => {
                 "cctvId": 5960,
                 "time": {
                     "startTime": "20231113000000",
-                    "endTime": "20231113000146"
+                    "endTime": "20231113000016"
                 },
                 "options": {
                     "masking": [],
@@ -120,7 +116,7 @@ const NewExport = () => {
             },
             {
                 "status": "canDownload",
-                "cctvId": 5960,
+                "cctvId": 5961,
                 "time": {
                     "startTime": "20231113000000",
                     "endTime": "20231113000030"
@@ -139,6 +135,11 @@ const NewExport = () => {
                 }
             }
         ])
+        return () => {
+            if (sseRef.current) {
+                sseRef.current.close()
+            }
+        }
     }, [])
 
     const exportApi = async (id: VideoExportRowDataType['managementId']) => {
@@ -179,8 +180,7 @@ const NewExport = () => {
     }
     
     const sseSetting = async (id: VideoExportRowDataType['managementId']) => {
-        console.debug("testtest : ", datas)
-        currentData.current = datas.find(_ => _.managementId === id)!
+        currentData.current = datasRef.current.find(_ => _.managementId === id)!
         try {
             sseRef.current = await CustomEventSource(SseStartApi)
             sseRef.current.onopen = async (e) => {
@@ -216,7 +216,11 @@ const NewExport = () => {
                         videoPercent: 0,
                         status: 'WAIT'
                     }
+                    currentData.current.managementId = undefined
                     currentData.current.status = 'cancel'
+                    setGlobalEvent({
+                        key: 'Cancel'
+                    })
                 } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SERVER_ALIVE']]) {
                     healthCheckRegisterCallback()
                 }
@@ -227,6 +231,7 @@ const NewExport = () => {
                 }))
                 if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['SSE_DESTROY']]) {
                     healthCheckClear()
+                    currentUUIDRef.current = ''
                     sseRef.current!.close()
                     sseRef.current = undefined
                 }
@@ -272,7 +277,8 @@ const NewExport = () => {
                 }] as VideoExportApiParameterType[], (res) => {
                     setDatas(datas.map((__, _ind) => ind === _ind ? {
                         ...__,
-                        managementId: res
+                        managementId: res,
+                        status: 'wait'
                     } : __))
                     setGlobalEvent({
                         key: 'StackManagementServer',

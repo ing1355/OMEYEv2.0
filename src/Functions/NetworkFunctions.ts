@@ -1,12 +1,13 @@
 import axios, { AxiosHeaderValue, AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 import { GetAuthorizationToken } from "../Constants/GlobalConstantsValues";
 import { CameraDataType, CaptureResultListItemType, ReIDResultType, SiteDataType } from "../Constants/GlobalTypes";
-import { CCTVIconUploadApi, CancelManagementExportVideoApi, CancelManagementReIDApi, CancelManagementRealTimeApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetManagementListApi, GetReidDataApi, PatchFileUploadApi, RefreshApi, ServerControlApi, ServerLogFilesDownloadApi, StackManagementExportVideoApi, StackManagementReIDApi, StackManagementRealTimeApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
+import { CCTVIconUploadApi, CancelManagementExportVideoApi, CancelManagementReIDApi, CancelManagementRealTimeApi, GetAllSitesDataApi, GetCCTVVideoInfoUrl, GetManagementListApi, GetReidDataApi, GetUserProfileApi, PatchFileUploadApi, RefreshApi, ServerControlApi, ServerLogFilesDownloadApi, StackManagementExportVideoApi, StackManagementReIDApi, StackManagementRealTimeApi, StartReIdApi, StopAllVMSVideoApi, StopVMSVideoApi, StorageMgmtApi, SubmitCarVrpApi, SubmitPersonDescriptionInfoApi, SubmitTargetInfoApi, VideoExportCancelApi, VmsExcelUploadApi, mapFileUploadApi } from "../Constants/ApiRoutes";
 import { ReIDLogDataType } from "../Model/ReIDLogModel";
 import { DescriptionRequestParamsType } from "../Model/DescriptionDataModel";
 import { convertFromClientToServerFormatObjectData } from "./GlobalFunctions";
 import { ReIDRequestParamsType } from "../Model/ReIdResultModel";
 import { ManagementServerSingleDataType } from "../Model/ServerManagementModel";
+import { UserDataType } from "../Components/Settings/AccountSettings";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
@@ -132,6 +133,12 @@ export const streamingStopRequest = async (uuids: string[]) => {
 export const GetAllSitesData = async () => {
     const res = (await Axios("GET", GetAllSitesDataApi)) as SiteDataType[] || []
     console.debug('Sites Data Get Success : ', res)
+    return res
+}
+
+export const GetProfileData = async () => {
+    const res = (await Axios("GET", GetUserProfileApi)) as UserDataType
+    console.debug('Profile Get Success : ', res)
     return res
 }
 

@@ -4,12 +4,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import Button from "../../../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, RequestManagementStartApi, SseStartApi } from "../../../../Constants/ApiRoutes"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
+import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDRequestServerParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
 import { Axios, ManagementCancelFunc, ReIDStartApi, RequestToManagementServer } from "../../../../Functions/NetworkFunctions"
 import Progress from "../../Progress"
 import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../../../Functions/GlobalFunctions"
 import useMessage from "../../../../Hooks/useMessage"
-import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressRequestType, ProgressStatus, ReIdRequestFlag, SSEProgressResponseType, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, defaultProgressRequestParams } from "../../../../Model/ProgressModel"
+import { PROGRESS_STATUS, ProgressData, ProgressDataParamsTimesDataType, ProgressDataPercentType, ProgressDataType, ProgressRequestParams, ProgressRequestType, ProgressStatus, ProgressrequestParamsDataType, ReIdRequestFlag, SSEProgressResponseType, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseSingleProgressErrorMsg, defaultProgressRequestParams } from "../../../../Model/ProgressModel"
 import { CustomEventSource, IS_PRODUCTION, ReIdMenuKey } from "../../../../Constants/GlobalConstantsValues"
 import { conditionMenu } from "../../../../Model/ConditionMenuModel"
 import { ReIDMenuKeys } from "../../../ReID/ConstantsValues"
@@ -23,7 +23,7 @@ import { GlobalEvents } from "../../../../Model/GlobalEventsModel"
 import { currentManagementId } from "../../../../Model/ServerManagementModel"
 
 type ReIDProgressProps = {
-    
+
 }
 
 export const getAllProgressPercent = (data: ProgressDataType[]) => {
@@ -41,7 +41,7 @@ export const getTimeGroupPercent = (data: ProgressDataParamsTimesDataType) => {
 
 let intervalId: NodeJS.Timer
 
-const ReIDProgress = ({}: ReIDProgressProps) => {
+const ReIDProgress = ({ }: ReIDProgressProps) => {
     const [loadingTime, setLoadingTime] = useState(0)
     const [reIDProgressVisible, setReIDProgressVisible] = useState(false)
     const [isProgress, setIsProgress] = useState(false)
@@ -587,6 +587,11 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
                 "title": "사람(전신) 검색"
             }
         ])
+        return () => {
+            if(sseRef.current) {
+                sseRef.current.close()
+            }
+        }
     }, [])
 
 
@@ -612,19 +617,11 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
             setIsProgress(false)
         }
     }, [progressStatus])
-
-    useEffect(() => {
-        if (isProgress) {
-            window.addEventListener('beforeunload', cancelFunc);
-        } else {
-            clearTimeout(healthCheckTimer.current)
-            window.removeEventListener('beforeunload', cancelFunc)
-        }
-    }, [isProgress])
-
+    
     useEffect(() => {
         const intervalTime = 500
         if (isProgress) {
+            window.addEventListener('beforeunload', cancelFunc);
             setLoadingTime(0)
             intervalId = setInterval(() => {
                 setLoadingTime(time => time + 1)
@@ -642,6 +639,8 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
                 }, intervalTime)
             }
         } else {
+            clearTimeout(healthCheckTimer.current)
+            window.removeEventListener('beforeunload', cancelFunc)
             clearInterval(intervalId)
             if (progressTimer.current) {
                 setProgressData(progressDataRef.current)
@@ -804,6 +803,9 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_CANCEL']]) {
                         console.debug(`${type} cancel event`)
                         message.preset('REIDCANCEL')
+                        setGlobalEvents({
+                            key: 'Cancel'
+                        })
                         setProgressStatus({ type, status: PROGRESS_STATUS['CANCELD'] })
                     } else if (status === SSEResponseMsgTypes[SSEResponseMsgTypeKeys['REID_START']]) {
                         console.debug(`${type} start event`)
@@ -914,11 +916,10 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
 
     useEffect(() => {
         console.debug('Request Params 변경 : ', _progressRequestParams, requestFlag)
-        if(requestFlag) {
-            let paramTemp;
-            if(_progressRequestParams.type === 'REID') {
-                paramTemp = params as ReIDRequestParamsType[]
-                paramTemp = paramTemp.map(_ => ({
+        if (requestFlag) {
+            let paramTemp: ReIDRequestServerParamsType[]
+            if (_progressRequestParams.type === 'REID') {
+                paramTemp = (params as ReIDRequestParamsType[]).map(_ => ({
                     etc: _.etc,
                     objectIds: _.objects.map(__ => __.id),
                     timeGroups: _.timeGroups,
@@ -926,21 +927,24 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
                     title: _.title,
                     rank: _.rank
                 }))
-            } else if(_progressRequestParams.type === 'ADDITIONALREID') {
+            } else {
                 const _additionalParams = params as AdditionalReIDRequestParamsType
                 const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
-                paramTemp = {
+                paramTemp = [{
                     etc,
                     objectIds: objects.map(_ => _.id),
                     timeGroups,
                     cctvIds,
                     title,
-                    rank
-                }
+                    rank,
+                    originalReId: reIdId
+                }]
             }
             RequestToManagementServer('REID', paramTemp, (res) => {
                 setGlobalEvents({
-                    key: 'StackManagementServer'
+                    key: 'StackManagementServer',
+                    data: res,
+                    params: paramTemp
                 })
             })
             setRequestFlag(false)
@@ -948,69 +952,60 @@ const ReIDProgress = ({}: ReIDProgressProps) => {
     }, [_progressRequestParams, requestFlag])
 
     useEffect(() => {
-        if(globalEvents.key === 'ReIDStart') {
-            if (_progressRequestParams.type) {
-                let temp: typeof progressData = [];
-                if (_progressRequestParams.type === 'REID') {
-                    const _params = params as ReIDRequestParamsType[]
-                    console.log("params : ", _params)
-                    if (!_params.every(_ => _.objects.every(__ => __.type === _.objects[0].type))) {
-                        setProgressRequestParams(defaultProgressRequestParams)
-                        return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
-                    }
-                    temp = _params.map(_ => ({
-                        title: _.title,
-                        times: _.timeGroups.map(__ => {
-                            return {
-                                time: convertFullTimeStringToHumanTimeFormat(`${__.startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${__.endTime}`),
-                                data: _.cctvIds.flat().reduce((accumulator, value) => {
-                                    return {
-                                        ...accumulator, [value]: {
-                                            aiPercent: 0,
-                                            videoPercent: 0,
-                                            status: 'WAIT'
-                                        } as ProgressDataPercentType
-                                    };
-                                }, {})
-                            }
-                        })
-                    }))
-                } else if (_progressRequestParams.type === 'ADDITIONALREID') {
-                    const _params = params as AdditionalReIDRequestParamsType
-                    if (!_params.objects.every(__ => __.type === _params.objects[0].type)) {
-                        setProgressRequestParams(defaultProgressRequestParams)
-                        return message.error({ title: "입력값 에러", msg: "서로 다른 타입이 요청되었습니다." })
-                    }
-                    temp = [
-                        {
-                            title: _params.title,
-                            times: [{
-                                time: convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].endTime}`),
-                                data: _params.cctvIds.flat().reduce((acc, value) => {
-                                    return {
-                                        ...acc, [value]: {
-                                            aiPercent: 0,
-                                            videoPercent: 0,
-                                            status: 'WAIT'
-                                        } as ProgressDataPercentType
-                                    };
-                                }, {})
-                            }]
+        if (globalEvents.key === 'ReIDStart' && globalEvents.data && globalEvents.params) {
+            console.debug("ReID Start Event Params : ", globalEvents)
+            const paramTemp = globalEvents.params as ReIDRequestServerParamsType[]
+            let temp: ProgressDataType[] = [];
+            if (paramTemp[0].originalReId) {
+                const _params = params as AdditionalReIDRequestParamsType
+                temp = [
+                    {
+                        title: _params.title,
+                        times: [{
+                            time: convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${_params.timeGroups[0].endTime}`),
+                            data: _params.cctvIds.flat().reduce((acc, value) => {
+                                return {
+                                    ...acc, [value]: {
+                                        aiPercent: 0,
+                                        videoPercent: 0,
+                                        status: 'WAIT'
+                                    } as ProgressDataPercentType
+                                };
+                            }, {})
                         }]
-                }
-                progressDataRef.current = temp
-                console.debug("Progress Data Init : ", temp)
-                // setProgressData(temp)
+                    }]
+            } else {
+                const _params = params as ReIDRequestParamsType[]
+                temp = _params.map(_ => ({
+                    title: _.title,
+                    times: _.timeGroups.map(__ => {
+                        return {
+                            time: convertFullTimeStringToHumanTimeFormat(`${__.startTime}`) + ' ~ ' + convertFullTimeStringToHumanTimeFormat(`${__.endTime}`),
+                            data: _.cctvIds.flat().reduce((accumulator, value) => {
+                                return {
+                                    ...accumulator, [value]: {
+                                        aiPercent: 0,
+                                        videoPercent: 0,
+                                        status: 'WAIT'
+                                    } as ProgressDataPercentType
+                                };
+                            }, {})
+                        }
+                    })
+                }))
             }
+            progressDataRef.current = temp
+            console.debug("Progress Data Init : ", temp)
+            // setProgressData(temp)
             sseSetting()
         }
-    },[globalEvents])
+    }, [globalEvents])
 
     return <>
         <ProgressBtn visible={reIDProgressVisible} setVisible={v => {
             setReIDProgressVisible(v)
         }}>
-            <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']}/>
+            <ProgressBtnIcon src={progressStatus.status === PROGRESS_STATUS['RUNNING'] ? ProgressActivateIcon : ProgressIcon} isRunning={progressStatus.status === PROGRESS_STATUS['RUNNING']} />
             <SmallProgress percent={getAllProgressPercent(progressData)} color={isProgress ? ContentsActivateColor : (progressStatus.status === PROGRESS_STATUS['CANCELD'] ? ProgressErrorColor : 'white')} noString />
             <ProgressContainer visible={reIDProgressVisible}>
                 <Arrow />

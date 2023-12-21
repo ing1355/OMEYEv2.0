@@ -40,7 +40,7 @@ type RealTimeResponseDataType = {
     max?: number
 }
 
-const existValueNumsInDescription = (data?: descriptionDataType) => {
+export const existValueNumsInDescription = (data?: descriptionDataType) => {
     if (!data) return 0;
     return Object.keys(data).map(_ => {
         const subItem = data[_ as DescriptionCategoryKeyType]
@@ -106,7 +106,7 @@ const ImageComponent = ({ data, y, className, selected, setSelected, onClickCall
     </div>
 };
 
-const convertThreshHoldToDescriptionPercent = (threshHold: number, descriptionNums: number) => {
+export const convertThreshHoldToDescriptionPercent = (threshHold: number, descriptionNums: number) => {
     const tick = 100 / descriptionNums
     const percent = threshHold === descriptionNums ? 100 : (tick * threshHold)
     return percent
@@ -134,7 +134,7 @@ const RealTimeReID = () => {
 
     const cancelFunc = useCallback(() => {
         ManagementCancelFunc('REALTIME', managementIdRef.current)
-    },[])
+    }, [])
 
     const stackToManagement = () => {
         RequestToManagementServer('REALTIME', {
@@ -175,6 +175,12 @@ const RealTimeReID = () => {
     useLayoutEffect(() => {
         accuracyRef.current = rtData.threshHold
     }, [rtData])
+
+    useEffect(() => {
+        return () => {
+            if(sseRef.current) sseRef.current.close()
+        }
+    },[])
 
     const intervalCallback = useCallback(() => {
         if (imagesRef.current.length > maxItemNum - 1) {
@@ -386,11 +392,12 @@ const RealTimeReID = () => {
                         })
                     } else {
                         const res = await Axios('POST', CancelManagementRealTimeApi, managementId)
-                            if (res) {
-                                message.success({ title: "취소 성공", msg: "매니지먼트 서버에 등록했던 요청을 취소하였습니다." })
-                            }
-                        // if(res) {
-                        // }
+                        setGlobalEvent({
+                            key: 'Cancel'
+                        })
+                        if (res) {
+                            message.success({ title: "취소 성공", msg: "매니지먼트 서버에 등록했던 요청을 취소하였습니다." })
+                        }
                     }
                 }}>
                     {rtStatus === PROGRESS_STATUS['RUNNING'] ? '실시간 분석 중지' : '실시간 분석 재시작'}

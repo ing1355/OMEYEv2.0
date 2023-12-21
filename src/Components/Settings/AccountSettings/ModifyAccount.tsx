@@ -3,7 +3,7 @@ import Modal from "../../Layout/Modal"
 import Input from "../../Constants/Input"
 import Button from "../../Constants/Button"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { IsModifyMember, ModifiedName, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit, roleType } from "../../../Model/AccountDataModel"
+import { IsModifyMember, ModifySelectMember, UpdateMemeberList, modifySelectMemberInit, roleType } from "../../../Model/AccountDataModel"
 import { useEffect, useState } from "react"
 import { UserAccountApi } from "../../../Constants/ApiRoutes"
 import { Axios } from "../../../Functions/NetworkFunctions"
@@ -11,7 +11,7 @@ import useMessage from "../../../Hooks/useMessage"
 import Dropdown from "../../Layout/Dropdown"
 import { AdminRoleSearchDropdownList, RoleSearchDropdownList } from "."
 import { ButtonBackgroundColor } from "../../../styles/global-styled"
-import { isLogin } from "../../../Model/LoginModel"
+import { isLogin, userProfile } from "../../../Model/LoginModel"
 import { OnlyInputNumberFun, decodedJwtToken } from "../../../Functions/GlobalFunctions"
 import { emailTest, nameTest, passwordTest, phoneNumberTest } from "../../../Functions/RegExpFunctions"
 
@@ -29,7 +29,7 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
   const login = useRecoilValue(isLogin)
   const userInfo = decodedJwtToken(login!)
   const [searchRoleValue, setSearchRoleValue] = useState<roleType | null>(null)
-  const setModifiedName = useSetRecoilState(ModifiedName)
+  const [profile, setProfile] = useRecoilState(userProfile)
   const message = useMessage()
 
   const modifyInit = () => {
@@ -61,7 +61,16 @@ const ModifyAccount = ({ visible, close }: ModifyAccountType) => {
     
     if(res !== undefined) {
       if(res) {
-        if(modifySelectMember.id === userInfo.user.id) setModifiedName(modifySelectMember.name)
+        if(modifySelectMember.id === userInfo.user.id) setProfile({
+          ...profile,
+          data: {
+            ...profile.data!,
+            name: modifySelectMember.name,
+            email: modifySelectMember.email,
+            phoneNumber: modifySelectMember.phoneNumber,
+            organization: modifySelectMember.organization
+          }
+        })
         message.success({ title: '사용자 정보 수정', msg: '사용자의 정보를 수정했습니다' })
         modifyInit()
       } else {

@@ -53,6 +53,7 @@ export const RefreshApi = '/api/v2/refresh'
 
 // 설정
 // 계정 설정
+export const GetUserProfileApi = '/api/v2/user'
 export const UserAccountApi = '/api/v2/users'
 export const IdCheckApi = (username: string) => `/api/v2/users/${username}`
 export const PasswordVerificationApi = '/api/v2/users/password-verification'

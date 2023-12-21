@@ -330,7 +330,9 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                         </CCTVContentsContainer>
                     </CCTVListContainer>}
                     {
-                        forAddtraffic && <AddReIDInputContainer>
+                        forAddtraffic && <AddReIDInputContainer onContextMenu={e => {
+                            e.stopPropagation()
+                        }}>
                             <AddReIDInputTitle>
                                 <div style={{fontSize: '1.1rem'}}>
                                     추가 동선 분석
@@ -367,7 +369,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                             <AddReIDInputContentContainer>
                                                 <AddReIDInputContent value={rankInput} onChange={(val) => {
                                                     setRankInput(Number(val))
-                                                }} onlyNumber />
+                                                }} onlyNumber maxNumber={100}/>
                                             </AddReIDInputContentContainer>
                                         </AddReIDInputCol>
                                         <AddReIDInputCol>

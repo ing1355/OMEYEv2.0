@@ -17,6 +17,8 @@ import similarityIcon from '../../../../assets/img/similarityIcon.png'
 import checkIcon from '../../../../assets/img/emptyCheckIcon.png'
 import reidLoadingIcon from '../../../../assets/img/reidLoadingIcon.png'
 import reidCompleteIcon from '../../../../assets/img/reidCompleteIcon.png'
+import leftClickIcon from '../../../../assets/img/leftClickIcon.png'
+import rightClickIcon from '../../../../assets/img/rightClickIcon.png'
 import Progress from "../../../Layout/Progress"
 import { GetObjectIdByImage } from "../../../../Functions/NetworkFunctions"
 import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMethodTypes } from "../../Condition/Constants/Params"
@@ -339,6 +341,14 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                     <DescriptionReIdIdTextContainer>
                         분석번호 : {data.reIdId}
                     </DescriptionReIdIdTextContainer>
+                    <DescriptionClickContianer>
+                        <div>
+                            <img src={leftClickIcon}/><div>: 탐지된 대상 이미지</div>
+                        </div>
+                        <div>
+                            <img src={rightClickIcon}/><div>: 탐지된 전체 이미지</div>
+                        </div>
+                    </DescriptionClickContianer>
                     <DescriptionEtcTextContainer>
                         {_.etc || '설명 없음'}
                     </DescriptionEtcTextContainer>
@@ -585,6 +595,19 @@ const DescriptionEtcTextContainer = styled.div`
 
 const DescriptionReIdIdTextContainer = styled.div`
     flex: 0 0 150px;
+`
+
+const DescriptionClickContianer = styled.div`
+    flex: 0 0 325px;
+    flex-flow: row !important;
+    gap: 12px !important;
+    & > div {
+        ${globalStyles.flex({flexDirection:'row', gap: '2px'})}
+        & > img {
+            width: 22px;
+            height: 22px;
+        }
+    }
 `
 
 const ProgressContainer = styled.div`

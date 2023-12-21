@@ -5,11 +5,12 @@ import styled from "styled-components";
 import { GlobalBackgroundColor, globalStyles } from "../../styles/global-styled";
 import { globalSettings } from "../../Model/GlobalSettingsModel";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Axios, GetAllSitesData, refreshFunction } from "../../Functions/NetworkFunctions";
-import { isLogin } from "../../Model/LoginModel";
+import { Axios, GetAllSitesData, GetProfileData, refreshFunction } from "../../Functions/NetworkFunctions";
+import { isLogin, userProfile } from "../../Model/LoginModel";
 import { AliveApi } from "../../Constants/ApiRoutes";
 import useMessage from "../../Hooks/useMessage";
 import { IS_PRODUCTION } from "../../Constants/GlobalConstantsValues";
+import { UserDataType } from "../Settings/AccountSettings";
 
 const LoadingComponent = () => {
     const [count, setCount] = useState(0)
@@ -32,6 +33,7 @@ const Main = () => {
     const vmsStoredTime = useRecoilValueLoadable(globalSettings)
     const [isComplete, setIsComplete] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [profile, setProfile] = useRecoilState(userProfile)
     const setIsLogin = useSetRecoilState(isLogin)
     const message = useMessage()
 
@@ -52,6 +54,12 @@ const Main = () => {
         Axios('POST', AliveApi).then(_ => {
             if(_) {
                 setIsAlive(true)
+                GetProfileData().then(res => {
+                    setProfile({
+                        state: 'IDLE',
+                        data: res
+                    })
+                })
                 GetAllSitesData().then(res => {
                     setSitesState({
                         state: 'IDLE',
@@ -66,13 +74,13 @@ const Main = () => {
     }, [])
 
     useEffect(() => {
-        if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue' && isAlive) {
+        if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue' && isAlive && profile.state == 'IDLE') {
             setIsLoading(false)
             setTimeout(() => {
                 setIsComplete(true)
             }, 2000);
         }
-    }, [sitesState, vmsStoredTime, isLoading, isAlive])
+    }, [sitesState, vmsStoredTime, isLoading, isAlive, profile])
 
     return <>
         {!isComplete && <LoadingComponent />}

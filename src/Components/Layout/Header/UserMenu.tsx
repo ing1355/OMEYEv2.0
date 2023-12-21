@@ -3,12 +3,11 @@ import { SectionBackgroundColor, TextActivateColor, globalStyles } from "../../.
 import { HeaderHeight } from "../../../Constants/CSSValues"
 import UserIcon from '../../../assets/img/UserIcon.png'
 import ArrowIcon from '../../../assets/img/downArrowIcon.png'
-import { useRecoilState } from "recoil"
-import { isLogin } from "../../../Model/LoginModel"
+import { useRecoilState, useRecoilValue } from "recoil"
+import { isLogin, userProfile } from "../../../Model/LoginModel"
 import { Axios } from "../../../Functions/NetworkFunctions"
 import { LogoutApi } from "../../../Constants/ApiRoutes"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ModifiedName } from "../../../Model/AccountDataModel"
 import { decodedJwtToken } from "../../../Functions/GlobalFunctions"
 
 const UserMenu = () => {
@@ -16,7 +15,7 @@ const UserMenu = () => {
     const userInfo = decodedJwtToken(login!)
     const [menuOpen, setMenuOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
-    const [modifiedName, setModifiedName] = useRecoilState(ModifiedName)
+    const profile = useRecoilValue(userProfile)
     
     const containerClickHandler = useCallback((ev: MouseEvent) => {
         if(!containerRef.current?.contains(ev.target as Node)) setMenuOpen(false)
@@ -35,7 +34,7 @@ const UserMenu = () => {
         setMenuOpen(!menuOpen)
     }}>
         <UserMenuIcon src={UserIcon} />
-        {modifiedName ? modifiedName : userInfo.user.name} 님
+        {profile.data?.name} 님
         <UserArrowIcon src={ArrowIcon} />
         <UserDetailContainer opened={menuOpen}>
             {/* <UserDetailItem onClick={(e) => {
@@ -47,7 +46,6 @@ const UserMenu = () => {
             <UserDetailItem onClick={async () => {
                 await Axios("POST", LogoutApi)
                 setIsLogin(null)
-                setModifiedName(null)
             }}>
                 로그아웃
             </UserDetailItem>

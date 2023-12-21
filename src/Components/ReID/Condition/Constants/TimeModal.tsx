@@ -43,7 +43,7 @@ export const TimeInput = ({ value, label, onChange, maxLength, inputRef, isHour 
             setFocus(true)
         }} onKeyDown={(e) => {
             if (e.key === 'Tab') setFocus(false)
-        }} />{label}
+        }} maxNumber={isHour ? 23 : 59}/>{label}
         <TimeSelect visible={focus} isHour={isHour} defaultValue={Number(value)} onChange={(val) => {
             setFocus(false)
             onChange(val)

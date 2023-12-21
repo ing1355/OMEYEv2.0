@@ -7,7 +7,7 @@ import VisibleToggleContainer from "../Constants/VisibleToggleContainer"
 import ForLog from "../Constants/ForLog"
 
 export type DropdownItemType<T> = {
-    key: T
+    key: any
     value: T
     label: T|string
 }
@@ -38,9 +38,10 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFun
             setValue(itemList.find(_ => _.value === value)!)
         }
     },[value])
-
+    
     return <DropdownContainer visible={opened} setVisible={setOpened}>
         <DropdownButton className={className} onClick={(e) => {
+            if(!opened) e.stopPropagation()
             setOpened(!opened)
         }} type="button">
             <>
@@ -52,7 +53,8 @@ const Dropdown = <T extends unknown>({ itemList, onChange, className, disableFun
         </DropdownButton>
         <DropdownContentContainer opened={opened} style={bodyStyle}>
             {
-                itemList.map(_ => <DropdownContentItem key={_.key as string} onClick={() => {
+                itemList.map(_ => <DropdownContentItem key={_.key as string} onClick={(e) => {
+                    e.stopPropagation()
                     setOpened(false)
                     if(disableFunc) {
                         if(disableFunc(_)) {
@@ -87,6 +89,7 @@ const DropdownContentContainer = styled.div<{ opened: boolean }>`
     ${({ opened }) => ({
         display: opened ? 'block' : 'none',
     })}
+    z-index: 1;
     position: absolute;
     width: 100%;
     background-color: ${SectionBackgroundColor};

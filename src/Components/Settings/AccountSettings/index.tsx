@@ -67,6 +67,11 @@ export const RoleSearchDropdownList = [
     key: 'ADMIN',
     value: 'ADMIN',
     label: 'ADMIN'
+  },
+  {
+    key: 'DEVELOPER',
+    value: 'DEVELOPER',
+    label: 'DEVELOPER'
   }
 ];
 
@@ -83,7 +88,7 @@ export const AdminRoleSearchDropdownList = [
   }
 ];
 
-type usersType = {
+export type UserDataType = {
   id: string;
   username: string;
   role: roleType;
@@ -96,7 +101,7 @@ type usersType = {
   organization: string;
 }
 
-type ResType = BasicLogDataType<usersType[]>
+type ResType = BasicLogDataType<UserDataType[]>
 
 type AccountSearchValues = 'role' | 'username' | 'name' | 'email' | 'phoneNumber' | 'organization';
 
@@ -324,7 +329,7 @@ const AccountSettings = ({ visible }: {
           {usersAccountRows && usersAccountRows.results.length > 0 ?
             <>
               <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '15px' }}>
-                {usersAccountRows.results.map((data: usersType, index) => {
+                {usersAccountRows.results.map((data: UserDataType, index) => {
                   return (
                     <AccountRow
                       isUser={isUser}
