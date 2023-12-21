@@ -17,9 +17,10 @@ type AreaSelectProps = {
     title: string
     singleSelect?: boolean
     lowBlur?: boolean
+    isZeroOk?: boolean
 }
 
-const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect, lowBlur=false }: AreaSelectProps) => {
+const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSelect, lowBlur=false, isZeroOk=false }: AreaSelectProps) => {
     const [selectedCCTVs, setSelectedCCTVs] = useState<CameraDataType['cameraId'][]>([])
     const [confirmVisible, setConfirmVisible] = useState(false)
     const allCameras = useRecoilValue(GetAllSiteCameras)
@@ -34,7 +35,7 @@ const AreaSelect = ({ defaultSelected, visible, complete, close, title, singleSe
     }, [visible])
 
     const completeCallback = () => {
-        if (selectedCCTVs.length === 0) {
+        if (!isZeroOk && selectedCCTVs.length === 0) {
             message.preset('WRONG_PARAMETER', "CCTV를 선택해주세요.");
             return true
         } else {

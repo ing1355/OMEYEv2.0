@@ -27,7 +27,6 @@ const PlateModal = ({ visible, close }: {
     
     const addCompleteCallback = async () => {
         let isError = false
-        console.debug(plateInput, plateInput.length)
         if (plateInput.length !== 4) {
             message.error({ title: "입력값 에러", msg: "번호판 4자리를 입력해주세요." })
             isError = true

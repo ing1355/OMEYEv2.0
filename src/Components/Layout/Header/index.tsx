@@ -50,11 +50,11 @@ const HeaderContainer = styled.header`
 `
 
 const LogoContainer = styled.div`
-    width: 400px;
+    width: 600px;
     height: 100%;
     padding: 0 0 0 4px;
     cursor: pointer;
-    padding-right: ${400 - (SidebarWidth - 60)}px;
+    padding-right: ${600 - (SidebarWidth - 60)}px;
     ${globalStyles.flex({ flexDirection: 'row', justifyContent: 'flex-start', gap: '2%' })}
 `
 
@@ -76,5 +76,5 @@ const LogoImg = styled(Logo)`
 const ButtonsContainer = styled.div`
     height: 80%;
     ${globalStyles.flex({ flexDirection: 'row', gap: '4px', justifyContent:'flex-end' })}
-    width: 400px;
+    width: 600px;
 `

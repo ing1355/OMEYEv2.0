@@ -26,6 +26,7 @@ import cctvIcon from '../../../assets/img/CCTVIcon.png'
 import cctvSelectedIcon from '../../../assets/img/CCTVSelectedIcon.png'
 import cctvStartIcon from '../../../assets/img/CCTVStartIcon.png'
 import cctvEndIcon from '../../../assets/img/CCTVEndIcon.png'
+import additionalCCTVIcon from '../../../assets/img/additionalCCTVIcon.png'
 import { getDistance } from "ol/sphere";
 import { ContentsActivateColor } from "../../../styles/global-styled";
 import { CSSProperties } from "react";
@@ -39,13 +40,16 @@ enum mapState {
 const selectedMarkerDataKey = 'SELECTEDMARKERDATAKEY' // 선택 마커 데이터 키
 const selectedMarkerTempDataKey = 'SELECTEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
 const selectedMarkerDataChange = 'SELECTEDMARKERDATACHANGE' // 선택 마커 실제 변경할 이벤트 명
-const duplicatedMarkerTempDataKey = 'DUPLICATEDMARKERTEMPDATAKEY' // 지도에서 선택 마커 데이터 변경 잠시 담을 키
+const duplicatedMarkerTempDataKey = 'DUPLICATEDMARKERTEMPDATAKEY' // 지도에서 중복 마커 데이터 변경 잠시 담을 키
 const duplicatedMarkerDataChange = 'DUPLICATEDMARKERDATACHANGE' // 중복 마커 선택 시 이벤트 명
+const additionalMarkerTempDataKey = 'ADDITIONALMARKERTEMPDATAKEY' // 지도에서 추가 동선 선택 마커 데이터 변경 잠시 담을 키
+const additionalMarkerDataChange = 'ADDITIONALMARKERDATACHANGE' // 추가 동선 마커 변경 이벤트 명
 const mapStateKey = 'MAPSTATE'
 
 // const greenMarkerSvg = `<svg id="target" xmlns="http://www.w3.org/2000/svg" width="70" height="105" viewBox="0 0 38 56.55"><defs><style>.cls-1{fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.3px;}.cls-2{fill:#25af32;stroke:#139926;stroke-miterlimit:10;}</style></defs><g id="_룹_1"><path class="cls-2" d="M19,.5C8.78,.5,.5,8.78,.5,19c0,8.11,11.65,29.26,16.46,35.99,1,1.4,3.08,1.4,4.08,0,4.81-6.73,16.46-27.89,16.46-35.99C37.5,8.78,29.22,.5,19,.5Z"/><path class="cls-1" d="M12.05,15.82c0,.15-.12,.28-.28,.28s-.28-.12-.28-.28,.12-.28,.28-.28,.28,.12,.28,.28Zm2.24-.28c-.15,0-.28,.12-.28,.28s.12,.28,.28,.28,.28-.12,.28-.28-.12-.28-.28-.28Zm17.45-2.6H8.49v10.1h14.34l8.91-10.1Zm-7.4,8.39h7.09v-5.39h-2.34l-4.75,5.39Zm-11.56,8.71h6.61v-7m-10.9,10.95c2.18,0,3.95-1.77,3.95-3.95s-1.77-3.95-3.95-3.95v7.9Z"/></g></svg>`;
 const greenClusterSvg = `<svg id="target" width="65" height="65" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55.94 57.94"><defs><style>.cls-1{fill:#fff;}.cls-2{fill:#25af32;stroke:#139926;stroke-miterlimit:10;}</style></defs><g id="_룹_1"><circle class="cls-1" cx="27.97" cy="27.97" r="27.47"/><path class="cls-2" d="M27.97,5c12.67,0,22.97,10.31,22.97,22.97s-10.31,22.97-22.97,22.97S5,40.64,5,27.97,15.31,5,27.97,5m0-4.5C12.8,.5,.5,12.8,.5,27.97s12.3,27.47,27.47,27.47,27.47-12.3,27.47-27.47S43.14,.5,27.97,.5h0Z"/></g></svg>`;
 const redClusterSvg = `<svg id="target" width="65" height="65" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55.94 57.94"><defs><style>.cls-1{fill:#fff;}.cls-2{fill:#ff815a;stroke:#e8623f;stroke-miterlimit:10;}</style></defs><g id="_룹_1"><circle class="cls-1" cx="27.97" cy="27.97" r="27.47"/><path class="cls-2" d="M27.97,5c12.67,0,22.97,10.31,22.97,22.97s-10.31,22.97-22.97,22.97S5,40.64,5,27.97,15.31,5,27.97,5m0-4.5C12.8,.5,.5,12.8,.5,27.97s12.3,27.47,27.47,27.47,27.47-12.3,27.47-27.47S43.14,.5,27.97,.5h0Z"/></g></svg>`;
+const blueClusterSvg = `<svg id="_레이어_2" xmlns="http://www.w3.org/2000/svg" width="62.634" height="62.634" viewBox="0 0 62.634 62.634"><g id="_레이어_1-2"><g id="_룹_1"><circle cx="31.317" cy="31.317" r="30.817" style="fill:#fff; stroke-width:0px;"/><path d="m31.317,5.548c14.214,0,25.769,11.566,25.769,25.769s-11.566,25.769-25.769,25.769S5.548,45.531,5.548,31.317,17.115,5.548,31.317,5.548m0-5.048C14.299.5.5,14.299.5,31.317s13.799,30.817,30.817,30.817,30.817-13.799,30.817-30.817S48.336.5,31.317.5h0Z" style="fill:#6eb2ea; stroke:#307bc6; stroke-miterlimit:10;"/></g></g></svg>`
 
 function arrowStyle(feature: FeatureLike) {
     let styles = [
@@ -99,12 +103,26 @@ function markerStyle(features: FeatureLike) {
     let size = (features.get("features") || [features]).length;
     if (size > 1) {
         let featureList = features.get("features") as Array<Feature>;
-        let mode = featureList.some(_ => _.get("mode") === 2) ? 2 : 1;
-        let type = featureList.some(_ => _.get("type") === 2) ? 2 : 1;
+        let mode = featureList.some(_ => _.get("mode") === 2) ? 2 : 1; // 마우스 오버시 강조
+        let type = featureList.some(_ => _.get("type") === 2) ? 2 : 1; // 1 = 기본, 2 = 선택, 3 = 출발, 4 = 도착
+        let imgByType = ''
+        switch (type) {
+            case 1:
+                imgByType = greenClusterSvg
+                break;
+            case 2:
+            case 3:
+            case 4:
+                imgByType = redClusterSvg
+                break;
+            default: break;
+        }
+        let isAdditional = featureList.some(_ => _.get("additional")) // 추가 동선 선택
+        if(isAdditional) imgByType = blueClusterSvg
         return new Style({
             image: new Icon({
                 crossOrigin: "anonymous",
-                src: "data:image/svg+xml;utf8," + encodeURIComponent(type === 1 ? greenClusterSvg : redClusterSvg),
+                src: "data:image/svg+xml;utf8," + encodeURIComponent(imgByType),
                 scale: getClusterSize(size.toString().length, mode),
             }),
             text: new Text({
@@ -123,8 +141,9 @@ function markerStyle(features: FeatureLike) {
     } else {
         let feature = (features.get("features") || [features])[0] as Feature;
         if (feature !== undefined) {
-            let type = feature.get("type");
-            let mode = feature.get("mode");
+            let type = feature.get("type"); // 1 = 기본, 2 = 선택, 3 = 출발, 4 = 도착
+            let mode = feature.get("mode"); // 마우스 오버시 강조
+            let isAdditional = feature.get("additional"); // 추가 동선 선택 true/false
             const cctvName = feature.get("name");
             let offset = 0;
             let imgByType = ''
@@ -143,7 +162,8 @@ function markerStyle(features: FeatureLike) {
                     break;
                 default: break;
             }
-
+            if(isAdditional) imgByType = additionalCCTVIcon
+            
             return new Style({
                 zIndex: 2,
                 image: new Icon({
@@ -366,6 +386,7 @@ export class OlMap extends CustomMap<Map> {
         this.map.addLayer(this.pathVL)
         this.map.set(selectedMarkerDataKey, [])
         this.map.set(selectedMarkerTempDataKey, [])
+        this.map.set(additionalMarkerTempDataKey, [])
         this.map.set(mapStateKey, mapState['NORMAL'])
         this.map.getView().on('change:resolution', () => {
             this.CL.setDistance(clsuterDistanceByZoomLv(this.map.getView().getZoom() as number))
@@ -504,10 +525,17 @@ export class OlMap extends CustomMap<Map> {
             if (this.map.get(mapStateKey) === mapState['NORMAL']) {
                 const clusters = this.CL.getFeaturesInExtent(this.dragBox.getGeometry().getExtent());
                 let featuresArray = clusters.flatMap(cluster => cluster.get("features"));
-                const currentFeatureIds = this.map.get(selectedMarkerDataKey) as SelectedMarkersType;
-                const targetIds = featuresArray.map(_ => _.getId());
-                let result = (currentFeatureIds.filter(_ => !targetIds.includes(_))).concat(targetIds.filter(_ => !currentFeatureIds.includes(_))).deduplication()
-                this.dispatchSelectedMarkerChangeEvent(result)
+                if(this.trafficInputOverlay) { // 추가동선일 때
+                    const currentFeatureIds = this.map.get(additionalMarkerTempDataKey) as SelectedMarkersType;
+                    const targetIds = featuresArray.map(_ => _.getId());
+                    let result = (currentFeatureIds.filter(_ => !targetIds.includes(_))).concat(targetIds.filter(_ => !currentFeatureIds.includes(_))).deduplication()
+                    this.dispatchAdditionalMarkerChangeEvent(result)
+                } else { // 추가동선 아닐 때
+                    const currentFeatureIds = this.map.get(selectedMarkerDataKey) as SelectedMarkersType;
+                    const targetIds = featuresArray.map(_ => _.getId());
+                    let result = (currentFeatureIds.filter(_ => !targetIds.includes(_))).concat(targetIds.filter(_ => !currentFeatureIds.includes(_))).deduplication()
+                    this.dispatchSelectedMarkerChangeEvent(result)
+                }
             }
         });
         this.map.addInteraction(this.dragBox);
@@ -552,6 +580,7 @@ export class OlMap extends CustomMap<Map> {
             type: 1,
             vmsType,
             searched: false,
+            additional: false
         });
         feature.setId(camera.cameraId)
         return feature
@@ -580,6 +609,22 @@ export class OlMap extends CustomMap<Map> {
         })
         this.selectedMarkers = currentSelectedMarkers
         this.map.set(selectedMarkerDataKey, currentSelectedMarkers)
+    }
+    
+    selectedAdditionalMarkerChangeCallback(currentState: SelectedMarkersType) {
+        const currentSelectedMarkers = currentState
+        const mapTempData = this.map.get(additionalMarkerTempDataKey) as SelectedMarkersType
+        const addedMarkers = currentSelectedMarkers.filter(_ => !mapTempData.includes(_))
+        const deletedMarkers = mapTempData.filter(_ => !currentSelectedMarkers.includes(_))
+        addedMarkers.forEach(_ => {
+            const target = this.VS.getFeatureById(_)
+            target?.set('additional', true)
+        })
+        deletedMarkers.forEach(_ => {
+            const target = this.VS.getFeatureById(_)
+            target?.set('additional', false)
+        })
+        this.map.set(additionalMarkerTempDataKey, currentSelectedMarkers)
     }
 
     createPathLines(results: ReIDResultDataResultListDataType[], color?: CSSProperties['color']): void {
@@ -749,6 +794,18 @@ export class OlMap extends CustomMap<Map> {
     dispatchSelectedMarkerChangeEvent = (data: (CameraDataType['cameraId'] | string | undefined)[]) => {
         this.map.set(selectedMarkerTempDataKey, data)
         this.map.dispatchEvent(selectedMarkerDataChange)
+    }
+
+    dispatchAdditionalMarkerChangeEvent = (data: (CameraDataType['cameraId'] | string | undefined)[]) => {
+        // this.map.set(additionalMarkerTempDataKey, data)
+        this.selectedAdditionalMarkerChangeCallback(data as SelectedMarkersType)
+        this.map.dispatchEvent(additionalMarkerDataChange)
+    }
+
+    addAdditionalMarkerChangeEventCallback(callback: (target: SelectedMarkersType) => void) {
+        this.map.addEventListener(additionalMarkerDataChange, () => {
+            if (callback) callback(this.map.get(additionalMarkerTempDataKey))
+        })
     }
 
     changeViewToSelectedCCTVs = (cameras?: CameraDataType['cameraId'][]) => {

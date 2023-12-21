@@ -11,11 +11,9 @@ import deleteIcon from '../../../assets/img/closeIcon.png'
 import MapView from "./MapView"
 import { GetReIDResultById } from "../../../Functions/NetworkFunctions"
 import Modal from "../../Layout/Modal"
-import { ReIDObjectTypeEmptyIcons } from "../ConstantsValues"
-import { ReIDObjectTypeKeys, ReIDResultType } from "../../../Constants/GlobalTypes"
+import { ReIDResultType } from "../../../Constants/GlobalTypes"
 import { PROGRESS_STATUS, ProgressStatus } from "../../../Model/ProgressModel"
 import ForLog from "../../Constants/ForLog"
-import { ReIDResultTestData } from "../../../Model/TestDatas"
 import { IS_PRODUCTION } from "../../../Constants/GlobalConstantsValues"
 
 const ReIDResult = () => {
@@ -45,9 +43,8 @@ const ReIDResult = () => {
         resultDatasRef.current = resultDatas
     },[resultDatas])
 
-    const test = async () => {
-        // setResultDatas(ReIDResultTestData)
-        const temp = await GetReIDResultById(1043)
+    const test = async (id: number) => {
+        const temp = await GetReIDResultById(id)
         const newData: ReIDResultType = {
             ...temp, data: temp.data.map(d => ({
                 ...d,
@@ -66,20 +63,18 @@ const ReIDResult = () => {
                 }))
             }))
         }
-        if (reidResults.some(r => r.reIdId === 1043)) {
-            setReidResults(reidResults.map(r => r.reIdId === 1043 ? newData : r))
+        if (reidResults.some(r => r.reIdId === id)) {
+            setReidResults(reidResults.map(r => r.reIdId === id ? newData : r))
         } else {
             setReidResults(reidResults.concat(newData))
         }
         setReidSelectedCondition(0)
-        setReIDResultSelectedView([1043])
-        // setReidSelectedCondition(0)
-        // setReIDResultSelectedView([testReid])
-        if (newData) setResultDatas([newData])
+        setReIDResultSelectedView([id])
+        if (newData) return setResultDatas([...resultDatas, newData])
     }
 
     useEffect(() => {
-        // if (!IS_PRODUCTION) test()
+        if (!IS_PRODUCTION) test(1325)
     }, [])
 
     return <>

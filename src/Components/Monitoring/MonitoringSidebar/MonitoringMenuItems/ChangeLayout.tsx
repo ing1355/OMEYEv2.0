@@ -15,11 +15,10 @@ const ChangeLayout = ({ index }: {
 }) => {
     const [visible, setVisible] = useRecoilState(MonitoringDatas('visible'))
     const [monitoringLayoutNums, setMonitoringLayoutNums] = useRecoilState(MonitoringDatas('layoutNum'))
-    const [titleVisible, setTitleVisible] = useRecoilState(MonitoringDatas('titleVisible'))
     const cctvNums = useRecoilValue(MonitoringDatas('CCTVs'))
     const message = useMessage()
     const otherRef = useRef(null)
-    console.debug(visible)
+    
     return <>
         <MonitoringSidebarButton onClick={(e) => {
             e.stopPropagation()

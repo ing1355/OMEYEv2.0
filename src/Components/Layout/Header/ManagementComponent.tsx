@@ -235,7 +235,7 @@ const Icon = styled.div`
 
 const Title = styled.div`
     font-size: 1rem;
-    width: 60px;
+    width: 80px;
     ${globalStyles.flex()}
 `
 

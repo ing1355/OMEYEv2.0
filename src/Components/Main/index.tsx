@@ -10,7 +10,6 @@ import { isLogin, userProfile } from "../../Model/LoginModel";
 import { AliveApi } from "../../Constants/ApiRoutes";
 import useMessage from "../../Hooks/useMessage";
 import { IS_PRODUCTION } from "../../Constants/GlobalConstantsValues";
-import { UserDataType } from "../Settings/AccountSettings";
 
 const LoadingComponent = () => {
     const [count, setCount] = useState(0)

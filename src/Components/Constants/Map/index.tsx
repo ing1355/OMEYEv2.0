@@ -101,7 +101,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
             Object.values(obj).forEach((arr) => {
                 arr.forEach((item) => {
                     const time = item.foundDateTime
-                    if(Number(time) > Number(endTime)) {
+                    if (Number(time) > Number(endTime)) {
                         endTime = time
                     }
                 })
@@ -145,6 +145,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 }
                 setTrafficOverlayView(view)
             })
+            map.current.addAdditionalMarkerChangeEventCallback(setSelectedAdditionalCCTVs)
         } else {
         }
         map.current?.circleSelectOverlayViewChangeListener((view) => {
@@ -171,6 +172,13 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
             map.current.selectedMarkerChangeCallback(selectedCCTVs || [])
         }
     }, [selectedCCTVs])
+
+    useEffect(() => {
+        console.debug("test : " ,selectedAddtionalCCTVs)
+        if(map.current) {
+            map.current.selectedAdditionalMarkerChangeCallback(selectedAddtionalCCTVs)
+        }
+    },[selectedAddtionalCCTVs])
 
     useEffect(() => {
         if (forAddtraffic && pathCameras && pathCameras.length > 0) {
@@ -303,23 +311,23 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 e.stopPropagation()
             }}
         >
+            <SelectedViewBtn hover onClick={() => {
+                if (map.current) {
+                    if (forAddtraffic) {
+                        map.current?.changeViewToSelectedCCTVs(pathCameras?.map(_ => _.cctvId!))
+                    }
+                    else map.current?.changeViewToSelectedCCTVs()
+                }
+            }}>
+                <img src={selectedMarkerLocationIcon} style={{
+                    width: '100%',
+                    height: '100%'
+                }} />
+            </SelectedViewBtn>
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}
             <ControlsContainer>
-                <SelectedViewBtn hover onClick={() => {
-                    if (map.current) {
-                        if (forAddtraffic) {
-                            map.current?.changeViewToSelectedCCTVs(pathCameras?.map(_ => _.cctvId!))
-                        }
-                        else map.current?.changeViewToSelectedCCTVs()
-                    }
-                }}>
-                    <img src={selectedMarkerLocationIcon} style={{
-                        width: '100%',
-                        height: '100%'
-                    }} />
-                </SelectedViewBtn>
                 <ControlRowContainer>
                     {duplicatedCCTVs.length > 0 && <CCTVListContainer>
                         <CCTVListHeader>
@@ -334,19 +342,19 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                             e.stopPropagation()
                         }}>
                             <AddReIDInputTitle>
-                                <div style={{fontSize: '1.1rem'}}>
+                                <div style={{ fontSize: '1.1rem' }}>
                                     추가 동선 분석
                                 </div>
                                 {/* <Button>
                                     접기
                                 </Button> */}
-                                <div style={{cursor: 'pointer', position: 'relative', top: '3.5px'}}
-                                    onClick={() => {setIsOpenAddReIDContainer(!isOpenAddReIDContainer)}}
+                                <div style={{ cursor: 'pointer', position: 'relative', top: '3.5px' }}
+                                    onClick={() => { setIsOpenAddReIDContainer(!isOpenAddReIDContainer) }}
                                 >
-                                    <img src={downArrowIcon} width='30px' style={{transform: isOpenAddReIDContainer ? 'rotate(180deg)' : ''}} />
+                                    <img src={downArrowIcon} width='30px' style={{ transform: isOpenAddReIDContainer ? 'rotate(180deg)' : '' }} />
                                 </div>
                             </AddReIDInputTitle>
-                            {isOpenAddReIDContainer && 
+                            {isOpenAddReIDContainer &&
                                 <>
                                     <AdditionalReIDContainer type={targetReidresult ? targetReidresult.data[0].resultList[0].objectType : null} onChange={data => {
                                         setSelectedAddtionalTarget(data)
@@ -369,7 +377,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                             <AddReIDInputContentContainer>
                                                 <AddReIDInputContent value={rankInput} onChange={(val) => {
                                                     setRankInput(Number(val))
-                                                }} onlyNumber maxNumber={100}/>
+                                                }} onlyNumber maxNumber={100} />
                                             </AddReIDInputContentContainer>
                                         </AddReIDInputCol>
                                         <AddReIDInputCol>
@@ -377,7 +385,10 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                                 <img src={cctvIcon} />
                                             </AddReIDInputLabel>
                                             <AddReIDInputContentContainer>
-                                                <AdditionalCCTVValueContainer onClick={openAreaModal}>
+                                                <AdditionalCCTVValueContainer onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    openAreaModal()
+                                                }}>
                                                     {selectedAddtionalCCTVs.length} 대
                                                 </AdditionalCCTVValueContainer>
                                             </AddReIDInputContentContainer>
@@ -388,10 +399,11 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                             <img src={timeIcon} />
                                         </AddReIDInputLabel>
                                         <AddReIDInputContentContainer isDouble>
-                                            <AddReIDTimeInputContent 
-                                                onClick={() => {
-                                                    if(foundEndDateTime() !== '0') {
-                                                        setTimeValue((pre) => ({...pre, startTime: foundEndDateTime()}))
+                                            <AddReIDTimeInputContent
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    if (foundEndDateTime() !== '0') {
+                                                        setTimeValue((pre) => ({ ...pre, startTime: foundEndDateTime() }))
                                                     }
                                                     openTimeModal()
                                                 }}
@@ -427,10 +439,10 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                     </AddReIDInputRow>
                                     <AddReIDInputBtn hover onClick={() => {
                                         if (selectedAddtionalTarget.length === 0) return message.error({ title: '입력값 에러', msg: '대상이 선택되지 않았습니다.' });
-                                        if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
-                                        if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
+                                        // if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
+                                        // if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
                                         if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
-                                        if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
+                                        // if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
                                         closeOverlayWrapper()
                                         setRequestFlag(true)
                                         setProgressRequestParams({
@@ -447,9 +459,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                                         endTime: timeValue.endTime!
                                                     }
                                                 ],
-                                                cctvIds: [
-                                                    map.current!.getFeaturesInCircle().map(_ => _)
-                                                ]
+                                                cctvIds: [selectedAddtionalCCTVs]
                                             }
                                         })
                                     }}>
@@ -457,7 +467,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                     </AddReIDInputBtn>
                                 </>
                             }
- 
+
                         </AddReIDInputContainer>
                     }
                 </ControlRowContainer>
@@ -508,6 +518,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                 visible={areaVisible}
                 title="추가 동선 CCTV"
                 defaultSelected={selectedAddtionalCCTVs}
+                isZeroOk={forAddtraffic}
                 complete={values => {
                     setSelectedAdditionalCCTVs(values)
                 }}
@@ -628,9 +639,17 @@ const AddReIDTimeInputContent = styled.div`
 
 const TimeValueContainer = styled.div`
     ${globalStyles.flex({ flexDirection: 'row', gap: '12px' })}
+    width: 100%;
+    padding: 0 24px;
     & > div {
         font-size: 1rem;
         font-weight: bold;
+        &:first-child {
+            flex: 0 0 30px;
+        }
+        &:nth-child(2) {
+            flex: 1;
+        }
     }
 `
 
@@ -663,11 +682,14 @@ const AddReIDInputBtn = styled(Button)`
 `
 
 const SelectedViewBtn = styled(Button)`
-    position: relative;
+    position: absolute;
     width: 42px;
     height: 42px;
     border: none;
     padding: 8px;
+    left: 16px;
+    bottom: 12px;
+    z-index: 1;
 `
 
 const ControlsContainer = styled.div`
@@ -747,5 +769,5 @@ const CCTVItemContainer = styled.div<{ selected: boolean }>`
 `
 
 const ControlRowContainer = styled.div`
-    ${globalStyles.flex({ flexDirection: 'row', alignItems:'flex-start', gap: '4px' })}
+    ${globalStyles.flex({ flexDirection: 'row', alignItems: 'flex-start', gap: '4px' })}
 `
