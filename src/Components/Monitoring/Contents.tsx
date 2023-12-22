@@ -39,7 +39,7 @@ const VideoCard = memo(({ data, timeVisibleChange }: {
                 setCCTVs((cctvs as MonitoringDataType['cctvs']).map(_ => _.cctvId !== cctvId ? _ : {
                     cctvId: undefined,
                     time: undefined
-                }))
+                }).filter(_=>_.cctvId !== undefined))
             }}>
                 <img src={closeIcon} />
             </VideoCloseIcon> : ''}
@@ -63,13 +63,17 @@ const Contents = () => {
     const cctvList = useMemo(() => {
         let count = 0
         const datas = monitoringCCTVs as MonitoringDataType['cctvs']
-        let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map((_, ind) => ({
-            cctvId: cctvListTemp.current[ind] && cctvListTemp.current[ind].cctvId,
-            time: cctvListTemp.current[ind] && cctvListTemp.current[ind].time
-        }))
         const _old = cctvListTemp.current
+        const isNoChangeCCTVIndex = _old.slice(monitoringLayoutNums as number).every(_=> _ === undefined)
+        let temp: MonitoringDataType['cctvs'] = Array.from({ length: monitoringLayoutNums as number }).map((_, ind) => ({
+            cctvId: isNoChangeCCTVIndex ? cctvListTemp.current[ind] && cctvListTemp.current[ind].cctvId : datas[ind].cctvId,
+            time: isNoChangeCCTVIndex ? cctvListTemp.current[ind] && cctvListTemp.current[ind].time : datas[ind].time
+        }))
+        if(!isNoChangeCCTVIndex) cctvListTemp.current = [...temp] as MonitoringDataType['cctvs']
+
         const added = datas.filter(_ => _ && _.cctvId && !_old.find(__ => __ && __.cctvId === _.cctvId))
         const deleted = _old.filter(_ => _ && _.cctvId && !datas.find(__ => __ && __.cctvId === _.cctvId))
+
         temp = temp.map((_, ind) => {
             return cctvListTemp.current[ind] ? (deleted.find(__ => __.cctvId === _.cctvId) ? added[count++] : cctvListTemp.current[ind]) : added[count++]
         })
