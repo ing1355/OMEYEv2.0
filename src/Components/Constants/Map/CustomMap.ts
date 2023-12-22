@@ -57,15 +57,27 @@ export abstract class CustomMap<MapType> {
 
     /**
      * 
-     * @function @argument (target: CameraDataType => void) 외부에서 마커 선택 변화 시 이벤트 리스너 등록
+     * @function @argument (target: CameraDataType => void) 내부 마커 선택 변화 시 외부에서 사용할 이벤트 리스너 등록
      */
     public abstract addSelectedMarkerChangeEventCallback(callback: (target: CameraDataType['cameraId'][]) => void): void;
 
     /**
      * 
-     * @param currentState 지도의 선택 마커 변경 시 콜백
+     * @function @argument (target: CameraDataType => void) 내부 추가 동선 마커 선택 변화 시 외부에서 사용할 이벤트 리스너 등록
+     */
+    public abstract addAdditionalMarkerChangeEventCallback(callback: (target: CameraDataType['cameraId'][]) => void): void;
+
+    /**
+     * 
+     * @param currentState 외부에서 마커 변경 시 지도에 전달하는 콜백
      */
     public abstract selectedMarkerChangeCallback(currentState: SelectedMarkersType): void;
+
+    /**
+     * 
+     * @param currentState 외부에서 동선 구축 마커 변경 시 지도에 전달하는 콜백
+     */
+    public abstract selectedAdditionalMarkerChangeCallback(currentState: SelectedMarkersType): void;
 
     /**
      * @param CamerasIds 동선을 표현할 마커들의 ID(순서 보장)

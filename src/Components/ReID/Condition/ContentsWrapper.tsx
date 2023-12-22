@@ -97,7 +97,6 @@ const ContentsWrapper = () => {
     }
 
     const completeCallback = async () => {
-        console.debug('route : ', routeInfo.at(-1))
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key: {
                 const filteredTarget = targets.filter(_ => _.selected)
@@ -110,7 +109,6 @@ const ContentsWrapper = () => {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
                     if (filteredTarget[0].type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']]) {
-                        console.debug("nums : ", existValueNumsInDescription(filteredTarget[0].description))
                         setRealTimeData({
                             type: filteredTarget[0].type,
                             cameraIdList: cctv.filter(_ => _.selected).flatMap(_ => _.cctvList).deduplication(),

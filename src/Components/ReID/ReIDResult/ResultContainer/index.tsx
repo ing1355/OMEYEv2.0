@@ -3,7 +3,7 @@ import { ContentsActivateColor, ContentsBorderColor, GlobalBackgroundColor, Sect
 import Button from "../../../Constants/Button"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, SingleReIDSelectedData, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
+import { ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedTarget, ReIDResultSelectedView, SingleReIDSelectedData, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
 import ImageView from "../../Condition/Constants/ImageView"
 import { convertFullTimeStringToHumanTimeFormat } from "../../../../Functions/GlobalFunctions"
 import CCTVNameById from "../../../Constants/CCTVNameById"
@@ -245,7 +245,7 @@ const CCTVRowContainer = ({ conditionData, data, selectedTarget, reIdId, cctvId 
 const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
     const data = useRecoilValue(ReIDResultData(reIdId))
     const [selectedCondition, setSelectedCondition] = useRecoilState(ReIDResultSelectedCondition)
-    const [selectedTarget, setSelectedTarget] = useState<number>(0)
+    const [selectedTarget, setSelectedTarget] = useRecoilState(ReIDResultSelectedTarget)
     const requestParams = useRecoilValue(ProgressRequestParams)
     const selectedView = useRecoilValue(ReIDResultSelectedView)
     const progressStatus = useRecoilValue(ProgressStatus)
@@ -266,13 +266,6 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
 
     useEffect(() => {
         if(data && data.reIdId === globalCurrentReIdId) {
-            // if(data?.data.length > progressData.length) {
-            //     const completeTemp = Array(data?.data.length - progressData.length).fill(false)
-            //     setLoading(completeTemp.concat(CheckStateSuccess()))
-            // } else {
-            //     setLoading(CheckStateSuccess())
-            // }
-
             if(progressStatus.type === 'ADDITIONALREID') {
                 const completeTemp = Array(data?.data.length - progressData.length).fill(false)
                 setLoading(completeTemp.concat(CheckStateSuccess()))
@@ -355,8 +348,10 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                 </ResultDescriptionContainer>
                 <ResultListItemsContainer isProgress={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']}>
                     {!_.resultList.find(__ => {
+                        console.debug(__.objectId, selectedTarget)
                         return __.objectId === selectedTarget
                     })?.timeAndCctvGroup.some(__ => {
+                        console.debug(__.results)
                         return Array.from(__.results).some(([key, val]) => {
                             return val.length > 0
                         })

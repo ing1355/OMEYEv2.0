@@ -57,6 +57,11 @@ const _reidResultSelctedCondition = atom<number>({
   default: 0
 })
 
+const _reidResultSelctedTarget = atom<number>({
+  key: "reid/selectedTarget",
+  default: 0
+})
+
 const _additionalReidTimeValue = atom<TimeModalDataType | undefined>({
   key: "reid/additional/timevalue",
   default: undefined
@@ -201,6 +206,18 @@ export const ReIDResultSelectedCondition = selector({
   set: ({ set }, newValue) => {
     if (!(newValue instanceof DefaultValue)) {
       return set(_reidResultSelctedCondition, newValue)
+    }
+  }
+})
+
+export const ReIDResultSelectedTarget = selector({
+  key: 'reidResult/selectedTarget/selector',
+  get: ({ get }) => {
+    return get(_reidResultSelctedTarget)
+  },
+  set: ({ set }, newValue) => {
+    if (!(newValue instanceof DefaultValue)) {
+      return set(_reidResultSelctedTarget, newValue)
     }
   }
 })

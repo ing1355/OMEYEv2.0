@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import Button from "../../../Constants/Button"
 import { AdditionalReIdApi, ReidCancelApi, RequestManagementStartApi, SseStartApi } from "../../../../Constants/ApiRoutes"
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
-import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDRequestServerParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedView, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
+import { AdditionalReIDRequestParamsType, ReIDAllResultData, ReIDRequestParamsType, ReIDRequestServerParamsType, ReIDResultData, ReIDResultSelectedCondition, ReIDResultSelectedTarget, ReIDResultSelectedView, globalCurrentReidId } from "../../../../Model/ReIdResultModel"
 import { Axios, ManagementCancelFunc, ReIDStartApi, RequestToManagementServer } from "../../../../Functions/NetworkFunctions"
 import Progress from "../../Progress"
 import { convertFullTimeStringToHumanTimeFormat, getLoadingTimeString } from "../../../../Functions/GlobalFunctions"
@@ -55,6 +55,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
     const [globalEvents, setGlobalEvents] = useRecoilState(GlobalEvents)
     const managementId = useRecoilValue(currentManagementId)
     const setReidResultSelectedView = useSetRecoilState(ReIDResultSelectedView)
+    const setReidResultSelectedTarget = useSetRecoilState(ReIDResultSelectedTarget)
     const setMenu = useSetRecoilState(conditionMenu)
     const setGlobalMenu = useSetRecoilState(menuState)
     const setSelectedResultCondition = useSetRecoilState(ReIDResultSelectedCondition)
@@ -669,10 +670,11 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
     }, [isProgress])
 
     async function sseSetting() {
+        const _params = globalEvents.params
         try {
             sseRef.current = await CustomEventSource(SseStartApi);
             sseRef.current.onopen = async (e) => {
-                console.debug(`${_progressRequestParams.type} sse setting open : `, _progressRequestParams.params)
+                console.debug(`${_params.type} sse setting open : `, _params.params)
                 const res = await Axios('POST', RequestManagementStartApi, globalEvents.data)
                 if (res && res.storageExceeded) {
                     message.warning({ title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요." })
@@ -680,7 +682,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
                 setGlobalEvents({
                     key: 'Refresh'
                 })
-                switch (_progressRequestParams.type) {
+                switch (_params.type) {
                     case 'ADDITIONALREID': {
                         const _additionalParams = params as AdditionalReIDRequestParamsType
                         const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
@@ -740,7 +742,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
             };
             sseRef.current.onmessage = (res: MessageEvent) => {
                 try {
-                    const { type } = _progressRequestParams
+                    const { type } = _params
                     const data = JSON.parse(res.data.replace(/\\/gi, '')) as SSEProgressResponseType
                     const { conditionIndex, timeIndex, cctvId, aiPercent, videoPercent, status, reIdId, errorCode } = data
                     if (aiPercent || videoPercent) {
@@ -819,6 +821,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
                             setReidResultSelectedView([_additionalParams.reIdId!])
                             setGlobalCurrentReIdId(_additionalParams.reIdId!)
                             setSelectedResultCondition(singleReidResultRef.current?.data.length!)
+                            setReidResultSelectedTarget(_additionalParams.objects[0].id)
                         }
                         setGlobalMenu(ReIdMenuKey)
                         setMenu(ReIDMenuKeys['REIDRESULT'])
@@ -904,7 +907,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
                 }
             };
             sseRef.current.onerror = async (e: any) => {
-                console.debug(`${_progressRequestParams.type} sse object delete`)
+                console.debug(`${_params.type} sse object delete`)
                 clearInterval(intervalId)
                 e.target.close();
                 sseRef.current = undefined

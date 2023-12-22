@@ -147,7 +147,6 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
         if (masking.includes('area')) {
             temp['points'] = submitPoints
             temp['areaInfoImg'] = ConvertWebImageSrcToServerBase64ImageSrc(rectCanvasRef.current?.toDataURL()!)
-            console.debug(temp)
             // temp['points'] = submitPoints.map(_ => _.flatMap(__ => __.map((___, ind) => {
             //     if(ind === 0) {
             //         const x = ___
