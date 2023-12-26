@@ -273,7 +273,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                 setLoading(CheckStateSuccess())
             }
         }
-    }, [data])
+    }, [data, progressData])
     
     useEffect(() => {
         if (selectedView[0] === reIdId) {

@@ -674,7 +674,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
         try {
             sseRef.current = await CustomEventSource(SseStartApi);
             sseRef.current.onopen = async (e) => {
-                console.debug(`${_params.type} sse setting open : `, _params.params)
+                console.debug(`${_progressRequestParams.type} sse setting open : `, _params.params)
                 const res = await Axios('POST', RequestManagementStartApi, globalEvents.data)
                 if (res && res.storageExceeded) {
                     message.warning({ title: "스토리지 사용량 경고", msg: "서버 스토리지가 한계치에 임박하였습니다.\n관리자에게 문의하세요." })
@@ -682,7 +682,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
                 setGlobalEvents({
                     key: 'Refresh'
                 })
-                switch (_params.type) {
+                switch (_progressRequestParams.type) {
                     case 'ADDITIONALREID': {
                         const _additionalParams = params as AdditionalReIDRequestParamsType
                         const { title, etc, reIdId, objects, timeGroups, rank, cctvIds } = _additionalParams
@@ -742,7 +742,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
             };
             sseRef.current.onmessage = (res: MessageEvent) => {
                 try {
-                    const { type } = _params
+                    const { type } = _progressRequestParams
                     const data = JSON.parse(res.data.replace(/\\/gi, '')) as SSEProgressResponseType
                     const { conditionIndex, timeIndex, cctvId, aiPercent, videoPercent, status, reIdId, errorCode } = data
                     if (aiPercent || videoPercent) {
@@ -907,7 +907,7 @@ const ReIDProgress = ({ }: ReIDProgressProps) => {
                 }
             };
             sseRef.current.onerror = async (e: any) => {
-                console.debug(`${_params.type} sse object delete`)
+                console.debug(`${_progressRequestParams.type} sse object delete`)
                 clearInterval(intervalId)
                 e.target.close();
                 sseRef.current = undefined

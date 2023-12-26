@@ -74,7 +74,7 @@ const ReIDResult = () => {
     }
 
     useEffect(() => {
-        if (!IS_PRODUCTION) test(1325)
+        // if (!IS_PRODUCTION) test(1325)
     }, [])
 
     return <>
