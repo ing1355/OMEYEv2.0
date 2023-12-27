@@ -58,6 +58,7 @@ const MenuItem = styled.div<{ selected: boolean }>`
     cursor: pointer;
     margin-right: 8px;
     display: inline-flex;
+    min-width: 87px;
 `
 
 const IconContainer = styled.div`
