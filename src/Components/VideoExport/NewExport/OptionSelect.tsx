@@ -167,7 +167,7 @@ const OptionSelect = ({ visible, close, defaultValue, complete }: OptionSelectPr
             </OptionsTitle>
             <OptionContentsContainer>
                 <MaskingBtnContainer>
-                    <MaskingBtn hover disabled={!defaultValue?.cctvId && !defaultValue?.time} activate={masking.includes("area")} onClick={() => {
+                    <MaskingBtn hover disabled={!(defaultValue?.cctvId && defaultValue?.time)} activate={masking.includes("area")} onClick={() => {
                         maskingOptionChange("area")
                     }}>
                         영역 비식별화

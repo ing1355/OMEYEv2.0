@@ -174,7 +174,6 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
     }, [selectedCCTVs])
 
     useEffect(() => {
-        console.debug("test : " ,selectedAddtionalCCTVs)
         if(map.current) {
             map.current.selectedAdditionalMarkerChangeCallback(selectedAddtionalCCTVs)
         }

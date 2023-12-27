@@ -230,7 +230,6 @@ const PasswordManagement = ({ visible, setVisible }: PasswordManagementProps) =>
                         padding: '4px'
                     }} onClick={async () => {
                         const res = await Axios('DELETE', DeletePasscordApi(datas.data.passcode!.id))
-                        console.debug(res)
                         if (res) setRefresh(true)
                     }}>
                         <img src={deleteIcon} />

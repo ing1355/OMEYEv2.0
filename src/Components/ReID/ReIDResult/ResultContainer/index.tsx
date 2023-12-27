@@ -254,9 +254,6 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
     const message = useMessage()
     const [loading, setLoading] = useState<boolean[]>([])
 
-    // useEffect(() => {
-    //     console.debug("Resultcontainer data Change : ", data)
-    // },[data])
     const CheckStateSuccess = () => {
         const state = progressData.map((item) => {
             return item.times.map((_) => _.data).map(_ => Object.values(_)).some((_) => _.some(_ => _.status === 'RUNNING' || _.status === 'WAIT'))
@@ -350,10 +347,8 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                 </ResultDescriptionContainer>
                 <ResultListItemsContainer isProgress={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']}>
                     {!_.resultList.find(__ => {
-                        console.debug(__.objectId, selectedTarget)
                         return __.objectId === selectedTarget
                     })?.timeAndCctvGroup.some(__ => {
-                        console.debug(__.results)
                         return Array.from(__.results).some(([key, val]) => {
                             return val.length > 0
                         })
