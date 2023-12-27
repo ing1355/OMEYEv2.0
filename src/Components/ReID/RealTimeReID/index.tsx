@@ -137,14 +137,16 @@ const RealTimeReID = () => {
     }, [])
 
     const stackToManagement = () => {
-        RequestToManagementServer('REALTIME', {
+        const params = {
             cameraIdList: rtData.cameraIdList,
             objectId: rtData.objectId,
             threshHold: rtData.type === ReIDObjectTypeKeys[ObjectTypes['ATTRIBUTION']] ? Math.floor(convertThreshHoldToDescriptionPercent(rtData.threshHold, existValueNumsInDescription(rtData.description))) : rtData.threshHold,
-        }, (res) => {
+        }
+        RequestToManagementServer('REALTIME', params, (res) => {
             setGlobalEvent({
                 key: 'StackManagementServer',
-                data: res
+                data: res,
+                params
             })
         })
     }

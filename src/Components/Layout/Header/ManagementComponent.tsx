@@ -93,7 +93,7 @@ const ManagementComponent = () => {
         const res = await GetManagementList()
         if (res) {
             const result = res.map(_ => {
-                const target = datasRef.current.find(__ => __.id === _.id)
+                const target = datasRef.current.find(__ => id ? id === __.id : __.id === _.id)
                 return target ? {...target, ..._} : {..._, params: addedParams}
             })
             setDatas(result)
@@ -127,7 +127,7 @@ const ManagementComponent = () => {
     useEffect(() => {
         if (datas.length > 0) {
             const { type, status, username, tag, id, params } = datas[0]
-            if (status === 'WAIT' && userInfo.user.username === username && tag === 'OMEYE2' && id !== managementId) {
+            if (status === 'WAIT' && userInfo.user.username === username && tag === 'OMEYE2' && id !== managementId && params) {
                 setManagementId(id)
                 setGlobalEvents({
                     key: type === 'REID' ? 'ReIDStart' : (type === 'REALTIME' ? 'RealTimeStart' : 'VideoExportStart'),

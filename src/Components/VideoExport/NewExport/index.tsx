@@ -264,7 +264,7 @@ const NewExport = () => {
             }} deleteCallback={() => {
                 setDatas(datas.filter((__, _ind) => _ind !== ind))
             }} exportCallback={() => {
-                RequestToManagementServer('VIDEO_EXPORT', [{
+                const params = [{
                     cameraInfo: {
                         id: _.cctvId,
                         startTime: _.time?.startTime,
@@ -274,7 +274,8 @@ const NewExport = () => {
                         ..._.options,
                         points: _.options.points.map(_ => _.flat())
                     }
-                }] as VideoExportApiParameterType[], (res) => {
+                }] as VideoExportApiParameterType[]
+                RequestToManagementServer('VIDEO_EXPORT', params, (res) => {
                     setDatas(datas.map((__, _ind) => ind === _ind ? {
                         ...__,
                         managementId: res,
@@ -282,7 +283,8 @@ const NewExport = () => {
                     } : __))
                     setGlobalEvent({
                         key: 'StackManagementServer',
-                        data: res
+                        data: res,
+                        params
                     })
                 })
                 // if (sseRef.current) {
