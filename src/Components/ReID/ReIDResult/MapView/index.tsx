@@ -37,10 +37,6 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
         objectIds: _.resultList.map(__ => __.objectId)
     })) : [], [resultData])
 
-    useEffect(() => {
-        // console.debug("mapView useEffect Data : ", selectedData, selectedCondition, selectedTarget)
-    }, [selectedData, selectedCondition, selectedTarget])
-
     const filteredSelectedData = useMemo(() => (selectedData && selectedCondition.length > 0 && selectedTarget.length > 0) ? selectedCondition.map(_ => {
         return (selectedData[_] ? Object.keys(selectedData[_]) : []).filter(__ => {
             return selectedTarget[_].includes(Number(__))
