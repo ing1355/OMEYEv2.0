@@ -2,7 +2,7 @@
   "name": "omeye_renewal",
   "version": "2.0(72)",
   "private": true,
-  "proxy": "https://omsecurity.kr:58081",
+  "proxy": "https://192.168.182.54:8082",
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
