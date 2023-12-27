@@ -141,6 +141,7 @@ const AccountSettings = ({ visible }: {
   const message = useMessage()
   const isSelf = (username: string) => userInfo.user.username === username
   const isUser = userInfo.user.role === 'USER'
+  const openModalTypeRef = useRef<string>('')
 
   const getUsersAccountList = async () => {
     const res: ResType = await Axios('GET', UserAccountApi, {
@@ -171,6 +172,7 @@ const AccountSettings = ({ visible }: {
     setIsDeleteMember(false)
     setUpdateMemeberList(!updateMemeberList)
     setSelectUsers([])
+    openModalTypeRef.current = ''
 
     if(res) {
       message.success({ title: '사용자 삭제', msg: '사용자를 삭제했습니다' })
@@ -188,7 +190,8 @@ const AccountSettings = ({ visible }: {
     if(res) {
       message.success({ title: '비밀번호 확인', msg: '비밀번호 확인에 성공했습니다' })
       setIsOpenPWConfirmModal(false)
-      setIsModifyMember(true)
+      if(openModalTypeRef.current === 'MODIFY') setIsModifyMember(true)
+      if(openModalTypeRef.current === 'DELETE') setIsDeleteMember(true)
       setPasswordConfirm('')
     } else {
       message.error({ title: '비밀번호 확인 에러', msg: '비밀번호 확인에 실패했습니다' })
@@ -284,7 +287,12 @@ const AccountSettings = ({ visible }: {
               hover
               disabled={!(selectUsers.length > 0)}
               onClick={() => {
-                if (selectUsers.length > 0) setIsDeleteMember(true)
+                if (selectUsers.length > 0) {
+                  openModalTypeRef.current = 'DELETE'
+                  setIsOpenPWConfirmModal(true)
+                } 
+                
+                // setIsDeleteMember(true)
               }}
               icon={minusIcon}
               iconStyle={{ width: '15px', height: '15px' }}
@@ -368,6 +376,7 @@ const AccountSettings = ({ visible }: {
                           e.stopPropagation()
                           // setIsModifyMember(true);
                           setIsOpenPWConfirmModal(true)
+                          openModalTypeRef.current = 'MODIFY'
                           setModifySelectMember({
                             id: data.id,
                             username: data.username,
@@ -409,6 +418,7 @@ const AccountSettings = ({ visible }: {
           setIsModifyMember(false)
           setModifySelectMember(modifySelectMemberInit)
           setSearchInputValue('')
+          openModalTypeRef.current = ''
         }}
       />
       <Modal
@@ -416,6 +426,7 @@ const AccountSettings = ({ visible }: {
         visible={isOpenPWConfirmModal}
         close={() => {
           setIsOpenPWConfirmModal(false)
+          openModalTypeRef.current = ''
         }}
         complete={PasswordConfirmFun}
       >
@@ -431,6 +442,7 @@ const AccountSettings = ({ visible }: {
         close={() => {
           setIsDeleteMember(false)
           setSearchInputValue('')
+          openModalTypeRef.current = ''
         }}
         title="사용자 삭제"
         noFooter={true}
@@ -449,6 +461,7 @@ const AccountSettings = ({ visible }: {
               hover
               onClick={() => {
                 setIsDeleteMember(false)
+                openModalTypeRef.current = ''
               }}
             >
               취소
