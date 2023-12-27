@@ -78,7 +78,8 @@ const ContentsWrapper = () => {
     const disableCompleteBtn = (): boolean => {
         switch (routeInfo.at(-1)) {
             case ReIDConditionFormRoute.key:
-                if (targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
+                // if (targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0) || progressStatus.status === PROGRESS_STATUS['RUNNING']) return true
+                if (targets.length === 0 || cctv.length === 0 || (isRealTime ? false : time.length === 0)) return true
                 return false;
             case ReIDConditionTargetSelectCCTVRoute.key:
                 return targetDatasCCTVTemp.filter(_ => _.selected).length === 0
@@ -104,7 +105,7 @@ const ContentsWrapper = () => {
                 if (cctv.filter(_ => _.selected).length === 0) return message.error({ title: "입력값 에러", msg: "CCTV 그룹을 1대 이상 선택해주세요." })
                 if (filteredTarget.some(_ => filteredTarget.find(__ => __.type !== _.type))) return message.error({ title: "입력값 에러", msg: `여러 타입의 대상을 선택하셨습니다.\n하나의 타입만 선택해주세요.\n선택된 타입 : ${targets.map(_ => ReIDObjectTypes.find(__ => __.key === _.type)?.title).deduplication().join(',')}` })
                 if (isRealTime) {
-                    if (rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
+                    // if (rtStatus === PROGRESS_STATUS['RUNNING']) return message.error({ title: '입력값 에러', msg: '이미 실시간 분석을 사용 중입니다.' })
                     if (filteredTarget.length > 1) {
                         return message.error({ title: '입력값 에러', msg: '여러 대상이 선택되었습니다.\n한 대상만 선택해주세요.' })
                     }
@@ -131,7 +132,7 @@ const ContentsWrapper = () => {
                     })
                 } else {
                     if (time.filter(_ => _.selected).length === 0) return message.error({ title: "입력값 에러", msg: "시간 그룹을 1개 이상 선택해주세요." })
-                    if (progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({ title: "입력값 에러", msg: "이미 고속분석 요청이 진행 중입니다." })
+                    // if (progressStatus.status === PROGRESS_STATUS['RUNNING']) message.error({ title: "입력값 에러", msg: "이미 고속분석 요청이 진행 중입니다." })
                     setRequestFlag(true)
                     setProgressRequestParams({
                         type: 'REID',
