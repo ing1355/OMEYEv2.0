@@ -277,7 +277,9 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
     
     useEffect(() => {
         if (selectedView[0] === reIdId) {
-            setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
+            if(data?.data[selectedCondition]) {
+                setSelectedTarget((data?.data[selectedCondition] && data?.data[selectedCondition].resultList && data?.data[selectedCondition].resultList[0] && data?.data[selectedCondition].resultList[0].objectId) || 0)
+            }
         }
     }, [selectedView, selectedCondition])
     
