@@ -127,11 +127,11 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, l
         }
     }, [defaultValue])
 
-    useEffect(() => {
-        if (startDate && endDate) {
-            if (startDate > endDate) setEndDate(null)
-        }
-    }, [startDate, endDate])
+    // useEffect(() => {
+    //     if (startDate && endDate) {
+    //         if (startDate > endDate) setEndDate(null)
+    //     }
+    // }, [startDate, endDate])
 
     const completeCallback = () => {
         if (!startDate) {
@@ -155,21 +155,37 @@ const TimeModal = ({ defaultValue, onChange, title, visible, noEndTime, close, l
                 return true
             }
             let isOver = false;
-            if (startDate > endDate) {
+            const startTemp = new Date()
+            const endTemp = new Date()
+            startTemp.setFullYear(startDate.getFullYear())
+            startTemp.setMonth(startDate.getMonth())
+            startTemp.setDate(startDate.getDate())
+            startTemp.setHours(Number(startHour))
+            startTemp.setMinutes(Number(startMinute))
+            startTemp.setSeconds(Number(startSecond))
+            endTemp.setFullYear(endDate.getFullYear())
+            endTemp.setMonth(endDate.getMonth())
+            endTemp.setDate(endDate.getDate())
+            endTemp.setHours(Number(endHour))
+            endTemp.setMinutes(Number(endMinute))
+            endTemp.setSeconds(Number(endSecond))
+            if (startTemp > endTemp) {
+            // if (startDate > endDate) {
                 isOver = true
             } else if (startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth() && startDate.getDate() === endDate.getDate()) {
-                const startTemp = new Date()
-                const endTemp = new Date()
-                startTemp.setHours(Number(startHour))
-                startTemp.setMinutes(Number(startMinute))
-                startTemp.setSeconds(Number(startSecond))
-                endTemp.setHours(Number(endHour))
-                endTemp.setMinutes(Number(endMinute))
-                endTemp.setSeconds(Number(endSecond))
+                // const startTemp = new Date()
+                // const endTemp = new Date()
+                // startTemp.setHours(Number(startHour))
+                // startTemp.setMinutes(Number(startMinute))
+                // startTemp.setSeconds(Number(startSecond))
+                // endTemp.setHours(Number(endHour))
+                // endTemp.setMinutes(Number(endMinute))
+                // endTemp.setSeconds(Number(endSecond))
                 if (startTemp > endTemp || startTemp.getTime() === endTemp.getTime()) isOver = true
             }
             if (isOver) {
                 message.preset('WRONG_PARAMETER', '시작 시간은 종료 시간보다 앞서야 합니다.')
+                isOver = false
                 return true
             }
             if (onChange) {
