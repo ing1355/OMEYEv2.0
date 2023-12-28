@@ -283,13 +283,13 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
     return data ? <Container visible={visible}>
         <ConditionsContainer>
             <ConditionsInnerContainer>
-                {data.data.map((_, ind, arr) => <ConditionItem
+                {data && data.data.map((_, ind, arr) => <ConditionItem
                     subIcon={<ReIdStatusIcon
                         // isLoading={(globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING']) && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) && Math.floor(getConditionPercent(progressData[requestParams.type === 'ADDITIONALREID' ? 0 : ind].times)) !== 0}
-                            isLoading={globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length}
+                            isLoading={globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length && progressStatus.status !== 'CANCELD'}
                         >
                         {/* <img src={globalCurrentReIdId === data.reIdId && progressStatus.status === PROGRESS_STATUS['RUNNING'] && (requestParams.type === 'ADDITIONALREID' ? (arr.length - 1 === selectedCondition) : true) ? reidLoadingIcon : reidCompleteIcon} /> */}
-                        <img src={(globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length) ? reidLoadingIcon : reidCompleteIcon} />
+                        <img src={(globalCurrentReIdId === data.reIdId && loading[ind] && arr.length === loading.length && progressStatus.status !== 'CANCELD') ? reidLoadingIcon : reidCompleteIcon} />
                     </ReIdStatusIcon>}
                     icon={ReIDObjectTypeEmptyIcons[ReIDObjectTypeKeys.findIndex(__ => __ === _.resultList[0].objectType)]}
                     iconStyle={{
@@ -305,7 +305,7 @@ const ResultContainer = ({ reIdId, visible }: ResultcontainerProps) => {
                 </ConditionItem>)}
             </ConditionsInnerContainer>
         </ConditionsContainer>
-        {data.data.map((_, ind) => <ResultListContainer key={ind} visible={selectedCondition === ind}>
+        {data && data.data.map((_, ind) => <ResultListContainer key={ind} visible={selectedCondition === ind}>
             <TargetsContainer>
                 {
                     _.resultList.map((_, ind) => <TargetContainer key={ind} selected={selectedTarget === _.objectId}>
