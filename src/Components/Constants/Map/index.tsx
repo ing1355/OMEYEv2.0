@@ -441,7 +441,8 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                                         // if (map.current!.getFeaturesInCircle().length === 0) return message.error({ title: '입력값 에러', msg: '해당 반경 안에 CCTV가 존재하지 않습니다.' })
                                         // if (!r) return message.error({ title: '입력값 에러', msg: '반경을 입력해주세요.' })
                                         if (!timeValue || (timeValue && !timeValue.endTime)) return message.error({ title: '입력값 에러', msg: '시간이 설정되지 않았습니다.' });
-                                        // if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' });
+                                        // if (progressStatus.status === PROGRESS_STATUS['RUNNING']) return message.error({ title: '분석 요청 에러', msg: '이미 진행중인 요청이 존재합니다.' })
+                                        if (selectedAddtionalCCTVs.length < 1) return message.error({ title: '입력값 에러', msg: 'CCTV 그룹을 1대 이상 선택해주세요.' });
                                         closeOverlayWrapper()
                                         setRequestFlag(true)
                                         setProgressRequestParams({
