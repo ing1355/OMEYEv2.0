@@ -316,9 +316,10 @@ const RealTimeReID = () => {
 
     useEffect(() => {
         if (globalEvent.key === 'RealTimeStack') {
-            setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
+            // setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
             stackToManagement()
         } else if (globalEvent.key === 'RealTimeStart') {
+            setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
             RealTimeSseSetting()
         }
     }, [globalEvent])
