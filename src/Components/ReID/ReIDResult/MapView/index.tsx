@@ -62,7 +62,7 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
         <CCTVImgContainer>
             <CCTVImg src={isStart ? CCTVStartIcon : (isEnd ? CCTVEndIcon : CCTVIcon)} />
         </CCTVImgContainer>
-        <ResultBoxMiddleContainer selected={detailResult ? detailResult[0].resultId === _.resultId : false}>
+        <ResultBoxMiddleContainer selected={detailResult ? detailResult[0].resultId === _.resultId : filteredSelectedData && filteredSelectedData[0] ? filteredSelectedData[0].resultId === _.resultId : false}>
             <CCTVName>
                 <CCTVNameById cctvId={_.cctvId!} />
             </CCTVName>
@@ -106,13 +106,15 @@ const MapView = ({ opened, reIdId }: MapViewProps) => {
             <ShowContainer>
                 <TargetContainer>
                     <TargetMediaContainer>
-                        <ImageView src={detailResult ? detailResult[0].imgUrl : undefined} style={{
-                            width: detailResult ? '100%' : '50%',
-                            height: detailResult ? '100%' : '50%'
+                        <ImageView src={detailResult ? detailResult[0].imgUrl : filteredSelectedData && filteredSelectedData[0] ? filteredSelectedData[0].imgUrl : undefined} style={{
+                            // width: detailResult ? '100%' : '50%',
+                            // height: detailResult ? '100%' : '50%'
+                            width: detailResult || (filteredSelectedData && filteredSelectedData[0]) ? '100%' : '50%',
+                            height: detailResult || (filteredSelectedData && filteredSelectedData[0]) ? '100%' : '50%'
                         }} />
                     </TargetMediaContainer>
                     <TargetMediaContainer>
-                        <Video src={detailResult ? detailResult[0].searchCameraUrl : undefined} />
+                        <Video src={detailResult ? detailResult[0].searchCameraUrl : filteredSelectedData && filteredSelectedData[0] ? filteredSelectedData[0].searchCameraUrl : undefined} />
                     </TargetMediaContainer>
                 </TargetContainer>
                 <ResultsContainer>
