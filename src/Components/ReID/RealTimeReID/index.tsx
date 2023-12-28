@@ -13,7 +13,7 @@ import Video from "../../Constants/Video"
 import ImageView from "../Condition/Constants/ImageView"
 import MapComponent from "../../Constants/Map"
 import useMessage from "../../../Hooks/useMessage"
-import { CustomEventSource } from "../../../Constants/GlobalConstantsValues"
+import { CustomEventSource, ReIdMenuKey } from "../../../Constants/GlobalConstantsValues"
 import { PROGRESS_STATUS, SSEResponseMsgTypeKeys, SSEResponseMsgTypes, SSEResponseStatusType } from "../../../Model/ProgressModel"
 import { ObjectTypes, ReIDMenuKeys, ReIDObjectTypes } from "../ConstantsValues"
 import Slider from "../../Constants/Slider"
@@ -25,6 +25,7 @@ import useServerConnection from "../../../Hooks/useServerConnection"
 import { GlobalEvents } from "../../../Model/GlobalEventsModel"
 import { conditionMenu } from "../../../Model/ConditionMenuModel"
 import { currentManagementId } from "../../../Model/ServerManagementModel"
+import { menuState } from "../../../Model/MenuModel"
 
 const imageBoxHeight = 200
 const maxItemNum = 50
@@ -130,6 +131,7 @@ const RealTimeReID = () => {
     const accuracyRef = useRef(rtData.threshHold)
     const changeTimer = useRef<NodeJS.Timer>()
     const managementIdRef = useRef(managementId)
+    const setGlobalMenu = useSetRecoilState(menuState)
     const { healthCheckClear, healthCheckTimerRegister } = useServerConnection()
 
     const cancelFunc = useCallback(() => {
@@ -319,6 +321,7 @@ const RealTimeReID = () => {
             // setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
             stackToManagement()
         } else if (globalEvent.key === 'RealTimeStart') {
+            setGlobalMenu(ReIdMenuKey)
             setCurrentMenu(ReIDMenuKeys['REALTIMEREID'])
             RealTimeSseSetting()
         }
