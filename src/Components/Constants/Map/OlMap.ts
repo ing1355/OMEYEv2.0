@@ -162,7 +162,7 @@ function markerStyle(features: FeatureLike) {
                     break;
                 default: break;
             }
-            if(isAdditional) imgByType = additionalCCTVIcon
+            if(isAdditional && type !== 3 && type !== 4) imgByType = additionalCCTVIcon
             
             return new Style({
                 zIndex: 2,
