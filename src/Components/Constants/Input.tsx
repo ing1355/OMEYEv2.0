@@ -29,6 +29,7 @@ type InputProps = {
     enableAsterisk?: boolean
     maxNumber?: number
     canEmpty?: boolean
+    enableDot?: boolean
 }
 
 const _Input = (props?: InputProps) => {
@@ -112,8 +113,15 @@ const _Input = (props?: InputProps) => {
             onInput={e => {
                 if (props?.onlyNumber) {
                     if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\*]/g, '').replace(/(\..*)\./g, '$1')
-                    else {
+                    else if (props.enableDot) {
                         let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
+                        if (props.maxNumber) {
+                            if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
+                        }
+                        // if(temp.length === 0) temp = '0'
+                        e.currentTarget.value = temp
+                    } else {
+                        let temp = e.currentTarget.value.replace(/[^0-9]/g, '')
                         if (props.maxNumber) {
                             if (Number(temp) > props.maxNumber) temp = props.maxNumber.toString()
                         }

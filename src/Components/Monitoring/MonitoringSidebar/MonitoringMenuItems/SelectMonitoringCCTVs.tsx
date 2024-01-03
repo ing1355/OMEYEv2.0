@@ -33,7 +33,7 @@ const SelectMonitoringCCTVs = ({ index }: {
             CCTV
         </MonitoringSidebarButton>
         <ListContainer index={index} visible={visible === 'CCTVs'} setVisible={v => {
-            setVisible(v ? 'CCTVs' : undefined)
+            // setVisible(v ? 'CCTVs' : undefined)
         }} otherRef={otherRef}>
             <InnerContainer>
                 <TreeAndMapComponent selectedCCTVs={(selectedCCTVs as MonitoringDataType['cctvs']).filter(_ => _.cctvId).map(_ => _.cctvId!)} setSelectedCCTVs={(cctvs) => {

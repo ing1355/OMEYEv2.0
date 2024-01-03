@@ -163,7 +163,7 @@ const Login = () => {
                         </div>
                         <Input value={initPassword} onChange={value => {
                             setInitPassword(value)
-                        }} maxLength={6} onlyNumber />
+                        }} maxLength={6} onlyNumber/>
                     </PasswordInitRowTitle>
                 </PasswordInitRow>
                 <InitButtonsContainer>

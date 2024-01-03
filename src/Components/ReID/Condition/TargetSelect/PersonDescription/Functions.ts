@@ -9,7 +9,6 @@ export const createValueChangedDescription = <
   subKey: SubKey,
   value: descriptionDataType[MainKey][SubKey],
 ) => {
-  console.log(mainKey,subKey,value)
   let outerColor = original.outer.color
   let innerColor = original.inner.color
   let bottomColor = original.bottom.color

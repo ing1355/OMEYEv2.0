@@ -162,6 +162,7 @@ const VMSSettings = ({visible}: {
               onClick={GetVmsInfoFun}
               icon={searchIcon}
               iconStyle={{width: '15px', height: '15px'}}
+              disabled={!selectedSiteName}
             >
               조회
             </VMSButton>
