@@ -23,6 +23,7 @@ function arrayDistinct<T>(list: T[]): T[] {
     return result;
 }
 
+// 중복 제거
 if (!Array.prototype.deduplication) {
     Array.prototype.deduplication = function <T>(func?: (data1: T, data2: T) => boolean) {
         return func ? this.filter((v, i) => this.findIndex(_ => func(v, _)) === i) : arrayDistinct(this)

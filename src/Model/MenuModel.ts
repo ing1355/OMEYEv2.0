@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import { atom, selector } from "recoil";
 import { AreaAnalyzeMenuKey, IS_PRODUCTION, MenuKeys, MonitoringMenuKey, ReIdMenuKey, SettingsMenuKey, VideoExportMenuKey } from "../Constants/GlobalConstantsValues";
 
 export const menuState = atom<MenuKeys>({

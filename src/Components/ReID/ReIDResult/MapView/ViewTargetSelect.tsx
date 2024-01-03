@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import Button from "../../../Constants/Button"
 import { IS_PRODUCTION } from "../../../../Constants/GlobalConstantsValues"
 import pathToggleIcon from '../../../../assets/img/pathToggleIcon.png'
+import { useRecoilState } from "recoil"
+import { ReIDAllResultData } from "../../../../Model/ReIdResultModel"
 
 type ViewTargetSelectProps = {
     datas: {
@@ -24,6 +26,17 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
     const conditionRef = useRef(selectedCondition)
     const targetRef = useRef(selectedTarget)
     const datasRef = useRef(datas)
+    // const [resultDatas, setResultDatas] = useRecoilState(ReIDAllResultData)
+// console.log('datas',datas)
+// console.log('datasRef.current', datasRef.current)
+// console.log('reda', resultDatas)
+// console.log('selectedCondition',selectedCondition)
+// console.log('selectedTarget',selectedTarget)
+// console.log('selectedView',selectedView)
+
+    useEffect(() => {
+        setSelectedView(0)
+    }, [datas])
 
     useEffect(() => {
         if (datas.length > 0) {
@@ -35,6 +48,7 @@ const ViewTargetSelect = ({ datas, conditionChange, targetChange, opened }: View
             setSelectedTarget(datas.map((_,ind) => ind === 0 ? [datas[0].objectIds[0]] : []))
         } else {
             setSelectedTarget(datas.map((_, ind) => selectedTarget[ind] || []))
+            // setSelectedTarget(datas.map((_,ind) => ind === 0 ? [datas[0].objectIds[0]] : []))
         }
         datasRef.current = datas
     }, [datas])

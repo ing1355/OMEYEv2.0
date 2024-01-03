@@ -11,6 +11,7 @@ import { UserDataType } from "../Components/Settings/AccountSettings";
 
 type AxiosMethodType = "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
 
+// 안봐도 됨
 export const getLocalIp = async (url: string) => {
     const conn = new RTCPeerConnection()
     conn.createDataChannel('')

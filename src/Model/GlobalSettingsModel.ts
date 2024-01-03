@@ -10,6 +10,7 @@ export type GlobalSettingType = {
     maxStoredDay: number
 }
 
+// 날짜 형태 수정 요청
 const getMaxStoredDay = selector<number>({
     key: 'maxStoredDay/selector',
     get: async () => {

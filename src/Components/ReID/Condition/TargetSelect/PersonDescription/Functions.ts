@@ -9,11 +9,29 @@ export const createValueChangedDescription = <
   subKey: SubKey,
   value: descriptionDataType[MainKey][SubKey],
 ) => {
-  return {
-    ...original,
-    [mainKey]: {
-      ...original[mainKey],
-      [subKey]: value
+  console.log(mainKey,subKey,value)
+  let outerColor = original.outer.color
+  let innerColor = original.inner.color
+  let bottomColor = original.bottom.color
+
+  let colorTemp = mainKey === 'outer' ? outerColor : mainKey === 'inner' ? innerColor : mainKey === 'bottom' ? bottomColor : []
+
+  if(subKey === 'pattern' && !(value === 'colorblocking' || value === 'pattern')) {
+    return {
+      ...original,
+      [mainKey]: {
+        ...original[mainKey],
+        [subKey]: value,
+        color: [colorTemp[0]]
+      }
+    }
+  } else {
+    return {
+      ...original,
+      [mainKey]: {
+        ...original[mainKey],
+        [subKey]: value
+      }
     }
   }
 };

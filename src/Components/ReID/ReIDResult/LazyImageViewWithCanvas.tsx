@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import NoImage from '../../../assets/img/logo.png';
 import ImageView from '../Condition/Constants/ImageView';
-import { GetCoordByUrl } from '../../../Functions/GlobalFunctions';
 
 type ILazyImage = {
     src: string;

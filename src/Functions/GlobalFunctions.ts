@@ -6,6 +6,7 @@ import { ConditionDataTargetSelectMethodTypeKeys, ConditionDataTargetSelectMetho
 import { toPng } from "html-to-image";
 import { ServerObjectDataType } from "./NetworkFunctions";
 import jwtDecode from "jwt-decode"
+import { roleType } from "../Model/AccountDataModel";
 
 function arrayDistinct(list: any[]):any[] {
     const result = [];
@@ -131,25 +132,11 @@ export function MakeVMSCameraSitesForTreeView(sitesData: SiteDataType[]): SiteDa
         })
 }
 
-export function VMSTest(sitesData: SiteDataType[]): SiteDataType[] {
-    let temp: SiteDataType[] = []
-    const firstDepthSites = sitesData.filter(_ => !_.siteName.includes('/'))
-    firstDepthSites.forEach(_ => {
-        temp.push(_)
-    })
-    const hasDepthSites = sitesData.filter(_ => _.siteName.includes('/'))
-    hasDepthSites.forEach(_ => {
-        const target = temp.find(__ => __.siteName === _.siteName.split('/')[0])
-        if (target && !target?.sites) target.sites = []
-
-    })
-    return firstDepthSites
-}
-
 export const ConvertWebImageSrcToServerBase64ImageSrc = (src: string): string => {
     return src.substring(src.indexOf(",") + 1)
 }
 
+// 분석 로그 > 검색 조건으로 가져오기
 export const convertFromServerToClientFormatObjectData = (a: ServerObjectDataType): CaptureResultListItemType => {
     const {cctvId, accuracy, id, image, type, attribution, method, detectTime, isMask, ocr, isAutoCapture} = a
     const temp: CaptureResultListItemType = {
@@ -168,6 +155,7 @@ export const convertFromServerToClientFormatObjectData = (a: ServerObjectDataTyp
     return temp
 }
 
+// 검색 조건 설정 > 바로 분석 요청
 export const convertFromClientToServerFormatObjectData = (a: CaptureResultListItemType): ServerObjectDataType => {
     const {cctvId, objectId, accuracy, src, type, description, method, time, mask, ocr, isAutoCapture} = a
     const temp: ServerObjectDataType = {
@@ -186,6 +174,7 @@ export const convertFromClientToServerFormatObjectData = (a: CaptureResultListIt
     return temp
 }
 
+// 분석 로그 > 데이터 다운로드
 export const ReIDLogDataSaveToJSON = async (data: ReIDRequestGroupDataType, isLive: boolean) => {
     const isRealTime = isLive
     let _: ConditionDataType = {
@@ -206,6 +195,7 @@ export const ReIDLogDataSaveToJSON = async (data: ReIDRequestGroupDataType, isLi
     DownloadSingleConditionJsonData(_, isRealTime ? '실시간 분석' : data.title)
 }
 
+// 검색 조건 설정 > 가져오기
 export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDataType) => void, errCallback?: (error: unknown) => void) {
     const upload = document.createElement('input')
     upload.type = "file"
@@ -234,6 +224,7 @@ export function UploadSingleConditionJsonData(callback?: (jsonData: ConditionDat
     upload.click()
 }
 
+// 검색 조건 설정 > 내보내기
 export function DownloadSingleConditionJsonData(data: ConditionDataType, title: string) {
     let output = JSON.stringify(data, null, 4);
     const blob = new Blob([output]);
@@ -247,20 +238,7 @@ export function DownloadSingleConditionJsonData(data: ConditionDataType, title: 
     URL.revokeObjectURL(fileDownlaoadUrl);
 }
 
-export function DownloadMultiConditionJsonData(data: SavedJSONType) {
-    let output = JSON.stringify(data, null, 4);
-    const blob = new Blob([output]);
-    const fileDownlaoadUrl = URL.createObjectURL(blob);
-    const downloadLink = document.createElement('a');
-    downloadLink.target = "_self";
-    downloadLink.href = fileDownlaoadUrl;
-    downloadLink.download = convertFullTimeString(new Date()) + '.json';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    URL.revokeObjectURL(fileDownlaoadUrl);
-}
-
+// 시간 앞에 0 붙이기
 export function AddZeroFunc(num: number | string) {
     let temp = num as number
     if (typeof num === 'string') {
@@ -273,15 +251,18 @@ export function AddZeroFunc(num: number | string) {
     }
 }
 
+// Date 객체를 'YYYYMMDDHHmmss' 형태로 변경
 export function convertFullTimeString(now: Date) {
     return '' + now.getFullYear() + AddZeroFunc(now.getMonth() + 1) + AddZeroFunc(now.getDate()) +
         AddZeroFunc(now.getHours()) + AddZeroFunc(now.getMinutes()) + AddZeroFunc(now.getSeconds())
 }
 
+// Date 객체를 'YYYYMMDD' 형태로 변경
 export function convertFullDatestring(now: Date) {
     return '' + now.getFullYear() + AddZeroFunc(now.getMonth() + 1) + AddZeroFunc(now.getDate())
 }
 
+// YYYYMMDDHHmmss 형태를 YYYY:MM:DD HH:mm:ss 형태로 변경
 export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorStr?: string, isHalf?: boolean) => {
     if(!time) return ""
     const year = time.slice(0, 4)
@@ -295,10 +276,12 @@ export const convertFullTimeStringToHumanTimeFormat = (time: string, separatorSt
     return `${year}-${month}-${day}${separator}${hour}:${minute}:${second}`
 }
 
+// Date 객체를 YYYY:MM:DD HH:mm:ss 형태로 변경
 export const convertFullTimeStringToHumanTimeFormatByDate = (date: Date) => {
     return convertFullTimeStringToHumanTimeFormat(convertFullTimeString(date))
 }
 
+// 분석 로그 > 소요 시간
 export function getTimeDifference(startTime: string, endTime: string): string {
     const start = new Date(convertFullTimeStringToHumanTimeFormat(startTime));
     const end = new Date(convertFullTimeStringToHumanTimeFormat(endTime));
@@ -318,10 +301,7 @@ export function getTimeDifference(startTime: string, endTime: string): string {
     return _;
 }
 
-export const GetCoordByUrl = (url: string): Array<any> => {
-    return url.match(/_\d{1,4}_\d{1,4}_\d{1,4}_\d{1,4}/g)![0].slice(1,).split('_') || []
-}
-
+// 실시간 분석 현황 퍼센트 색상
 export function getColorByScore(score: number) {
     let score_ = (typeof score !== 'number' ? score * 1 : score);
     if (score_ >= 90) {
@@ -335,10 +315,12 @@ export function getColorByScore(score: number) {
     }
 }
 
+// Data 객체의 차이
 export function distanceDaysTwoDate(d1: Date, d2: Date) {
     return Math.abs(d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24)
 }
 
+// 검색 조건 설정 > 대상 추가 > 대상 추가 방법
 export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys) => {
     switch (key) {
         case ConditionDataTargetSelectMethodTypeKeys[ConditionDataTargetSelectMethodTypes['CCTV']]:
@@ -357,6 +339,7 @@ export const getMethodNameByKey = (key: ConditionDataTargetSelectMethodTypeKeys)
     }
 }
 
+// 파일 다운로드
 export const FileDownloadByUrl = (url: string, fileName?: string) => {
     const aTag = document.createElement("a");
     aTag.target = "_self"
@@ -368,6 +351,7 @@ export const FileDownloadByUrl = (url: string, fileName?: string) => {
     aTag.remove();
 }
 
+// 비디오 다운로드
 export const videoDownloadByPath = (path: string, fileName: string) => {
     fetch(path).then(res => res.blob()).then(file => {
         let tempUrl = URL.createObjectURL(file);
@@ -376,10 +360,12 @@ export const videoDownloadByPath = (path: string, fileName: string) => {
     })
 }
 
+// 검색 조건 설정 > 대상 추가 > 인상착의 > 인상착의 이미지 가져오기
 export const DivToImg = async (div: HTMLDivElement) => {
     return toPng(div)
 }
 
+// 우측 상단 진행 현황 & 영상 반출 시간 경과 표시
 export const getLoadingTimeString = (time: number) => {
     const hour = Math.floor(time / 3600)
     const minute = Math.floor(time / 60) % 60
@@ -391,9 +377,9 @@ export const getLoadingTimeString = (time: number) => {
     return str
 }
 
-export const ObjectKeyMaps = (obj: Object) => {
-    return Object.keys(obj).map
-}
+// export const ObjectKeyMaps = (obj: Object) => {
+//     return Object.keys(obj).map
+// }
 
 export const OnlyInputNumberFun = (e: string) => {
     const inputValue = e;
@@ -420,7 +406,7 @@ export const decodedJwtToken = (token: string) => {
             isLock: boolean
             name: string
             phoneNumber: string
-            role: 'USER' | 'ADMIN' | 'DEVELOPER'
+            role: roleType
             username: string
         }
     }
