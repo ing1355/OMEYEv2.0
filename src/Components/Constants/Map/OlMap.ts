@@ -387,7 +387,7 @@ export class OlMap extends CustomMap<Map> {
         this.map.set(selectedMarkerDataKey, [])
         this.map.set(selectedMarkerTempDataKey, [])
         this.map.set(additionalMarkerTempDataKey, [])
-        this.map.set(mapStateKey, mapState['NORMAL'])
+        this.map.set(mapStateKey, forAddTraffic ? mapState['COMPLETE'] : mapState['NORMAL'])
         this.map.getView().on('change:resolution', () => {
             this.CL.setDistance(clsuterDistanceByZoomLv(this.map.getView().getZoom() as number))
         })
@@ -473,6 +473,7 @@ export class OlMap extends CustomMap<Map> {
                         // this.dispatchDuplicatedMarkerChangeEvent(features.map(_ => _.getId()) as CameraDataType['cameraId'][])
                     }
                 } else if (features || feature) {
+                    console.debug(feature, features, this.map.get(mapStateKey))
                     let _feature: Feature<Geometry>
                     if (feature && feature.getId()) _feature = feature
                     else if (features && features.length > 0) _feature = features[0]
@@ -494,6 +495,7 @@ export class OlMap extends CustomMap<Map> {
                             this.dispatchSelectedMarkerChangeEvent(temp)
                             break;
                         case mapState['COMPLETE']:
+                            console.debug('not here??')
                             const geom = feature.getGeometry()
                             this.trafficInputOverlay?.setPosition((geom as Point).getCoordinates())
                             this.circleFeature.setGeometry(geom)
@@ -666,7 +668,6 @@ export class OlMap extends CustomMap<Map> {
                 this.pathVS.getFeatureById(newFeature.getId()!)?.set("type", 3)
             }
         }
-        this.map.set(mapStateKey, mapState['COMPLETE'])
         this.map.removeInteraction(this.dragBox)
         // this.pathVL.setOpacity(1)
     }

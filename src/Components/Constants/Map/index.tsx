@@ -26,6 +26,7 @@ import timeIcon from '../../../assets/img/ProgressTimeIcon.png'
 import CollapseArrow from "../CollapseArrow";
 import downArrowIcon from "../../../assets/img/downArrowIcon.png";
 import AreaSelect from "../../ReID/Condition/Constants/AreaSelect";
+import PDFExport from "./PDFExport";
 
 type MapComponentProps = PropsWithChildren & {
     selectedCCTVs?: CameraDataType['cameraId'][]
@@ -323,6 +324,7 @@ const MapComponent = ({ selectedChange, selectedCCTVs, pathCameras, idForViewCha
                     height: '100%'
                 }} />
             </SelectedViewBtn>
+            {forAddtraffic && <PDFExport/>}
             {onlyMap && <CCTVDropdownSearch onChange={(target) => {
                 if (map.current) map.current.viewChangeById(target.cameraId)
             }} />}

@@ -37,21 +37,21 @@ const Main = () => {
     const message = useMessage()
 
     useLayoutEffect(() => {
-        if(IS_PRODUCTION) {
+        if (IS_PRODUCTION) { // 새로고침 막기
             window.addEventListener('beforeunload', e => {
-              e.preventDefault()
-              e.returnValue = ''
-              refreshFunction()
+                e.preventDefault()
+                e.returnValue = ''
+                refreshFunction()
             })
-          } else {
+        } else {
             window.addEventListener('beforeunload', e => {
-              // e.preventDefault()
-              // e.returnValue = ''
-              refreshFunction()
+                // e.preventDefault()
+                // e.returnValue = ''
+                refreshFunction()
             })
-          }
+        }
         Axios('POST', AliveApi).then(_ => {
-            if(_) {
+            if (_) {
                 setIsAlive(true)
                 GetProfileData().then(res => {
                     setProfile({
@@ -66,11 +66,22 @@ const Main = () => {
                     })
                 })
             } else {
-                message.error({title: "입력값 에러", msg: "로그인 세션이 만료되었습니다.\n다시 로그인해주세요."})
+                message.error({ title: "입력값 에러", msg: "로그인 세션이 만료되었습니다.\n다시 로그인해주세요." })
                 setIsLogin(null)
             }
         })
     }, [])
+
+    useEffect(() => { // 뒤로가기 막기
+        const preventGoBack = () => {
+            window.history.pushState(null, '', window.location.href);
+        };
+
+        window.history.pushState(null, '', window.location.href);
+        window.addEventListener('popstate', preventGoBack);
+
+        return () => window.removeEventListener('popstate', preventGoBack);
+    }, []);
 
     useEffect(() => {
         if (sitesState.state === 'IDLE' && vmsStoredTime.state === 'hasValue' && isAlive && profile.state == 'IDLE') {
@@ -83,7 +94,7 @@ const Main = () => {
 
     return <>
         {!isComplete && <LoadingComponent />}
-        {!isLoading && <Menus/>}
+        {!isLoading && <Menus />}
     </>
 }
 

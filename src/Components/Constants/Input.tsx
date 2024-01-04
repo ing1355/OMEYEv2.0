@@ -112,6 +112,7 @@ const _Input = (props?: InputProps) => {
             }}
             onInput={e => {
                 if (props?.onlyNumber) {
+                    console.debug("test1 : ", e.currentTarget.value)
                     if (props?.enableAsterisk) e.currentTarget.value = e.currentTarget.value.replace(/[^0-9\*]/g, '').replace(/(\..*)\./g, '$1')
                     else if (props.enableDot) {
                         let temp = e.currentTarget.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1')
@@ -128,6 +129,7 @@ const _Input = (props?: InputProps) => {
                         // if(temp.length === 0) temp = '0'
                         e.currentTarget.value = temp
                     }
+                    console.debug("test2 : ", e.currentTarget.value)
                 }
                 if (props?.onInput) {
                     props.onInput(e)
